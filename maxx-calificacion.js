@@ -1069,6 +1069,12 @@ function maxxCargarConfig(url, timeoutMs) {
     }
   }
 
+  var maxxDebounceTimer = null;
+  function maxxDebounceRevelar() {
+    if (maxxDebounceTimer) clearTimeout(maxxDebounceTimer);
+    maxxDebounceTimer = setTimeout(function() { renderPanel3(true); }, 700);
+  }
+
   function maxxMoneyField(id, dataKey) {
     var input = document.getElementById(id);
     if (!input) return;
@@ -1078,6 +1084,7 @@ function maxxCargarConfig(url, timeoutMs) {
       window.maxxData[dataKey] = num;
       this.value = num ? ('$' + num.toLocaleString('es-MX')) : '';
       maxxCheckSeccion3();
+      maxxDebounceRevelar();
     });
     input.addEventListener('blur', function() { renderPanel3(true); });
   }
@@ -1101,6 +1108,7 @@ function maxxCargarConfig(url, timeoutMs) {
         warnEl.style.display = 'none';
       }
       maxxCheckSeccion3();
+      maxxDebounceRevelar();
     });
     capacidad.addEventListener('blur', function() { renderPanel3(true); });
 
@@ -1117,18 +1125,21 @@ function maxxCargarConfig(url, timeoutMs) {
     if (anios) anios.addEventListener('input', function() {
       window.maxxData.aniosCotizando = parseInt(this.value, 10) || 0;
       maxxCheckSeccion3();
+      maxxDebounceRevelar();
     });
     if (anios) anios.addEventListener('blur', function() { renderPanel3(true); });
     var conyugeAnios = document.getElementById('maxx-conyuge-anios');
     if (conyugeAnios) conyugeAnios.addEventListener('input', function() {
       window.maxxData.conyugeAnios = parseInt(this.value, 10) || 0;
       maxxCheckSeccion3();
+      maxxDebounceRevelar();
     });
     if (conyugeAnios) conyugeAnios.addEventListener('blur', function() { renderPanel3(true); });
     var conyugeEdad = document.getElementById('maxx-conyuge-edad');
     if (conyugeEdad) conyugeEdad.addEventListener('input', function() {
       window.maxxData.conyugeEdadActual = parseInt(this.value, 10) || 0;
       maxxCheckSeccion3();
+      maxxDebounceRevelar();
     });
     if (conyugeEdad) conyugeEdad.addEventListener('blur', function() { renderPanel3(true); });
 
