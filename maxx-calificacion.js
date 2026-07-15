@@ -1,5 +1,4 @@
-
-  // ===== MOTOR DE CALCULO (fusionado) =====
+// ===== MOTOR DE CALCULO (fusionado) =====
 // ============================================================
 // MAXX — Motor de Cálculo: Pensión AFORE (Ley 73 / Ley 97)
 // Traducción fiel del Excel MAXX_Calificacion_MVP.xlsx
@@ -1224,17 +1223,17 @@ function maxxCargarConfig(url, timeoutMs) {
       ? 'hasta los ' + edadCapitalAgotado + ' años de edad'
       : 'durante toda tu esperanza de vida';
     document.getElementById('maxx-panel-5').innerHTML =
-      '<div style="font-size:14px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">SECCIÓN V · RESULTADOS</div>' +
-      '<div style="font-size:11px;color:#5F5E5A;margin-bottom:7px;">Pesos nominales, suma de todos tus años de retiro.</div>' +
-      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#5F5E5A;">Necesidad total</span><span style="font-size:12px;font-weight:700;color:#042C53;">$' + Math.round(r.necesidadTotal).toLocaleString('es-MX') + '</span></div>' +
-      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;color:#5F5E5A;">Tu pensión IMSS/AFORE cubre</span><span style="font-size:12px;font-weight:700;color:#042C53;">$' + Math.round(r.pensionFondeada).toLocaleString('es-MX') + '</span></div>' +
-      '<div style="display:flex;justify-content:space-between;margin-bottom:7px;"><span style="font-size:12px;color:#5F5E5A;">Tu ahorro actual cubre</span><span style="font-size:12px;font-weight:700;color:#042C53;">$' + Math.round(r.ahorroFondeado).toLocaleString('es-MX') + '</span></div>' +
-      '<div style="background:#EAF3DE;border-radius:8px;padding:10px;text-align:center;">' +
-        '<div style="font-size:12px;color:#3B6D11;font-weight:700;margin-bottom:4px;">🎉 Esto es lo que se estima que tus aportaciones acumularán para tu retiro a los ' + r.edadRetiro + ' años de edad</div>' +
-        '<div style="font-size:22px;font-weight:800;color:#3B6D11;line-height:1.1;">$' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</div>' +
-        '<div style="font-size:10px;font-weight:400;color:#5F8A3A;margin-top:1px;">(incluye inflación)</div>' +
-        '<div style="font-size:11px;color:#3B6D11;font-weight:600;margin-top:5px;line-height:1.35;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalPct.toFixed(2) + '% anual. <span style="font-weight:400;">(estimado con S&P500)</span><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
-        '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:7px;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
+      '<div style="font-size:14px;color:#042C53;font-weight:700;margin-bottom:9px;letter-spacing:0.5px;">SECCIÓN V · RESULTADOS</div>' +
+      '<div style="font-size:12px;color:#5F5E5A;margin-bottom:9px;">Pesos nominales, suma de todos tus años de retiro.</div>' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Necesidad total</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.necesidadTotal).toLocaleString('es-MX') + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Tu pensión IMSS/AFORE cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.pensionFondeada).toLocaleString('es-MX') + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="font-size:13px;color:#5F5E5A;">Tu ahorro actual cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.ahorroFondeado).toLocaleString('es-MX') + '</span></div>' +
+      '<div style="background:#EAF3DE;border-radius:10px;padding:16px;text-align:center;">' +
+        '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-bottom:8px;line-height:1.4;">🎉 Esto es lo que se estima que tus aportaciones acumularán para tu retiro a los ' + r.edadRetiro + ' años de edad</div>' +
+        '<div style="font-size:26px;font-weight:800;color:#3B6D11;line-height:1.1;">$' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</div>' +
+        '<div style="font-size:11px;font-weight:400;color:#5F8A3A;margin-top:3px;">(incluye inflación)</div>' +
+        '<div style="font-size:12px;color:#3B6D11;font-weight:600;margin-top:10px;line-height:1.5;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalPct.toFixed(2) + '% anual. <span style="font-weight:400;">(estimado con S&P500)</span><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
+        '<div style="font-size:14px;color:#3B6D11;font-weight:700;margin-top:12px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
       '</div>';
 
     // ---- Seccion V: Como leer tu grafica ----
