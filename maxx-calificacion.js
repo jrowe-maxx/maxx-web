@@ -572,8 +572,9 @@ function maxxCargarConfig(url, timeoutMs) {
     var genero = window.maxxData.genero || 'H';
     var retiro = window.maxxData.edadRetiro || 65;
     var baseAnios = genero === 'H' ? 15.7 : 20.2;
-    var incremento = Math.max(0, 65 - retiro) * 0.95;
-    var aniosRestantes = Math.round((baseAnios + incremento) * 10) / 10;
+    // Simetrico, igual que maxxEsperanzaVida() del motor: retirarte antes de los 65 suma años, despues los resta
+    var incremento = (65 - retiro) * 0.95;
+    var aniosRestantes = Math.max(1, Math.round((baseAnios + incremento) * 10) / 10);
     var edadFinal = Math.round(retiro + aniosRestantes);
     var generoTexto = genero === 'H' ? 'hombre' : 'mujer';
 
@@ -1231,12 +1232,13 @@ function maxxCargarConfig(url, timeoutMs) {
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Necesidad total</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.necesidadTotal).toLocaleString('es-MX') + '</span></div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Tu pensión IMSS/AFORE cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.pensionFondeada).toLocaleString('es-MX') + '</span></div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="font-size:13px;color:#5F5E5A;">Tu ahorro actual cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.ahorroFondeado).toLocaleString('es-MX') + '</span></div>' +
-      '<div style="background:#EAF3DE;border-radius:10px;padding:16px;text-align:center;">' +
-        '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-bottom:8px;line-height:1.4;">🎉 Esto es lo que se estima que tus aportaciones acumularán para tu retiro a los ' + r.edadRetiro + ' años de edad</div>' +
+      '<div style="background:#EAF3DE;border-radius:10px;padding:12px;text-align:center;">' +
+        '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-bottom:6px;line-height:1.4;">🎉 Esto es lo que se estima que tus aportaciones acumularán para tu retiro a los ' + r.edadRetiro + ' años de edad</div>' +
         '<div style="font-size:26px;font-weight:800;color:#3B6D11;line-height:1.1;">$' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</div>' +
-        '<div style="font-size:12px;font-weight:400;color:#5F8A3A;margin-top:3px;">(incluye inflación)</div>' +
-        '<div style="font-size:12px;color:#3B6D11;font-weight:600;margin-top:10px;line-height:1.4;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalPct.toFixed(2) + '% anual. <span style="font-weight:400;">(estimado con S&P500)</span><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
-        '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:12px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
+        '<div style="font-size:12px;font-weight:400;color:#5F8A3A;margin-top:2px;">(incluye inflación)</div>' +
+        '<div style="font-size:12px;color:#3B6D11;font-weight:600;font-style:italic;margin-top:4px;">Este fondo sigue creciendo mientras lo usas — por eso cubre más de lo que parece.</div>' +
+        '<div style="font-size:12px;color:#3B6D11;font-weight:600;margin-top:5px;line-height:1.4;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalPct.toFixed(2) + '% anual. <span style="font-weight:400;">(estimado con S&P500)</span><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
+        '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:6px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
       '</div>';
 
     // ---- Seccion V: Como leer tu grafica ----
@@ -1261,10 +1263,7 @@ function maxxCargarConfig(url, timeoutMs) {
 
     document.getElementById('maxx-panel-cta').innerHTML =
       '<div id="maxx-zona-sorpresa" style="margin-bottom:10px;">' +
-        '<button type="button" id="maxx-toggle-sorpresa" style="width:100%;display:flex;align-items:center;gap:12px;text-align:left;border:2px solid #042C53;background:#E8EEF4;border-radius:10px;padding:12px 14px;cursor:pointer;">' +
-          '<span style="font-size:34px;line-height:1;">🔷</span>' +
-          '<span style="font-size:15px;font-weight:800;color:#042C53;line-height:1.4;">Tengo una <u>sorpresa</u> que te va a encantar... →</span>' +
-        '</button>' +
+        '<button type="button" id="maxx-toggle-sorpresa" style="border:none;background:#E8EEF4;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">🔷 Tengo una <u>sorpresa</u> que te va a encantar... →</button>' +
         '<div id="maxx-cuerpo-sorpresa" style="display:none;background:#fff;border-radius:8px;padding:12px;margin-top:6px;">' +
           '<div style="font-size:12px;color:#3D3B36;line-height:1.4;margin-bottom:8px;">Tu aportación de <strong>$' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes se queda FIJA</strong> — nunca la subes. Como tu sueldo normalmente sí sube con la inflación, con el tiempo te va a doler cada vez menos pagarla:</div>' +
           '<table style="width:100%;border-collapse:collapse;">' +
