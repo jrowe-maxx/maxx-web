@@ -315,7 +315,7 @@ var MAXX_COLORES_GRAFICA = {
   ahorro: '#042C53',
   solucionMaxx: '#EF9F27',
   capitalCombinado: '#639922',
-  pensionAnual: '#993C1D',
+  pensionAnual: '#042C53',
   montoDeseadoAnual: '#888780'
 };
 
@@ -411,8 +411,8 @@ function maxxGenerarSVGGrafica(filasCompletas, opciones) {
   // Linea vertical marcando la esperanza de vida (si cae dentro del rango mostrado)
   if (edadEsperanzaVida !== null && edadEsperanzaVida >= edadMin && edadEsperanzaVida <= edadMax) {
     var xEsp = escalaX(edadEsperanzaVida);
-    svg += '<line x1="' + xEsp.toFixed(1) + '" y1="' + margenSup + '" x2="' + xEsp.toFixed(1) + '" y2="' + (alto - margenInf) + '" stroke="#993C1D" stroke-width="2" stroke-dasharray="5,4" opacity="0.75"/>';
-    svg += '<text x="' + xEsp.toFixed(1) + '" y="' + (margenSup - 8) + '" text-anchor="middle" font-size="22" fill="#993C1D" font-weight="700">Esperanza de vida: ' + Math.round(edadEsperanzaVida) + ' años</text>';
+    svg += '<line x1="' + xEsp.toFixed(1) + '" y1="' + margenSup + '" x2="' + xEsp.toFixed(1) + '" y2="' + (alto - margenInf) + '" stroke="#042C53" stroke-width="2" stroke-dasharray="5,4" opacity="0.75"/>';
+    svg += '<text x="' + xEsp.toFixed(1) + '" y="' + (margenSup - 8) + '" text-anchor="middle" font-size="22" fill="#042C53" font-weight="700">Esperanza de vida: ' + Math.round(edadEsperanzaVida) + ' años</text>';
   }
 
   // Eje X: etiquetas de edad cada 5 anios
@@ -588,8 +588,8 @@ function maxxCargarConfig(url, timeoutMs) {
 
   function maxxSabiasQueHTML(id, resumen, marginTop) {
     return '<div id="maxx-sq-zona-' + id + '" style="margin-top:' + (marginTop || 10) + 'px;">' +
-      '<button type="button" id="maxx-sq-toggle-' + id + '" style="border:none;background:#FAEEDA;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#993C1D;font-size:10px;font-weight:600;cursor:pointer;">💡 ¿Sabías que...? ' + resumen + '</button>' +
-      '<div id="maxx-sq-body-' + id + '" style="display:none;background:#FCEBD9;border-radius:8px;padding:8px 10px;font-size:10px;color:#993C1D;line-height:1.3;margin-top:4px;">' + (id === 'esperanza' ? maxxTextoEsperanza() : MAXX_SABIAS_QUE[id]) + '</div>' +
+      '<button type="button" id="maxx-sq-toggle-' + id + '" style="border:none;background:#FAEEDA;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">💡 ¿Sabías que...? ' + resumen + '</button>' +
+      '<div id="maxx-sq-body-' + id + '" style="display:none;background:#FCEBD9;border-radius:8px;padding:8px 10px;font-size:12px;color:#042C53;line-height:1.4;margin-top:4px;">' + (id === 'esperanza' ? maxxTextoEsperanza() : MAXX_SABIAS_QUE[id]) + '</div>' +
       '</div>';
   }
 
@@ -615,8 +615,8 @@ function maxxCargarConfig(url, timeoutMs) {
   function renderPanel1() {
     var el = document.getElementById('maxx-panel-1');
     el.innerHTML =
-      '<div style="font-size:14px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">SECCIÓN I · TU LIBERTAD ECONÓMICA</div>' +
-      '<div style="font-size:14px;font-weight:500;color:#3B6D11;margin-bottom:7px;line-height:1.25;">Imagina tu retiro: tranquilo, sin preocupaciones.<br>Dinos qué necesitas para lograrlo.</div>' +
+      '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">SECCIÓN I · TU LIBERTAD ECONÓMICA</div>' +
+      '<div style="font-size:13px;font-weight:500;color:#3B6D11;margin-bottom:7px;line-height:1.4;">Imagina tu retiro: tranquilo, sin preocupaciones.<br>Dinos qué necesitas para lograrlo.</div>' +
       '<div style="display:flex;gap:8px;margin-bottom:8px;">' +
         '<div style="flex:1;"><div class="maxx-field-label" style="color:#042C53;">Edad actual</div>' +
           '<input class="maxx-input" type="number" id="maxx-edad" placeholder="Ej. 45" min="18" max="80"></div>' +
@@ -629,8 +629,8 @@ function maxxCargarConfig(url, timeoutMs) {
       '<div style="margin-bottom:8px;">' +
         '<div class="maxx-field-label" style="color:#042C53;">¿A qué edad te retiras? <span id="maxx-retiro-out" style="color:#639922;">65 años</span></div>' +
         '<input type="range" id="maxx-retiro" min="60" max="75" value="65" step="1" style="width:100%;accent-color:#EF9F27;">' +
-        '<div id="maxx-anios-restantes-out" style="font-size:11px;color:#042C53;font-weight:600;margin-top:4px;"></div>' +
-        '<div id="maxx-retiro-warn" style="font-size:10px;color:#993C1D;margin-top:3px;display:none;"></div>' +
+        '<div id="maxx-anios-restantes-out" style="font-size:12px;color:#042C53;font-weight:600;margin-top:4px;"></div>' +
+        '<div id="maxx-retiro-warn" style="font-size:12px;color:#042C53;margin-top:3px;display:none;"></div>' +
       '</div>' +
       '<div style="margin-bottom:7px;">' +
         '<div class="maxx-field-label" style="color:#042C53;">Monto mensual que necesitarías para vivir tranquilo en tu retiro <span style="font-weight:400;color:#5F5E5A;">(incluye a tu cónyuge/dependientes)</span></div>' +
@@ -726,24 +726,24 @@ function maxxCargarConfig(url, timeoutMs) {
 
     if (!unlocked) {
       el.innerHTML =
-        '<div style="font-size:14px;color:' + titleColor + ';font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">' + lockIcon + 'SECCIÓN II · INDICADORES</div>' +
-        '<div style="font-size:11px;color:#a8a69d;">Inflación, Tasa de la Solución propuesta por MAXX y Tasa Real</div>';
+        '<div style="font-size:15px;color:' + titleColor + ';font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">' + lockIcon + 'SECCIÓN II · INDICADORES</div>' +
+        '<div style="font-size:12px;color:#a8a69d;">Inflación, Tasa de la Solución propuesta por MAXX y Tasa Real</div>';
       return;
     }
 
     var real = ((1 + window.maxxData.tasaSolucion) / (1 + window.maxxData.inflacion) - 1);
 
     el.innerHTML =
-      '<div style="font-size:14px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">SECCIÓN II · INDICADORES</div>' +
-      '<div style="font-size:11px;color:#5F5E5A;margin-bottom:8px;line-height:1.3;">Estas tasas vienen de datos históricos públicos (INEGI, S&P 500). Puedes ajustarlas, con un piso conservador.</div>' +
+      '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">SECCIÓN II · INDICADORES</div>' +
+      '<div style="font-size:12px;color:#5F5E5A;margin-bottom:8px;line-height:1.4;">Estas tasas vienen de datos históricos públicos (INEGI, S&P 500). Puedes ajustarlas, con un piso conservador.</div>' +
 
       '<div style="margin-bottom:9px;">' +
         '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">Inflación anual <span id="maxx-inflacion-out" style="color:#639922;">' + (window.maxxData.inflacion*100).toFixed(2) + '%</span></div>' +
         '<input type="range" id="maxx-inflacion" min="4" max="12" step="0.05" value="' + (window.maxxData.inflacion*100) + '" style="width:100%;accent-color:#EF9F27;">' +
-        '<div style="font-size:10px;color:#5F5E5A;margin-top:3px;">Piso: 4% (no se puede bajar más)</div>' +
+        '<div style="font-size:12px;color:#5F5E5A;margin-top:3px;">Piso: 4% (no se puede bajar más)</div>' +
         '<div id="maxx-zona-inflacion">' +
-        '<button type="button" id="maxx-toggle-tabla-inflacion" style="border:none;background:transparent;color:#0563C1;font-size:11px;font-weight:600;cursor:pointer;padding:4px 0;text-decoration:underline;">Ver tabla histórica de inflación (1996-2025) →</button>' +
-        '<div id="maxx-tabla-inflacion" style="display:none;max-height:180px;overflow-y:auto;background:#fff;border-radius:8px;padding:8px;margin-top:4px;font-size:10px;"></div>' +
+        '<button type="button" id="maxx-toggle-tabla-inflacion" style="border:none;background:transparent;color:#0563C1;font-size:12px;font-weight:600;cursor:pointer;padding:4px 0;text-decoration:underline;">Ver tabla histórica de inflación (1996-2025) →</button>' +
+        '<div id="maxx-tabla-inflacion" style="display:none;max-height:180px;overflow-y:auto;background:#fff;border-radius:8px;padding:8px;margin-top:4px;font-size:12px;"></div>' +
         '</div>' +
         maxxSabiasQueHTML('inflacion', '¿Qué tan alta ha sido la inflación en México?', 8) +
       '</div>' +
@@ -751,17 +751,17 @@ function maxxCargarConfig(url, timeoutMs) {
       '<div style="margin-bottom:9px;">' +
         '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">Rendimiento — Solución propuesta por MAXX <span id="maxx-tasa-out" style="color:#639922;">' + (window.maxxData.tasaSolucion*100).toFixed(2) + '%</span></div>' +
         '<input type="range" id="maxx-tasa" min="8.82" max="20" step="0.05" value="' + (window.maxxData.tasaSolucion*100) + '" style="width:100%;accent-color:#EF9F27;">' +
-        '<div style="font-size:10px;color:#5F5E5A;margin-top:3px;">Piso: 8.82% (mínimo histórico, 25 años)</div>' +
+        '<div style="font-size:12px;color:#5F5E5A;margin-top:3px;">Piso: 8.82% (mínimo histórico, 25 años)</div>' +
         '<div id="maxx-zona-sp">' +
-        '<button type="button" id="maxx-toggle-tabla-sp" style="border:none;background:transparent;color:#0563C1;font-size:11px;font-weight:600;cursor:pointer;padding:4px 0;text-decoration:underline;">Ver tabla histórica S&P 500 (5-30 años) →</button>' +
-        '<div id="maxx-tabla-sp" style="display:none;background:#fff;border-radius:8px;padding:8px;margin-top:4px;font-size:10px;"></div>' +
+        '<button type="button" id="maxx-toggle-tabla-sp" style="border:none;background:transparent;color:#0563C1;font-size:12px;font-weight:600;cursor:pointer;padding:4px 0;text-decoration:underline;">Ver tabla histórica S&P 500 (5-30 años) →</button>' +
+        '<div id="maxx-tabla-sp" style="display:none;background:#fff;border-radius:8px;padding:8px;margin-top:4px;font-size:12px;"></div>' +
         '</div>' +
         maxxSabiasQueHTML('sp500', '¿El S&P 500 rinde lo que ves en la tabla?', 8) +
       '</div>' +
 
       '<div style="background:#fff;border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;">' +
-        '<span style="font-size:11px;color:#042C53;font-weight:600;">Tasa Real (ya sin inflación)</span>' +
-        '<span id="maxx-real-out" style="font-size:14px;font-weight:700;color:#3B6D11;">' + (real*100).toFixed(2) + '%</span>' +
+        '<span style="font-size:12px;color:#042C53;font-weight:600;">Tasa Real (ya sin inflación)</span>' +
+        '<span id="maxx-real-out" style="font-size:13px;font-weight:700;color:#3B6D11;">' + (real*100).toFixed(2) + '%</span>' +
       '</div>';
 
     document.getElementById('maxx-inflacion').addEventListener('input', function() {
@@ -834,7 +834,7 @@ function maxxCargarConfig(url, timeoutMs) {
         '<td>' + row[0] + '</td><td style="text-align:right;">' + (row[1]*100).toFixed(2) + '%' + (esCercano ? ' ◄ cerca de tu valor' : '') + '</td></tr>';
     });
     html += '</table>' +
-      '<div style="font-size:9px;color:#888780;margin-top:6px;">Fuente: INEGI/Banxico, boletines oficiales de INPC.</div>';
+      '<div style="font-size:12px;color:#888780;margin-top:6px;">Fuente: INEGI/Banxico, boletines oficiales de INPC.</div>';
     document.getElementById('maxx-tabla-inflacion').innerHTML = html;
   };
 
@@ -857,7 +857,7 @@ function maxxCargarConfig(url, timeoutMs) {
         '<td style="text-align:right;">' + (real*100).toFixed(2) + '%' + (esActual ? ' ◄ TASA ACTUAL' : '') + '</td></tr>';
     });
     html += '</table>' +
-      '<div style="font-size:9px;color:#888780;margin-top:6px;">Fuente: Wikipedia S&P 500 (Annualized Return) + Fidelity. Cada renglón es lo que ganó alguien que invirtió HACE ese número de años — no es una proyección.</div>';
+      '<div style="font-size:12px;color:#888780;margin-top:6px;">Fuente: Wikipedia S&P 500 (Annualized Return) + Fidelity. Cada renglón es lo que ganó alguien que invirtió HACE ese número de años — no es una proyección.</div>';
     document.getElementById('maxx-tabla-sp').innerHTML = html;
   };
 
@@ -898,7 +898,7 @@ function maxxCargarConfig(url, timeoutMs) {
     var titleColor = unlocked ? '#042C53' : '#5F5E5A';
 
     if (!unlocked) {
-      el.innerHTML = '<div style="font-size:14px;color:' + titleColor + ';font-weight:700;letter-spacing:0.5px;">' + lockIcon + 'SECCIÓN III · CON QUÉ CUENTAS</div>';
+      el.innerHTML = '<div style="font-size:15px;color:' + titleColor + ';font-weight:700;letter-spacing:0.5px;">' + lockIcon + 'SECCIÓN III · CON QUÉ CUENTAS</div>';
       return;
     }
 
@@ -912,6 +912,14 @@ function maxxCargarConfig(url, timeoutMs) {
     if (p1) pasoActual = 2;
     var p2 = p1 && d.tieneAfore && (d.tieneAfore === 'N' ? d.ingresoActual > 0 : (d.aniosCotizando > 0 && d.sueldoBruto > 0 && !!d.ley73));
     if (p2) pasoActual = 3;
+    // En cuanto AFORE queda completo, precargamos "No" en las preguntas restantes —
+    // el usuario ve todo de una vez y solo cambia lo que sí le aplique.
+    if (p2) {
+      if (!d.conyugeApoya) d.conyugeApoya = 'N';
+      if (!d.tieneAhorros) d.tieneAhorros = 'N';
+      if (d.casaPropia === null || d.casaPropia === undefined) d.casaPropia = 'N';
+      if (d.otraFuente === null || d.otraFuente === undefined) d.otraFuente = 'N';
+    }
     var p3 = p2 && (d.conyugeApoya === 'N' || (d.conyugeApoya === 'S' && d.conyugeEdadActual > 0 && d.conyugeAfore && (d.conyugeAfore === 'N' ? d.conyugeIngreso > 0 : (d.conyugeAnios > 0 && d.conyugeSueldo > 0 && !!d.conyugeLey73))));
     if (p3) pasoActual = 4;
     var p4 = p3 && (d.tieneAhorros === 'N' || (d.tieneAhorros === 'S' && d.montoAhorros > 0));
@@ -921,12 +929,12 @@ function maxxCargarConfig(url, timeoutMs) {
     var p6 = p5 && (d.otraFuente === 'S' || d.otraFuente === 'N');
     if (p6) pasoActual = 6;
 
-    var html = '<div style="font-size:14px;color:#042C53;font-weight:700;margin-bottom:4px;letter-spacing:0.5px;">SECCIÓN III · CON QUÉ CUENTAS</div>' +
-      '<div style="font-size:14px;font-weight:500;color:#3B6D11;margin-bottom:8px;line-height:1.25;">Solo cuenta lo que ya tienes hoy — nada de ingresos futuros inciertos.</div>' +
+    var html = '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:4px;letter-spacing:0.5px;">SECCIÓN III · CON QUÉ CUENTAS</div>' +
+      '<div style="font-size:13px;font-weight:500;color:#3B6D11;margin-bottom:8px;line-height:1.4;">Solo cuenta lo que ya tienes hoy — nada de ingresos futuros inciertos.</div>' +
       '<div style="display:flex;gap:4px;margin-bottom:4px;">' +
         [1,2,3,4,5,6].map(function(n) { return '<div style="flex:1;height:6px;border-radius:3px;background:' + (n <= pasoActual ? '#042C53' : '#D3D1C7') + ';"></div>'; }).join('') +
       '</div>' +
-      '<div style="font-size:10px;color:#5F5E5A;margin-bottom:9px;">Pregunta ' + pasoActual + ' de 6' + (p6 ? ' · ¡completo!' : '') + '</div>';
+      '<div style="font-size:12px;color:#5F5E5A;margin-bottom:9px;">Pregunta ' + pasoActual + ' de 6' + (p6 ? ' · ¡completo!' : '') + '</div>';
 
     // Capacidad de ahorro — SIEMPRE visible, es la primera pregunta
     var plazo = (d.edadRetiro || 65) - (d.edadActual || 0);
@@ -934,8 +942,8 @@ function maxxCargarConfig(url, timeoutMs) {
     html += '<div style="margin-bottom:7px;">' +
       '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">Capacidad de ahorro mensual</div>' +
       '<input type="text" id="maxx-capacidad" placeholder="$ 5,000" value="' + (d.capacidadAhorro ? '$'+d.capacidadAhorro.toLocaleString('es-MX') : '') + '" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #D3D1C7;font-size:13px;box-sizing:border-box;">' +
-      '<div id="maxx-capacidad-warn" style="font-size:10px;color:#993C1D;margin-top:4px;display:none;"></div>' +
-      '<div style="font-size:10px;color:#5F5E5A;margin-top:4px;">Mínimo $' + minimoAportacion.toLocaleString('es-MX') + '/mes para tu plazo de ' + plazo + ' años.</div>' +
+      '<div id="maxx-capacidad-warn" style="font-size:12px;color:#042C53;margin-top:4px;display:none;"></div>' +
+      '<div style="font-size:12px;color:#5F5E5A;margin-top:4px;">Mínimo $' + minimoAportacion.toLocaleString('es-MX') + '/mes para tu plazo de ' + plazo + ' años.</div>' +
       '</div>';
     var paso1Completo = d.capacidadAhorro >= minimoAportacion;
 
@@ -947,19 +955,19 @@ function maxxCargarConfig(url, timeoutMs) {
         '<div style="display:flex;gap:8px;">' + maxxPill('tieneAfore','S',d.tieneAfore,'Sí') + maxxPill('tieneAfore','N',d.tieneAfore,'No') + '</div>';
       if (d.tieneAfore === 'S') {
         html += '<div style="margin-top:6px;display:flex;gap:8px;">' +
-          '<div style="flex:1;"><div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">Años cotizando</div>' +
+          '<div style="flex:1;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Años cotizando</div>' +
           '<input type="number" id="maxx-anios-cot" min="0" placeholder="Ej. 12" value="' + (d.aniosCotizando || '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>' +
-          '<div style="flex:1;"><div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">Sueldo BRUTO mensual</div>' +
+          '<div style="flex:1;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Sueldo BRUTO mensual</div>' +
           '<input type="text" id="maxx-sueldo-bruto" placeholder="$ 20,000" value="' + (d.sueldoBruto ? '$'+d.sueldoBruto.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>' +
           '</div>' +
           '<div style="margin-top:6px;">' +
-          '<div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">¿Cotizaste por primera vez antes de julio 1997?</div>' +
+          '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Cotizaste por primera vez antes de julio 1997?</div>' +
           '<div style="display:flex;gap:8px;">' + maxxPill('ley73','S',d.ley73,'Sí (Ley 73)') + maxxPill('ley73','N',d.ley73,'No (Ley 97)') + '</div>' +
           '</div>';
         paso2Completo = d.aniosCotizando > 0 && d.sueldoBruto > 0 && !!d.ley73;
       } else if (d.tieneAfore === 'N') {
         html += '<div style="margin-top:6px;">' +
-          '<div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">Ingreso actual libre de impuestos</div>' +
+          '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Ingreso actual libre de impuestos</div>' +
           '<input type="text" id="maxx-ingreso-actual" placeholder="$ 15,000" value="' + (d.ingresoActual ? '$'+d.ingresoActual.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
         paso2Completo = d.ingresoActual > 0;
       }
@@ -973,25 +981,25 @@ function maxxCargarConfig(url, timeoutMs) {
         '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tu cónyuge apoya a cubrir el retiro?</div>' +
         '<div style="display:flex;gap:8px;">' + maxxPill('conyugeApoya','S',d.conyugeApoya,'Sí') + maxxPill('conyugeApoya','N',d.conyugeApoya,'No') + '</div>';
       if (d.conyugeApoya === 'S') {
-        html += '<div style="margin-top:6px;"><div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">Edad actual del cónyuge</div>' +
+        html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Edad actual del cónyuge</div>' +
           '<input type="number" id="maxx-conyuge-edad" min="18" max="90" placeholder="Ej. 43" value="' + (d.conyugeEdadActual || '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
         if (d.conyugeEdadActual > 0) {
           html += '<div style="margin-top:6px;">' +
-            '<div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">¿Tu cónyuge tiene AFORE?</div>' +
+            '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tu cónyuge tiene AFORE?</div>' +
             '<div style="display:flex;gap:8px;">' + maxxPill('conyugeAfore','S',d.conyugeAfore,'Sí') + maxxPill('conyugeAfore','N',d.conyugeAfore,'No') + '</div></div>';
           if (d.conyugeAfore === 'S') {
             html += '<div style="margin-top:6px;display:flex;gap:8px;">' +
-              '<div style="flex:1;"><div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">Años cotizando (cónyuge)</div>' +
+              '<div style="flex:1;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Años cotizando (cónyuge)</div>' +
               '<input type="number" id="maxx-conyuge-anios" min="0" placeholder="Ej. 10" value="' + (d.conyugeAnios || '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>' +
-              '<div style="flex:1;"><div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">Sueldo BRUTO (cónyuge)</div>' +
+              '<div style="flex:1;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Sueldo BRUTO (cónyuge)</div>' +
               '<input type="text" id="maxx-conyuge-sueldo" placeholder="$ 18,000" value="' + (d.conyugeSueldo ? '$'+d.conyugeSueldo.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>' +
               '</div>' +
               '<div style="margin-top:6px;">' +
-              '<div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">¿Cotizó antes de julio 1997?</div>' +
+              '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Cotizó antes de julio 1997?</div>' +
               '<div style="display:flex;gap:8px;">' + maxxPill('conyugeLey73','S',d.conyugeLey73,'Sí (Ley 73)') + maxxPill('conyugeLey73','N',d.conyugeLey73,'No (Ley 97)') + '</div></div>';
             paso3Completo = d.conyugeAnios > 0 && d.conyugeSueldo > 0 && !!d.conyugeLey73;
           } else if (d.conyugeAfore === 'N') {
-            html += '<div style="margin-top:6px;"><div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">Ingreso actual del cónyuge</div>' +
+            html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Ingreso actual del cónyuge</div>' +
               '<input type="text" id="maxx-conyuge-ingreso" placeholder="$ 12,000" value="' + (d.conyugeIngreso ? '$'+d.conyugeIngreso.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
             paso3Completo = d.conyugeIngreso > 0;
           }
@@ -1009,7 +1017,7 @@ function maxxCargarConfig(url, timeoutMs) {
         '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes ahorros que planeas MANTENER hasta tu retiro?</div>' +
         '<div style="display:flex;gap:8px;">' + maxxPill('tieneAhorros','S',d.tieneAhorros,'Sí') + maxxPill('tieneAhorros','N',d.tieneAhorros,'No') + '</div>';
       if (d.tieneAhorros === 'S') {
-        html += '<div style="margin-top:6px;"><div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">Monto actual</div>' +
+        html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Monto actual</div>' +
           '<input type="text" id="maxx-monto-ahorros" placeholder="$ 100,000" value="' + (d.montoAhorros ? '$'+d.montoAhorros.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
         paso4Completo = d.montoAhorros > 0;
       } else if (d.tieneAhorros === 'N') {
@@ -1025,7 +1033,7 @@ function maxxCargarConfig(url, timeoutMs) {
         '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes casa propia? <span style="font-weight:400;color:#a8a69d;">(informativo)</span></div>' +
         '<div style="display:flex;gap:8px;">' + maxxPill('casaPropia','S',d.casaPropia,'Sí') + maxxPill('casaPropia','N',d.casaPropia,'No') + '</div>';
       if (d.casaPropia === 'S') {
-        html += '<div style="margin-top:6px;"><div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">Valor estimado</div>' +
+        html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Valor estimado</div>' +
           '<input type="text" id="maxx-valor-casa" placeholder="$ 2,000,000" value="' + (d.valorCasa ? '$'+d.valorCasa.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
       }
       html += '</div>';
@@ -1038,15 +1046,10 @@ function maxxCargarConfig(url, timeoutMs) {
         '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes otra fuente de ingreso? <span style="font-weight:400;color:#a8a69d;">(informativo)</span></div>' +
         '<div style="display:flex;gap:8px;">' + maxxPill('otraFuente','S',d.otraFuente,'Sí') + maxxPill('otraFuente','N',d.otraFuente,'No') + '</div>';
       if (d.otraFuente === 'S') {
-        html += '<div style="margin-top:6px;"><div style="font-size:10px;color:#5F5E5A;margin-bottom:4px;">Monto mensual equivalente</div>' +
+        html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Monto mensual equivalente</div>' +
           '<input type="text" id="maxx-monto-otra" placeholder="$ 3,000" value="' + (d.montoOtraFuente ? '$'+d.montoOtraFuente.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
       }
       html += '</div>';
-    }
-
-    // Senal visual de que sigue algo mas, mientras no se haya completado todo
-    if (!p6) {
-      html += '<div style="margin-top:9px;padding:10px;border-radius:8px;border:1.5px dashed #D3D1C7;color:#a8a69d;font-size:11px;text-align:center;"><span style="font-size:20px;vertical-align:middle;">👆</span><br>Contesta arriba para ver la siguiente pregunta</div>';
     }
 
     // Sabías que: crecimiento salarial real lento
@@ -1182,7 +1185,7 @@ function maxxCargarConfig(url, timeoutMs) {
     });
     document.getElementById('maxx-panel-grafica').innerHTML =
       '<div style="font-size:13px;color:#042C53;font-weight:700;margin-bottom:4px;letter-spacing:0.5px;">GRÁFICA · ACUMULACIÓN Y DESACUMULACIÓN</div>' +
-      '<div class="maxx-gira-pantalla" style="background:#FCEBD9;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:11px;color:#993C1D;text-align:center;">📱↻ Gira tu pantalla para ver la gráfica más grande</div>' +
+      '<div class="maxx-gira-pantalla" style="background:#FCEBD9;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:12px;color:#042C53;text-align:center;">📱↻ Gira tu pantalla para ver la gráfica más grande</div>' +
       svg +
       '<div style="display:flex;flex-wrap:wrap;justify-content:center;column-gap:22px;row-gap:4px;margin-top:6px;">' + maxxGenerarLeyendaHTML() + '</div>';
 
@@ -1190,10 +1193,10 @@ function maxxCargarConfig(url, timeoutMs) {
     var mensajeSin = 'Este es tu punto de partida. Vamos a mejorarlo.';
     document.getElementById('maxx-panel-califn1').innerHTML =
       '<div style="text-align:center;">' +
-        '<div style="font-size:14px;color:#5F5E5A;font-weight:700;margin-bottom:8px;">SIN Solución propuesta de MAXX</div>' +
+        '<div style="font-size:15px;color:#5F5E5A;font-weight:700;margin-bottom:8px;">SIN Solución propuesta de MAXX</div>' +
         '<div style="font-size:52px;font-weight:800;color:#042C53;line-height:1;">' + r.califSin + '<span style="font-size:20px;">/100</span></div>' +
-        '<div style="font-size:15px;color:#993C1D;font-weight:700;margin-top:5px;">Tu GAP: ' + (100 - r.califSin) + '%</div>' +
-        '<div style="font-size:14px;color:#042C53;font-weight:600;margin-top:6px;line-height:1.45;">' + mensajeSin + '</div>' +
+        '<div style="font-size:15px;color:#042C53;font-weight:700;margin-top:5px;">Tu GAP: ' + (100 - r.califSin) + '%</div>' +
+        '<div style="font-size:13px;color:#042C53;font-weight:600;margin-top:6px;line-height:1.4;">' + mensajeSin + '</div>' +
       '</div>';
 
     var mensajeCon = r.califCon >= 100
@@ -1201,10 +1204,10 @@ function maxxCargarConfig(url, timeoutMs) {
       : 'Con TUS Aportaciones cierras una parte de la brecha — en tu Cita MAXX te ayudará a cerrar el resto.';
     document.getElementById('maxx-panel-califn2').innerHTML =
       '<div style="text-align:center;">' +
-        '<div style="font-size:14px;color:#5F5E5A;font-weight:700;margin-bottom:8px;">CON TU Propuesta de Aportaciones</div>' +
+        '<div style="font-size:15px;color:#5F5E5A;font-weight:700;margin-bottom:8px;">CON TU Propuesta de Aportaciones</div>' +
         '<div style="font-size:52px;font-weight:800;color:#3B6D11;line-height:1;">' + r.califCon + '<span style="font-size:20px;">/100</span></div>' +
-        '<div style="font-size:15px;color:#993C1D;font-weight:700;margin-top:5px;">Tu GAP: ' + (100 - r.califCon) + '%</div>' +
-        '<div style="font-size:14px;color:#3B6D11;font-weight:700;margin-top:6px;line-height:1.45;">' + mensajeCon + '</div>' +
+        '<div style="font-size:15px;color:#042C53;font-weight:700;margin-top:5px;">Tu GAP: ' + (100 - r.califCon) + '%</div>' +
+        '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:6px;line-height:1.4;">' + mensajeCon + '</div>' +
       '</div>';
 
     // ---- Resultados (Seccion IV) ----
@@ -1223,7 +1226,7 @@ function maxxCargarConfig(url, timeoutMs) {
       ? 'hasta los ' + edadCapitalAgotado + ' años de edad'
       : 'durante toda tu esperanza de vida';
     document.getElementById('maxx-panel-5').innerHTML =
-      '<div style="font-size:14px;color:#042C53;font-weight:700;margin-bottom:9px;letter-spacing:0.5px;">SECCIÓN V · RESULTADOS</div>' +
+      '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:9px;letter-spacing:0.5px;">SECCIÓN V · RESULTADOS</div>' +
       '<div style="font-size:12px;color:#5F5E5A;margin-bottom:9px;">Pesos nominales, suma de todos tus años de retiro.</div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Necesidad total</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.necesidadTotal).toLocaleString('es-MX') + '</span></div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Tu pensión IMSS/AFORE cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.pensionFondeada).toLocaleString('es-MX') + '</span></div>' +
@@ -1231,19 +1234,19 @@ function maxxCargarConfig(url, timeoutMs) {
       '<div style="background:#EAF3DE;border-radius:10px;padding:16px;text-align:center;">' +
         '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-bottom:8px;line-height:1.4;">🎉 Esto es lo que se estima que tus aportaciones acumularán para tu retiro a los ' + r.edadRetiro + ' años de edad</div>' +
         '<div style="font-size:26px;font-weight:800;color:#3B6D11;line-height:1.1;">$' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</div>' +
-        '<div style="font-size:11px;font-weight:400;color:#5F8A3A;margin-top:3px;">(incluye inflación)</div>' +
-        '<div style="font-size:12px;color:#3B6D11;font-weight:600;margin-top:10px;line-height:1.5;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalPct.toFixed(2) + '% anual. <span style="font-weight:400;">(estimado con S&P500)</span><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
-        '<div style="font-size:14px;color:#3B6D11;font-weight:700;margin-top:12px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
+        '<div style="font-size:12px;font-weight:400;color:#5F8A3A;margin-top:3px;">(incluye inflación)</div>' +
+        '<div style="font-size:12px;color:#3B6D11;font-weight:600;margin-top:10px;line-height:1.4;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalPct.toFixed(2) + '% anual. <span style="font-weight:400;">(estimado con S&P500)</span><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
+        '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:12px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
       '</div>';
 
     // ---- Seccion V: Como leer tu grafica ----
     document.getElementById('maxx-panel-4').innerHTML =
-      '<div style="font-size:14px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">SECCIÓN IV · CÓMO LEER TU GRÁFICA</div>' +
+      '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">SECCIÓN IV · CÓMO LEER TU GRÁFICA</div>' +
       '<div style="font-size:13px;color:#3D3B36;line-height:1.4;">' +
         '<strong style="color:#042C53;">①</strong> <strong style="color:#042C53;">Azul</strong> y <strong style="color:#EF9F27;">naranja</strong>: tu dinero creciendo mes a mes, hasta tu retiro.<br>' +
         '<strong style="color:#042C53;">②</strong> Al llegar a tu retiro, se SUMAN y nace la línea <strong style="color:#639922;">verde</strong>.<br>' +
         '<strong style="color:#042C53;">③</strong> La <strong style="color:#639922;">verde</strong> solo BAJA — cada mes se usa un poco para completar lo que tu pensión no alcanza.<br>' +
-        '<strong style="color:#042C53;">④</strong> La línea vertical <strong style="color:#993C1D;">roja</strong> marca tu esperanza de vida; la <strong style="color:#042C53;">azul marino</strong>, tu edad de retiro.<br>' +
+        '<strong style="color:#042C53;">④</strong> La línea vertical <strong style="color:#042C53;">roja</strong> marca tu esperanza de vida; la <strong style="color:#042C53;">azul marino</strong>, tu edad de retiro.<br>' +
         '<strong style="color:#042C53;">⑤</strong> Si la <strong style="color:#639922;">verde</strong> llega a $0 antes de tu esperanza de vida, tu capital se agotó — de ahí en adelante vives solo de tu pensión (o sin ingreso, si no tienes).' +
       '</div>';
 
@@ -1260,12 +1263,12 @@ function maxxCargarConfig(url, timeoutMs) {
       '<div id="maxx-zona-sorpresa" style="margin-bottom:10px;">' +
         '<button type="button" id="maxx-toggle-sorpresa" style="width:100%;display:flex;align-items:center;gap:12px;text-align:left;border:2px solid #042C53;background:#E8EEF4;border-radius:10px;padding:12px 14px;cursor:pointer;">' +
           '<span style="font-size:34px;line-height:1;">🔷</span>' +
-          '<span style="font-size:15px;font-weight:800;color:#042C53;line-height:1.3;">Tengo una <u>sorpresa</u> que te va a encantar... →</span>' +
+          '<span style="font-size:15px;font-weight:800;color:#042C53;line-height:1.4;">Tengo una <u>sorpresa</u> que te va a encantar... →</span>' +
         '</button>' +
         '<div id="maxx-cuerpo-sorpresa" style="display:none;background:#fff;border-radius:8px;padding:12px;margin-top:6px;">' +
           '<div style="font-size:12px;color:#3D3B36;line-height:1.4;margin-bottom:8px;">Tu aportación de <strong>$' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes se queda FIJA</strong> — nunca la subes. Como tu sueldo normalmente sí sube con la inflación, con el tiempo te va a doler cada vez menos pagarla:</div>' +
           '<table style="width:100%;border-collapse:collapse;">' +
-            '<tr><th style="padding:4px 6px;text-align:left;font-size:11px;color:#5F5E5A;">Año</th><th style="padding:4px 6px;text-align:center;font-size:11px;color:#5F5E5A;">Seguirás pagando</th><th style="padding:4px 6px;text-align:right;font-size:11px;color:#5F5E5A;">Pesará como (hoy)</th></tr>' +
+            '<tr><th style="padding:4px 6px;text-align:left;font-size:12px;color:#5F5E5A;">Año</th><th style="padding:4px 6px;text-align:center;font-size:12px;color:#5F5E5A;">Seguirás pagando</th><th style="padding:4px 6px;text-align:right;font-size:12px;color:#5F5E5A;">Pesará como (hoy)</th></tr>' +
             filasSorpresa +
           '</table>' +
         '</div>' +
@@ -1284,7 +1287,7 @@ function maxxCargarConfig(url, timeoutMs) {
   // ---------- Placeholders bloqueados (se construyen despues) ----------
   function renderPlaceholder(panelId, titulo) {
     var el = document.getElementById(panelId);
-    el.innerHTML = '<div style="font-size:14px;color:#5F5E5A;font-weight:700;letter-spacing:0.5px;">🔒 ' + titulo + '</div>';
+    el.innerHTML = '<div style="font-size:15px;color:#5F5E5A;font-weight:700;letter-spacing:0.5px;">🔒 ' + titulo + '</div>';
   }
   renderPlaceholder('maxx-panel-grafica', 'GRÁFICA · ACUMULACIÓN Y DESACUMULACIÓN');
   renderPlaceholder('maxx-panel-4', 'SECCIÓN IV · CÓMO LEER TU GRÁFICA');
