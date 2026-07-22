@@ -1,14 +1,13 @@
-
-document.write(`
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap">
-<style>
-  .maxx-faq-a .g { color:#639922; font-weight:bold; }
-  .maxx-faq-a .o { color:#639922; }
-  .maxx-faq-a strong.o { color:#639922; }
-</style>
-<div id="maxx-faqs-root">
-
-<section id="maxx-faq-cat1" style="font-family:'Roboto',Arial,sans-serif; max-width:900px; margin:0 auto 40px auto;">
+(function() {
+  var css = `
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap">
+  <style>
+    .maxx-faq-a .g { color:#639922; font-weight:bold; }
+    .maxx-faq-a .o { color:#639922; }
+    .maxx-faq-a strong.o { color:#639922; }
+  </style>
+  `;
+  var html = `<section id="maxx-faq-cat1" style="font-family:'Roboto',Arial,sans-serif; max-width:900px; margin:0 auto 40px auto;">
 <h2 style="color:#042C53; font-size:22px; font-weight:900; margin:0 0 16px 0;">Sobre el plan</h2>
 <button type="button" class="maxx-faq-q" data-target="maxx-faq-cat1-q0" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">¿Qué es exactamente el Plan que MAXX te presenta? <span class="maxx-faq-icon">+</span></button>
 <div id="maxx-faq-cat1-q0" class="maxx-faq-a" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55;"><p style="margin:0;">Es un <strong>plan de ahorro individual para tu retiro</strong>, con <strong>aportaciones programadas que tú decides</strong>. Funciona como un <strong>vehículo de inversión a largo plazo</strong>, respaldado por una de las aseguradoras más sólidas a nivel mundial, diseñado para construir <span class="g">el patrimonio que te dé libertad</span> el día de mañana — no depender solo del Seguro Social o de tu empresa.</p></div>
@@ -137,12 +136,20 @@ document.write(`
 <div id="maxx-faq-cat8-q1" class="maxx-faq-a" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55;"><p style="margin:0;">Una vez que decides seguir adelante, tu plan se activa rápido — normalmente en pocos días hábiles después de tu firma y tu primera aportación. <span class="g">Entre más pronto empieces, antes empieza a trabajar tu dinero para ti.</span></p></div>
 <button type="button" class="maxx-faq-q" data-target="maxx-faq-cat8-q2" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">¿Con quién hablo si tengo dudas antes de decidir? <span class="maxx-faq-icon">+</span></button>
 <div id="maxx-faq-cat8-q2" class="maxx-faq-a" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55;"><p style="margin:0;">Con nosotros, directamente.<br><br><span class="g">MAXX te acompaña en cada paso</span> — antes, durante y después de contratar tu plan.<br><br>No estás solo tomando esta decisión: <strong>agenda tu cita</strong> y/o solicita nuestro apoyo a través de <strong>contacto@maxx.mx</strong> y/o por medio del <strong>"Chat"</strong>, y resolvemos juntos cualquier duda que tengas, sin presión y a tu ritmo.</p></div>
-</section>
-</div>
-`);
+</section>`;
 
-(function() {
-  var buttons = document.querySelectorAll('.maxx-faq-q');
+  var thisScript = document.currentScript;
+  var container = document.createElement('div');
+  container.id = 'maxx-faqs-root';
+  container.innerHTML = css + html;
+
+  if (thisScript && thisScript.parentNode) {
+    thisScript.parentNode.insertBefore(container, thisScript.nextSibling);
+  } else {
+    document.body.appendChild(container);
+  }
+
+  var buttons = container.querySelectorAll('.maxx-faq-q');
   buttons.forEach(function(btn) {
     btn.addEventListener('click', function() {
       var section = btn.closest('section');
@@ -155,7 +162,7 @@ document.write(`
         icon.textContent = '+';
       });
       target.style.display = isOpen ? 'none' : 'block';
-      btn.querySelector('.maxx-faq-icon').textContent = isOpen ? '+' : '−';
+      btn.querySelector('.maxx-faq-icon').textContent = isOpen ? '+' : '\u2212';
     });
   });
 })();
