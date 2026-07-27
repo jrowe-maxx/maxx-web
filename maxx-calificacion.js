@@ -765,6 +765,10 @@ function maxxCargarConfig(url, timeoutMs) {
     }
 
     var real = ((1 + window.maxxData.tasaSolucion) / (1 + window.maxxData.inflacion) - 1);
+    var plazoIndicadores = Math.max(0, (window.maxxData.edadRetiro || 65) - (window.maxxData.edadActual || 0));
+    var costoIndicadores = maxxCostoAnualPorPlazo(plazoIndicadores);
+    var tasaNetaCostoIndicadores = window.maxxData.tasaSolucion - costoIndicadores;
+    var realNetaCostoIndicadores = ((1 + tasaNetaCostoIndicadores) / (1 + window.maxxData.inflacion) - 1);
 
     el.innerHTML =
       '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">SECCIÓN II · INDICADORES</div>' +
@@ -792,9 +796,13 @@ function maxxCargarConfig(url, timeoutMs) {
         maxxSabiasQueHTML('sp500', '¿El S&P 500 rinde lo que ves en la tabla?', 8) +
       '</div>' +
 
-      '<div style="background:#fff;border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;">' +
+      '<div style="background:#fff;border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
         '<span style="font-size:12px;color:#042C53;font-weight:600;">Tasa Real (ya sin inflación)</span>' +
         '<span id="maxx-real-out" style="font-size:13px;font-weight:700;color:#3B6D11;">' + (real*100).toFixed(2) + '%</span>' +
+      '</div>' +
+      '<div style="background:#fff;border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;">' +
+        '<span style="font-size:12px;color:#042C53;font-weight:600;">Tasa Real Neta <span style="font-weight:400;color:#5F5E5A;">(sin inflación, sin el costo de tu plan)</span></span>' +
+        '<span id="maxx-realneto-out" style="font-size:13px;font-weight:700;color:#3B6D11;">' + (realNetaCostoIndicadores*100).toFixed(2) + '%</span>' +
       '</div>';
 
     document.getElementById('maxx-inflacion').addEventListener('input', function() {
@@ -898,6 +906,13 @@ function maxxCargarConfig(url, timeoutMs) {
     var real = ((1 + window.maxxData.tasaSolucion) / (1 + window.maxxData.inflacion) - 1);
     var out = document.getElementById('maxx-real-out');
     if (out) out.textContent = (real*100).toFixed(2) + '%';
+
+    var plazoIndicadores = Math.max(0, (window.maxxData.edadRetiro || 65) - (window.maxxData.edadActual || 0));
+    var costoIndicadores = maxxCostoAnualPorPlazo(plazoIndicadores);
+    var tasaNetaCostoIndicadores = window.maxxData.tasaSolucion - costoIndicadores;
+    var realNetaCostoIndicadores = ((1 + tasaNetaCostoIndicadores) / (1 + window.maxxData.inflacion) - 1);
+    var outNeto = document.getElementById('maxx-realneto-out');
+    if (outNeto) outNeto.textContent = (realNetaCostoIndicadores*100).toFixed(2) + '%';
   };
 
   // ---------- PANEL 3: Seccion III (Con que Cuentas) ----------
@@ -1246,7 +1261,7 @@ function maxxCargarConfig(url, timeoutMs) {
       '<div style="font-size:13px;color:#042C53;font-weight:700;margin-bottom:4px;letter-spacing:0.5px;">GRÁFICA · ACUMULACIÓN Y DESACUMULACIÓN</div>' +
       '<div class="maxx-gira-pantalla" style="background:#FCEBD9;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:12px;color:#042C53;text-align:center;">📱↻ Gira tu pantalla para ver la gráfica más grande</div>' +
       svg +
-      '<div style="font-size:11px;color:#888780;text-align:center;margin-top:6px;">Montos a tus ' + r.edadRetiro + ' años de edad (pesos del momento de tu retiro, no de hoy):</div>' +
+      '<div style="font-size:13px;font-weight:600;color:#042C53;text-align:center;margin-top:-4px;">Montos a tus ' + r.edadRetiro + ' años de edad <span style="font-weight:400;color:#5F5E5A;">(pesos del momento de tu retiro, no de hoy)</span>:</div>' +
       '<div style="display:flex;flex-wrap:wrap;justify-content:center;column-gap:22px;row-gap:6px;margin-top:6px;">' +
         '<div style="display:flex;align-items:center;gap:6px;"><div style="width:11px;height:11px;border-radius:50%;background:#639922;"></div><span style="font-size:13px;font-weight:700;color:#3D3B36;">Acumulado: $' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</span></div>' +
         '<div style="display:flex;align-items:center;gap:6px;"><div style="width:11px;height:11px;border-radius:50%;background:#888780;"></div><span style="font-size:13px;font-weight:700;color:#3D3B36;">Deseado: $' + Math.round(d.montoDeseado * Math.pow(1 + d.inflacion, r.edadRetiro - d.edadActual)).toLocaleString('es-MX') + '/mes</span></div>' +
@@ -1277,7 +1292,8 @@ function maxxCargarConfig(url, timeoutMs) {
       '</div>';
 
     // ---- Resultados (Seccion IV) ----
-    var tasaNominalPct = d.tasaSolucion * 100;
+    var tasaNominalBrutaPct = d.tasaSolucion * 100;
+    var tasaNominalNetaPct = r.tasaSolucionNeta * 100;
     // Edad real donde el capital se agota, tomada de la MISMA simulacion que dibuja la grafica (nunca se contradicen)
     var edadCapitalAgotado = null;
     r.filas.forEach(function(f) {
@@ -1315,7 +1331,7 @@ function maxxCargarConfig(url, timeoutMs) {
         '<div style="font-size:26px;font-weight:800;color:#3B6D11;line-height:1.1;">$' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</div>' +
         '<div style="font-size:12px;font-weight:400;color:#5F8A3A;margin-top:2px;">(incluye inflación)</div>' +
         '<div style="font-size:12px;color:#3B6D11;font-weight:600;font-style:italic;margin-top:4px;">Este fondo sigue creciendo mientras lo usas — por eso cubre más de lo que parece.</div>' +
-        '<div style="font-size:12px;color:#3B6D11;font-weight:600;margin-top:5px;line-height:1.4;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalPct.toFixed(2) + '% anual (ya con el costo de tu plan descontado). <span style="font-weight:400;">(estimado con S&P500)</span><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
+        '<div style="font-size:12px;color:#3B6D11;font-weight:600;margin-top:5px;line-height:1.4;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalBrutaPct.toFixed(2) + '% anual <span style="font-weight:400;">(estimado con S&P500)</span>. Esta proyección ya descuenta el costo de tu plan (' + costoPct + '% anual, según tu plazo) — <strong>por eso creció con una tasa neta de ' + tasaNominalNetaPct.toFixed(2) + '% anual.</strong><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
         '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:6px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
       '</div>';
 
