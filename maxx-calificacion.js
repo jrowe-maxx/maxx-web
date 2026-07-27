@@ -470,29 +470,29 @@ function maxxGenerarSVGGrafica(filasCompletas, opciones) {
     });
   });
 
-  // ---- Callout en el punto de retiro: monto acumulado, pension (si hay) y monto deseado ----
+  // ---- Callouts en el punto de retiro: 3 cajas separadas (Acumulado, Deseado, Pensión) ----
+  // Ancladas arriba del área de la gráfica, junto a la línea vertical de retiro, para
+  // nunca encimarse con las curvas de color.
   if (opciones.calloutRetiro && edadRetiroMarca !== null) {
     var co = opciones.calloutRetiro; // { acumulado, pension, deseado }
-    var filaRetiro = null;
-    filas.forEach(function(f) { if (filaRetiro === null && f.edad === Math.round(edadRetiroMarca)) filaRetiro = f; });
-    var yAncla = filaRetiro && filaRetiro.capitalCombinado !== null ? escalaY(filaRetiro.capitalCombinado) : escalaY(co.acumulado || 0);
     var xAncla = escalaX(edadRetiroMarca);
-    var lineasCallout = [];
-    if (co.acumulado) lineasCallout.push({ texto: 'Acumulado: $' + Math.round(co.acumulado).toLocaleString('es-MX'), color: '#639922' });
-    if (co.pension) lineasCallout.push({ texto: 'Pensión: $' + Math.round(co.pension).toLocaleString('es-MX') + '/mes', color: '#042C53' });
-    if (co.deseado) lineasCallout.push({ texto: 'Deseado: $' + Math.round(co.deseado).toLocaleString('es-MX') + '/mes', color: '#888780' });
 
-    var calloutAncho = 260;
-    var calloutAlto = 26 * lineasCallout.length + 14;
-    var calloutX = xAncla + 14;
-    if (calloutX + calloutAncho > ancho - margenDer) calloutX = xAncla - calloutAncho - 14; // voltear a la izquierda si no cabe
-    var calloutY = Math.max(margenSup + 6, yAncla - calloutAlto - 10);
+    var itemsCallout = [];
+    if (co.acumulado) itemsCallout.push({ texto: 'Acumulado: $' + Math.round(co.acumulado).toLocaleString('es-MX'), color: '#639922' });
+    if (co.deseado) itemsCallout.push({ texto: 'Deseado: $' + Math.round(co.deseado).toLocaleString('es-MX') + '/mes', color: '#888780' });
+    if (co.pension) itemsCallout.push({ texto: 'Pensión: $' + Math.round(co.pension).toLocaleString('es-MX') + '/mes', color: '#042C53' });
 
-    svg += '<rect x="' + calloutX.toFixed(1) + '" y="' + calloutY.toFixed(1) + '" width="' + calloutAncho + '" height="' + calloutAlto + '" rx="8" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="1.5" opacity="0.97"/>';
-    lineasCallout.forEach(function(ln, idx) {
-      var ly = calloutY + 24 + idx * 26;
-      svg += '<circle cx="' + (calloutX + 16) + '" cy="' + (ly - 5) + '" r="5" fill="' + ln.color + '"/>';
-      svg += '<text x="' + (calloutX + 30) + '" y="' + ly + '" font-size="17" font-weight="700" fill="#3D3B36">' + ln.texto + '</text>';
+    var cajaAncho = 250;
+    var cajaAlto = 30;
+    var espacioEntreCajas = 8;
+    var cajaX = xAncla + 14;
+    if (cajaX + cajaAncho > ancho - margenDer) cajaX = xAncla - cajaAncho - 14; // voltear a la izquierda si no cabe
+
+    itemsCallout.forEach(function(it, idx) {
+      var cajaY = margenSup + 4 + idx * (cajaAlto + espacioEntreCajas);
+      svg += '<rect x="' + cajaX.toFixed(1) + '" y="' + cajaY.toFixed(1) + '" width="' + cajaAncho + '" height="' + cajaAlto + '" rx="7" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="1.5" opacity="0.98"/>';
+      svg += '<circle cx="' + (cajaX + 15) + '" cy="' + (cajaY + cajaAlto/2) + '" r="5" fill="' + it.color + '"/>';
+      svg += '<text x="' + (cajaX + 28) + '" y="' + (cajaY + cajaAlto/2 + 5) + '" font-size="15" font-weight="700" fill="#3D3B36">' + it.texto + '</text>';
     });
   }
 
