@@ -32,6 +32,24 @@ var MAXX_TABLA_LEY73 = [
   [4.01, 0.163, 0.0235], [6.01, 0.13, 0.0245]
 ];
 
+// Tabla de Costo Anual Promedio Ponderado del Plan MAXX, segun el PLAZO COMPROMETIDO
+// (fuente: FAQ Pregunta 37, "Que cargos tiene el plan?"). Entre mas largo el plazo,
+// mas eficiente (barata) la tasa. NO tiene relacion con retirarte antes de tiempo.
+var MAXX_TABLA_COSTO_PLAZO = [
+  [1.5, 0.0480], [5, 0.0230], [10, 0.0170], [15, 0.0160], [20, 0.0150], [25, 0.0140]
+];
+
+function maxxCostoAnualPorPlazo(plazoAnios) {
+  // Escalon mas cercano HACIA ABAJO (el mas conservador): usa el ultimo renglon
+  // cuyo plazo de tabla sea <= al plazo real de la persona.
+  var fila = MAXX_TABLA_COSTO_PLAZO[0];
+  for (var i = 0; i < MAXX_TABLA_COSTO_PLAZO.length; i++) {
+    if (MAXX_TABLA_COSTO_PLAZO[i][0] <= plazoAnios) fila = MAXX_TABLA_COSTO_PLAZO[i];
+    else break;
+  }
+  return fila[1];
+}
+
 function maxxVlookupAprox(valor, tabla, colIndex) {
   // busca la fila con el mayor 'desde' <= valor (como VLOOKUP aproximado ascendente)
   var fila = tabla[0];
@@ -139,6 +157,13 @@ function maxxCorrerMotor(datos, config) {
   var esperanzaVida = maxxEsperanzaVida(datos.genero, edadRetiro); // ligada a TU retiro personal (cuando empieza tu necesidad real)
   var edadFinVida = edadActual + 64; // igual que el Excel: 65 filas, t=0..64
 
+  // Costo Anual Promedio Ponderado del Plan MAXX, segun el PLAZO COMPROMETIDO (edad actual -> edad de retiro).
+  // Se resta directo de la tasa de la Solucion MAXX antes de proyectar — asi el costo queda
+  // reflejado en TODA la simulacion (acumulacion y desacumulacion), sin duplicar los 3 cargos por separado.
+  var plazoComprometido = Math.max(0, edadRetiro - edadActual);
+  var costoAnualAplicado = maxxCostoAnualPorPlazo(plazoComprometido);
+  var tasaSolucionNeta = tasaSolucion - costoAnualAplicado;
+
   // Pension titular — empieza en edadInicioPensionTitular (tope 65), el AFORE paga desde que corresponde por ley
   var pensionTitularMensualBase = maxxCalcularPension({
     sueldoBruto: datos.tieneAfore === 'S' ? datos.sueldoBruto : 0,
@@ -206,13 +231,13 @@ function maxxCorrerMotor(datos, config) {
       // G ya es ahorroInicial (valor con el que arrancamos), no se toca aqui
     } else if (fase === 'Acumulacion') {
       G = G * (1 + tasaConservadora);
-      M = M * (1 + tasaSolucion) + aportacionMensual * 12;
+      M = M * (1 + tasaSolucionNeta) + aportacionMensual * 12;
       G_alLlegar = G; M_alLlegar = M;
     } else if (fase === 'Retiro') {
       var remanenteMensual = Math.max(0, gastoMensualNecesario - pensionMensualT);
       var remanenteAnual = remanenteMensual * 12;
       var capacidadG = G * (1 + tasaConservadora);
-      var capacidadM = M * (1 + tasaSolucion);
+      var capacidadM = M * (1 + tasaSolucionNeta);
 
       var nEsteAnio = Math.min(Math.max(0, remanenteAnual - capacidadG), capacidadM);
       var gEsteAnio = Math.min(remanenteAnual, capacidadG);
@@ -301,7 +326,10 @@ function maxxCorrerMotor(datos, config) {
     esperanzaVida: esperanzaVida,
     edadRetiro: edadRetiro,
     edadInicioPensionTitular: edadInicioPensionTitular,
-    edadInicioPensionConyuge: edadInicioPensionConyuge
+    edadInicioPensionConyuge: edadInicioPensionConyuge,
+    plazoComprometido: plazoComprometido,
+    costoAnualAplicado: costoAnualAplicado,
+    tasaSolucionNeta: tasaSolucionNeta
   };
 }
 
@@ -442,6 +470,32 @@ function maxxGenerarSVGGrafica(filasCompletas, opciones) {
     });
   });
 
+  // ---- Callout en el punto de retiro: monto acumulado, pension (si hay) y monto deseado ----
+  if (opciones.calloutRetiro && edadRetiroMarca !== null) {
+    var co = opciones.calloutRetiro; // { acumulado, pension, deseado }
+    var filaRetiro = null;
+    filas.forEach(function(f) { if (filaRetiro === null && f.edad === Math.round(edadRetiroMarca)) filaRetiro = f; });
+    var yAncla = filaRetiro && filaRetiro.capitalCombinado !== null ? escalaY(filaRetiro.capitalCombinado) : escalaY(co.acumulado || 0);
+    var xAncla = escalaX(edadRetiroMarca);
+    var lineasCallout = [];
+    if (co.acumulado) lineasCallout.push({ texto: 'Acumulado: $' + Math.round(co.acumulado).toLocaleString('es-MX'), color: '#639922' });
+    if (co.pension) lineasCallout.push({ texto: 'Pensión: $' + Math.round(co.pension).toLocaleString('es-MX') + '/mes', color: '#042C53' });
+    if (co.deseado) lineasCallout.push({ texto: 'Deseado: $' + Math.round(co.deseado).toLocaleString('es-MX') + '/mes', color: '#888780' });
+
+    var calloutAncho = 260;
+    var calloutAlto = 26 * lineasCallout.length + 14;
+    var calloutX = xAncla + 14;
+    if (calloutX + calloutAncho > ancho - margenDer) calloutX = xAncla - calloutAncho - 14; // voltear a la izquierda si no cabe
+    var calloutY = Math.max(margenSup + 6, yAncla - calloutAlto - 10);
+
+    svg += '<rect x="' + calloutX.toFixed(1) + '" y="' + calloutY.toFixed(1) + '" width="' + calloutAncho + '" height="' + calloutAlto + '" rx="8" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="1.5" opacity="0.97"/>';
+    lineasCallout.forEach(function(ln, idx) {
+      var ly = calloutY + 24 + idx * 26;
+      svg += '<circle cx="' + (calloutX + 16) + '" cy="' + (ly - 5) + '" r="5" fill="' + ln.color + '"/>';
+      svg += '<text x="' + (calloutX + 30) + '" y="' + ly + '" font-size="17" font-weight="700" fill="#3D3B36">' + ln.texto + '</text>';
+    });
+  }
+
   svg += '</svg>';
   return svg;
 }
@@ -565,7 +619,8 @@ function maxxCargarConfig(url, timeoutMs) {
     inflacion: 'En México ha habido años con más de 15% de inflación (1996-1998). Por eso es mejor ser conservador al proyectar — nunca asumir menos de 4% anual.',
     sp500: 'El S&P 500 es una excelente opción para hacer crecer tu dinero: incluso después de descontar la inflación, sigue dando rendimientos reales atractivos, año tras año. Por eso, la solución que MAXX te presentará en tu Cita usa esa misma estrategia de inversión — para que tu dinero realmente crezca, no solo en papel.',
     salario: 'En México, los sueldos casi no suben más rápido que la inflación — casi no te queda más dinero real cada año, aunque te suban el sueldo. Por eso, "ya ganaré más después" no es, por sí solo, un plan de retiro.',
-    semanas: 'Si no completas las semanas mínimas que pide el IMSS (875 en 2026), podrías quedarte SIN el respaldo de la Pensión Garantizada. Existen formas legales de seguir sumando semanas, como la Continuación Voluntaria del IMSS. Lo revisamos en tu cita.'
+    semanas: 'Si no completas las semanas mínimas que pide el IMSS (875 en 2026), podrías quedarte SIN el respaldo de la Pensión Garantizada. Existen formas legales de seguir sumando semanas, como la Continuación Voluntaria del IMSS. Lo revisamos en tu cita.',
+    costo: 'Entre más largo el plazo que eliges para tu plan, más baja tu tasa de costo anual promedio — porque los cargos fijos y trimestrales pesan menos, proporcionalmente, entre más tiempo y más crece tu saldo.'
   };
 
   function maxxTextoEsperanza() {
@@ -628,7 +683,7 @@ function maxxCargarConfig(url, timeoutMs) {
           '</div></div>' +
       '</div>' +
       '<div style="margin-bottom:8px;">' +
-        '<div class="maxx-field-label" style="color:#042C53;">¿A qué edad te retiras? <span id="maxx-retiro-out" style="color:#639922;">65 años</span></div>' +
+        '<div class="maxx-field-label" style="color:#042C53;">¿A qué edad te retiras? <span id="maxx-retiro-out" style="color:#378ADD;font-size:17px;font-weight:800;">65 años</span></div>' +
         '<input type="range" id="maxx-retiro" min="60" max="75" value="65" step="1" style="width:100%;accent-color:#EF9F27;">' +
         '<div id="maxx-anios-restantes-out" style="font-size:12px;color:#042C53;font-weight:600;margin-top:4px;"></div>' +
         '<div id="maxx-retiro-warn" style="font-size:12px;color:#042C53;margin-top:3px;display:none;"></div>' +
@@ -739,7 +794,7 @@ function maxxCargarConfig(url, timeoutMs) {
       '<div style="font-size:12px;color:#5F5E5A;margin-bottom:8px;line-height:1.4;">Estas tasas vienen de datos históricos públicos (INEGI, S&P 500). Puedes ajustarlas, con un piso conservador.</div>' +
 
       '<div style="margin-bottom:9px;">' +
-        '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">Inflación anual <span id="maxx-inflacion-out" style="color:#639922;">' + (window.maxxData.inflacion*100).toFixed(2) + '%</span></div>' +
+        '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">Inflación anual <span id="maxx-inflacion-out" style="color:#378ADD;font-size:17px;font-weight:800;">' + (window.maxxData.inflacion*100).toFixed(2) + '%</span></div>' +
         '<input type="range" id="maxx-inflacion" min="4" max="12" step="0.05" value="' + (window.maxxData.inflacion*100) + '" style="width:100%;accent-color:#EF9F27;">' +
         '<div style="font-size:12px;color:#5F5E5A;margin-top:3px;">Piso: 4% (no se puede bajar más)</div>' +
         '<div id="maxx-zona-inflacion">' +
@@ -750,7 +805,7 @@ function maxxCargarConfig(url, timeoutMs) {
       '</div>' +
 
       '<div style="margin-bottom:9px;">' +
-        '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">Rendimiento — Solución propuesta por MAXX <span id="maxx-tasa-out" style="color:#639922;">' + (window.maxxData.tasaSolucion*100).toFixed(2) + '%</span></div>' +
+        '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">Rendimiento — Solución propuesta por MAXX <span id="maxx-tasa-out" style="color:#378ADD;font-size:17px;font-weight:800;">' + (window.maxxData.tasaSolucion*100).toFixed(2) + '%</span></div>' +
         '<input type="range" id="maxx-tasa" min="8.82" max="20" step="0.05" value="' + (window.maxxData.tasaSolucion*100) + '" style="width:100%;accent-color:#EF9F27;">' +
         '<div style="font-size:12px;color:#5F5E5A;margin-top:3px;">Piso: 8.82% (mínimo histórico, 25 años)</div>' +
         '<div id="maxx-zona-sp">' +
@@ -1189,11 +1244,26 @@ function maxxCargarConfig(url, timeoutMs) {
     var r = maxxCorrerMotor(d, {});
     window.maxxUltimoResultado = r;
 
+    // ---- Valores del punto de retiro (para callout de la grafica y para Seccion V) ----
+    var fondoAlRetiro = 0;
+    var pensionMensualAlRetiro = 0;
+    r.filas.forEach(function(f) {
+      if (f.fase === 'Retiro' && f.capitalCombinado !== null && fondoAlRetiro === 0) {
+        fondoAlRetiro = f.capitalCombinado;
+        pensionMensualAlRetiro = f.pensionMensual || 0;
+      }
+    });
+
     // ---- Grafica ----
     var edadEsperanzaVida = r.edadRetiro + r.esperanzaVida;
     var svg = maxxGenerarSVGGrafica(r.filas, {
       ancho: 1000, alto: 460, edadMaxima: 90,
-      edadEsperanzaVida: edadEsperanzaVida, edadRetiro: r.edadRetiro
+      edadEsperanzaVida: edadEsperanzaVida, edadRetiro: r.edadRetiro,
+      calloutRetiro: {
+        acumulado: fondoAlRetiro,
+        pension: pensionMensualAlRetiro,
+        deseado: d.montoDeseado * Math.pow(1 + d.inflacion, r.edadRetiro - d.edadActual)
+      }
     });
     document.getElementById('maxx-panel-grafica').innerHTML =
       '<div style="font-size:13px;color:#042C53;font-weight:700;margin-bottom:4px;letter-spacing:0.5px;">GRÁFICA · ACUMULACIÓN Y DESACUMULACIÓN</div>' +
@@ -1205,6 +1275,7 @@ function maxxCargarConfig(url, timeoutMs) {
     var mensajeSin = 'Este es tu punto de partida. Vamos a mejorarlo.';
     document.getElementById('maxx-panel-califn1').innerHTML =
       '<div style="text-align:center;">' +
+        '<div style="font-size:15px;color:#042C53;font-weight:700;letter-spacing:0.5px;margin-bottom:14px;">TUS CALIFICACIONES</div>' +
         '<div style="font-size:15px;color:#5F5E5A;font-weight:700;margin-bottom:8px;">SIN Solución propuesta de MAXX</div>' +
         '<div style="font-size:52px;font-weight:800;color:#042C53;line-height:1;">' + r.califSin + '<span style="font-size:20px;">/100</span></div>' +
         '<div style="font-size:15px;color:#042C53;font-weight:700;margin-top:5px;">Tu GAP: ' + (100 - r.califSin) + '%</div>' +
@@ -1224,11 +1295,6 @@ function maxxCargarConfig(url, timeoutMs) {
 
     // ---- Resultados (Seccion IV) ----
     var tasaNominalPct = d.tasaSolucion * 100;
-    // Fondo REAL acumulado justo al momento del retiro (donde arranca la linea verde en la grafica) — no un derivado
-    var fondoAlRetiro = 0;
-    r.filas.forEach(function(f) {
-      if (f.fase === 'Retiro' && f.capitalCombinado !== null && fondoAlRetiro === 0) fondoAlRetiro = f.capitalCombinado;
-    });
     // Edad real donde el capital se agota, tomada de la MISMA simulacion que dibuja la grafica (nunca se contradicen)
     var edadCapitalAgotado = null;
     r.filas.forEach(function(f) {
@@ -1237,20 +1303,49 @@ function maxxCargarConfig(url, timeoutMs) {
     var textoCobertura = edadCapitalAgotado !== null
       ? 'hasta los ' + edadCapitalAgotado + ' años de edad'
       : 'durante toda tu esperanza de vida';
+
+    // ---- Bloque de Costo del plan (nuevo) ----
+    var costoPct = (r.costoAnualAplicado * 100).toFixed(2);
+    var filasCostoTabla = MAXX_TABLA_COSTO_PLAZO.map(function(row) {
+      var esActual = row[1] === r.costoAnualAplicado;
+      return '<tr style="' + (esActual ? 'background:#EAF3DE;font-weight:700;color:#3B6D11;' : 'color:#5F5E5A;') + '">' +
+        '<td style="padding:4px 6px;">' + row[0] + ' años</td>' +
+        '<td style="padding:4px 6px;text-align:right;">' + (row[1]*100).toFixed(2) + '%' + (esActual ? ' ◄ TU PLAZO' : '') + '</td></tr>';
+    }).join('');
+    var bloqueCosto =
+      '<div style="display:flex;justify-content:space-between;margin-bottom:6px;">' +
+        '<span style="font-size:13px;color:#5F5E5A;">Costo anual de tu plan <span style="font-weight:400;">(según tu plazo de ' + r.plazoComprometido + ' años)</span></span>' +
+        '<span style="font-size:13px;font-weight:700;color:#042C53;">' + costoPct + '%</span>' +
+      '</div>' +
+      maxxSabiasQueHTML('costo', 'Entre más largo tu plazo, más bajo tu costo', 4).replace('margin-top:4px;', 'margin-top:4px;margin-bottom:10px;');
+
     document.getElementById('maxx-panel-5').innerHTML =
       '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:9px;letter-spacing:0.5px;">SECCIÓN V · RESULTADOS</div>' +
       '<div style="font-size:12px;color:#5F5E5A;margin-bottom:9px;">Pesos nominales, suma de todos tus años de retiro.</div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Necesidad total</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.necesidadTotal).toLocaleString('es-MX') + '</span></div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Tu pensión IMSS/AFORE cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.pensionFondeada).toLocaleString('es-MX') + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Tu pensión vía AFORE, al retiro <span style="font-weight:400;">(mensual, pesos de ese momento)</span></span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(pensionMensualAlRetiro).toLocaleString('es-MX') + '</span></div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="font-size:13px;color:#5F5E5A;">Tu ahorro actual cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.ahorroFondeado).toLocaleString('es-MX') + '</span></div>' +
+      bloqueCosto +
       '<div style="background:#EAF3DE;border-radius:10px;padding:12px;text-align:center;">' +
         '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-bottom:6px;line-height:1.4;">🎉 Esto es lo que se estima que tus aportaciones acumularán para tu retiro a los ' + r.edadRetiro + ' años de edad</div>' +
         '<div style="font-size:26px;font-weight:800;color:#3B6D11;line-height:1.1;">$' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</div>' +
         '<div style="font-size:12px;font-weight:400;color:#5F8A3A;margin-top:2px;">(incluye inflación)</div>' +
         '<div style="font-size:12px;color:#3B6D11;font-weight:600;font-style:italic;margin-top:4px;">Este fondo sigue creciendo mientras lo usas — por eso cubre más de lo que parece.</div>' +
-        '<div style="font-size:12px;color:#3B6D11;font-weight:600;margin-top:5px;line-height:1.4;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalPct.toFixed(2) + '% anual. <span style="font-weight:400;">(estimado con S&P500)</span><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
+        '<div style="font-size:12px;color:#3B6D11;font-weight:600;margin-top:5px;line-height:1.4;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalPct.toFixed(2) + '% anual (ya con el costo de tu plan descontado). <span style="font-weight:400;">(estimado con S&P500)</span><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
         '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:6px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
       '</div>';
+
+    // Pintar la tabla de costo dentro del "sabías que" recien insertado (una vez que el DOM ya tiene el contenedor)
+    var bodyCosto = document.getElementById('maxx-sq-body-costo');
+    if (bodyCosto) {
+      bodyCosto.innerHTML = MAXX_SABIAS_QUE.costo +
+        '<table style="width:100%;border-collapse:collapse;margin-top:6px;">' +
+        '<tr style="font-weight:700;color:#042C53;"><td style="padding:4px 6px;">Plazo</td><td style="padding:4px 6px;text-align:right;">Costo Anual Promedio</td></tr>' +
+        filasCostoTabla +
+        '</table>';
+    }
+    maxxWireSabiasQue('costo');
 
     // ---- Seccion V: Como leer tu grafica ----
     document.getElementById('maxx-panel-4').innerHTML =
