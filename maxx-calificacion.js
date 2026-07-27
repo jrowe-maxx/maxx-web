@@ -470,31 +470,8 @@ function maxxGenerarSVGGrafica(filasCompletas, opciones) {
     });
   });
 
-  // ---- Callouts en el punto de retiro: 3 cajas separadas (Acumulado, Deseado, Pensión) ----
-  // Ancladas arriba del área de la gráfica, junto a la línea vertical de retiro, para
-  // nunca encimarse con las curvas de color.
-  if (opciones.calloutRetiro && edadRetiroMarca !== null) {
-    var co = opciones.calloutRetiro; // { acumulado, pension, deseado }
-    var xAncla = escalaX(edadRetiroMarca);
-
-    var itemsCallout = [];
-    if (co.acumulado) itemsCallout.push({ texto: 'Acumulado: $' + Math.round(co.acumulado).toLocaleString('es-MX'), color: '#639922' });
-    if (co.deseado) itemsCallout.push({ texto: 'Deseado: $' + Math.round(co.deseado).toLocaleString('es-MX') + '/mes', color: '#888780' });
-    if (co.pension) itemsCallout.push({ texto: 'Pensión: $' + Math.round(co.pension).toLocaleString('es-MX') + '/mes', color: '#042C53' });
-
-    var cajaAncho = 250;
-    var cajaAlto = 30;
-    var espacioEntreCajas = 8;
-    var cajaX = xAncla + 14;
-    if (cajaX + cajaAncho > ancho - margenDer) cajaX = xAncla - cajaAncho - 14; // voltear a la izquierda si no cabe
-
-    itemsCallout.forEach(function(it, idx) {
-      var cajaY = margenSup + 4 + idx * (cajaAlto + espacioEntreCajas);
-      svg += '<rect x="' + cajaX.toFixed(1) + '" y="' + cajaY.toFixed(1) + '" width="' + cajaAncho + '" height="' + cajaAlto + '" rx="7" fill="#FFFFFF" stroke="#D3D1C7" stroke-width="1.5" opacity="0.98"/>';
-      svg += '<circle cx="' + (cajaX + 15) + '" cy="' + (cajaY + cajaAlto/2) + '" r="5" fill="' + it.color + '"/>';
-      svg += '<text x="' + (cajaX + 28) + '" y="' + (cajaY + cajaAlto/2 + 5) + '" font-size="15" font-weight="700" fill="#3D3B36">' + it.texto + '</text>';
-    });
-  }
+  // (Los montos de Acumulado/Deseado/Pensión al retiro ya NO se dibujan dentro del SVG —
+  // se muestran como una fila de texto debajo de la gráfica, ver maxxRenderizarResultados())
 
   svg += '</svg>';
   return svg;
@@ -1269,7 +1246,13 @@ function maxxCargarConfig(url, timeoutMs) {
       '<div style="font-size:13px;color:#042C53;font-weight:700;margin-bottom:4px;letter-spacing:0.5px;">GRÁFICA · ACUMULACIÓN Y DESACUMULACIÓN</div>' +
       '<div class="maxx-gira-pantalla" style="background:#FCEBD9;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:12px;color:#042C53;text-align:center;">📱↻ Gira tu pantalla para ver la gráfica más grande</div>' +
       svg +
-      '<div style="display:flex;flex-wrap:wrap;justify-content:center;column-gap:22px;row-gap:4px;margin-top:6px;">' + maxxGenerarLeyendaHTML() + '</div>';
+      '<div style="font-size:11px;color:#888780;text-align:center;margin-top:6px;">Montos a tus ' + r.edadRetiro + ' años de edad (pesos del momento de tu retiro, no de hoy):</div>' +
+      '<div style="display:flex;flex-wrap:wrap;justify-content:center;column-gap:22px;row-gap:6px;margin-top:6px;">' +
+        '<div style="display:flex;align-items:center;gap:6px;"><div style="width:11px;height:11px;border-radius:50%;background:#639922;"></div><span style="font-size:13px;font-weight:700;color:#3D3B36;">Acumulado: $' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</span></div>' +
+        '<div style="display:flex;align-items:center;gap:6px;"><div style="width:11px;height:11px;border-radius:50%;background:#888780;"></div><span style="font-size:13px;font-weight:700;color:#3D3B36;">Deseado: $' + Math.round(d.montoDeseado * Math.pow(1 + d.inflacion, r.edadRetiro - d.edadActual)).toLocaleString('es-MX') + '/mes</span></div>' +
+        '<div style="display:flex;align-items:center;gap:6px;"><div style="width:11px;height:11px;border-radius:50%;background:#042C53;"></div><span style="font-size:13px;font-weight:700;color:#3D3B36;">Pensión: $' + Math.round(pensionMensualAlRetiro).toLocaleString('es-MX') + '/mes</span></div>' +
+      '</div>' +
+      '<div style="display:flex;flex-wrap:wrap;justify-content:center;column-gap:22px;row-gap:4px;margin-top:10px;padding-top:8px;border-top:1px solid #E6E4DA;">' + maxxGenerarLeyendaHTML() + '</div>';
 
     // ---- Calificaciones ----
     var mensajeSin = 'Este es tu punto de partida. Vamos a mejorarlo.';
