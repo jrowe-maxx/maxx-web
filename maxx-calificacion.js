@@ -329,7 +329,8 @@ function maxxCorrerMotor(datos, config) {
     edadInicioPensionConyuge: edadInicioPensionConyuge,
     plazoComprometido: plazoComprometido,
     costoAnualAplicado: costoAnualAplicado,
-    tasaSolucionNeta: tasaSolucionNeta
+    tasaSolucionNeta: tasaSolucionNeta,
+    tasaRealNetaCosto: ((1 + tasaSolucionNeta) / (1 + inflacion) - 1)
   };
 }
 
@@ -597,7 +598,8 @@ function maxxCargarConfig(url, timeoutMs) {
     sp500: 'El S&P 500 es una excelente opción para hacer crecer tu dinero: incluso después de descontar la inflación, sigue dando rendimientos reales atractivos, año tras año. Por eso, la solución que MAXX te presentará en tu Cita usa esa misma estrategia de inversión — para que tu dinero realmente crezca, no solo en papel.',
     salario: 'En México, los sueldos casi no suben más rápido que la inflación — casi no te queda más dinero real cada año, aunque te suban el sueldo. Por eso, "ya ganaré más después" no es, por sí solo, un plan de retiro.',
     semanas: 'Si no completas las semanas mínimas que pide el IMSS (875 en 2026), podrías quedarte SIN el respaldo de la Pensión Garantizada. Existen formas legales de seguir sumando semanas, como la Continuación Voluntaria del IMSS. Lo revisamos en tu cita.',
-    costo: 'Entre más largo el plazo que eliges para tu plan, más baja tu tasa de costo anual promedio — porque los cargos fijos y trimestrales pesan menos, proporcionalmente, entre más tiempo y más crece tu saldo.'
+    costo: 'Entre más largo el plazo que eliges para tu plan, más baja tu tasa de costo anual promedio — porque los cargos fijos y trimestrales pesan menos, proporcionalmente, entre más tiempo y más crece tu saldo.',
+    transparencia: '<strong>MAXX SIEMPRE te muestra la verdad completa.</strong><br><br>Este cálculo ya incluye:<br>a) el <strong>costo real</strong> de tu plan,<br>b) tu <strong>pensión IMSS/AFORE</strong> (cuando aplica).<br><br>Otras cotizaciones NO restan costos, y muchas ni siquiera calculan tu pensión.<br><br><strong>Por eso, si comparas cifras, MAXX puede verse con un monto menor</strong> — pero es el único número en el que puedes confiar de verdad.'
   };
 
   function maxxTextoEsperanza() {
@@ -1326,12 +1328,24 @@ function maxxCargarConfig(url, timeoutMs) {
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Tu pensión vía AFORE, al retiro <span style="font-weight:400;">(mensual, pesos de ese momento)</span></span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(pensionMensualAlRetiro).toLocaleString('es-MX') + '</span></div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="font-size:13px;color:#5F5E5A;">Tu ahorro actual cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.ahorroFondeado).toLocaleString('es-MX') + '</span></div>' +
       bloqueCosto +
+      '<div style="background:#FCEBD9;border:2px solid #EF9F27;border-radius:10px;padding:14px;margin-bottom:10px;">' +
+        '<div style="font-size:14px;font-weight:800;color:#042C53;margin-bottom:8px;">⚠️ NOTA DE TRANSPARENCIA MAXX</div>' +
+        '<div style="font-size:13px;color:#3D3B36;line-height:1.5;">' +
+          '<strong>OJO al comparar cotizaciones.</strong><br>' +
+          'Otros cotizadores <strong>NO restan costos</strong>, y muchos <strong>ni siquiera calculan tu pensión</strong>.<br><br>' +
+          'Este cálculo YA incluye:<br>' +
+          'a) el <strong>costo real</strong> de tu plan<br>' +
+          'b) tu <strong>pensión IMSS/AFORE</strong><br><br>' +
+          'Por eso, si comparas cifras, <strong>MAXX puede verse con un monto menor</strong>.<br>' +
+          '<strong>Es el único número en el que puedes confiar.</strong>' +
+        '</div>' +
+      '</div>' +
       '<div style="background:#EAF3DE;border-radius:10px;padding:12px;text-align:center;">' +
         '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-bottom:6px;line-height:1.4;">🎉 Esto es lo que se estima que tus aportaciones acumularán para tu retiro a los ' + r.edadRetiro + ' años de edad</div>' +
         '<div style="font-size:26px;font-weight:800;color:#3B6D11;line-height:1.1;">$' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</div>' +
         '<div style="font-size:12px;font-weight:400;color:#5F8A3A;margin-top:2px;">(incluye inflación)</div>' +
         '<div style="font-size:12px;color:#3B6D11;font-weight:600;font-style:italic;margin-top:4px;">Este fondo sigue creciendo mientras lo usas — por eso cubre más de lo que parece.</div>' +
-        '<div style="font-size:12px;color:#3B6D11;font-weight:600;margin-top:5px;line-height:1.4;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalBrutaPct.toFixed(2) + '% anual <span style="font-weight:400;">(estimado con S&P500)</span>. Esta proyección ya descuenta el costo de tu plan (' + costoPct + '% anual, según tu plazo) — <strong>por eso creció con una tasa neta de ' + tasaNominalNetaPct.toFixed(2) + '% anual.</strong><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
+        '<div style="font-size:12px;color:#3B6D11;font-weight:600;margin-top:5px;line-height:1.4;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalBrutaPct.toFixed(2) + '% anual <span style="font-weight:400;">(estimado con S&P500)</span>. Esta proyección ya descuenta el costo de tu plan (' + costoPct + '% anual, según tu plazo) — <strong>por eso creció con una tasa NOMINAL neta de ' + tasaNominalNetaPct.toFixed(2) + '% anual</strong> (en pesos de cada año). En poder de compra real — ya sin inflación — esto equivale a la <strong>Tasa Real Neta de ' + (r.tasaRealNetaCosto*100).toFixed(2) + '%</strong> que ves en la Sección II: la cifra 100% transparente de tu plan.<br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
         '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:6px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
       '</div>';
 
