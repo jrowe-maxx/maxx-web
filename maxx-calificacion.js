@@ -1274,6 +1274,15 @@ function maxxCargarConfig(url, timeoutMs) {
     // ---- Calificaciones ----
     var mensajeSin = 'Este es tu punto de partida. Vamos a mejorarlo.';
     document.getElementById('maxx-panel-califn1').innerHTML =
+      '<div style="background:#FCEBD9;border:2px solid #EF9F27;border-radius:10px;padding:10px 12px;margin-bottom:12px;text-align:left;">' +
+        '<div style="font-size:13px;font-weight:800;color:#042C53;margin-bottom:5px;">⚠️ NOTA DE TRANSPARENCIA MAXX</div>' +
+        '<div style="font-size:12px;color:#3D3B36;line-height:1.4;">' +
+          '<strong>OJO al comparar cotizaciones.</strong> Otros cotizadores <strong>NO restan costos</strong>, y muchos <strong>ni siquiera calculan tu pensión</strong>.<br>' +
+          'Este cálculo YA incluye: a) el <strong>costo real</strong> de tu plan, b) tu <strong>pensión IMSS/AFORE</strong>.<br>' +
+          'Por eso, si comparas cifras, <strong>MAXX puede verse con un monto menor</strong>.<br>' +
+          '<strong>Tu futuro merece números reales — así te los entrega MAXX.</strong>' +
+        '</div>' +
+      '</div>' +
       '<div style="text-align:center;">' +
         '<div style="font-size:15px;color:#042C53;font-weight:700;letter-spacing:0.5px;margin-bottom:14px;">TUS CALIFICACIONES</div>' +
         '<div style="font-size:15px;color:#5F5E5A;font-weight:700;margin-bottom:8px;">SIN Solución propuesta de MAXX</div>' +
@@ -1328,14 +1337,6 @@ function maxxCargarConfig(url, timeoutMs) {
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Tu pensión vía AFORE, al retiro <span style="font-weight:400;">(mensual, pesos de ese momento)</span></span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(pensionMensualAlRetiro).toLocaleString('es-MX') + '</span></div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="font-size:13px;color:#5F5E5A;">Tu ahorro actual cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.ahorroFondeado).toLocaleString('es-MX') + '</span></div>' +
       bloqueCosto +
-      '<div style="background:#FCEBD9;border:2px solid #EF9F27;border-radius:10px;padding:10px 12px;margin-bottom:10px;">' +
-        '<div style="font-size:13px;font-weight:800;color:#042C53;margin-bottom:5px;">⚠️ NOTA DE TRANSPARENCIA MAXX</div>' +
-        '<div style="font-size:12px;color:#3D3B36;line-height:1.4;">' +
-          '<strong>OJO al comparar cotizaciones.</strong> Otros cotizadores <strong>NO restan costos</strong>, y muchos <strong>ni siquiera calculan tu pensión</strong>.<br>' +
-          'Este cálculo YA incluye: a) el <strong>costo real</strong> de tu plan, b) tu <strong>pensión IMSS/AFORE</strong>.<br>' +
-          'Por eso, si comparas cifras, <strong>MAXX puede verse con un monto menor</strong>. <strong>Tu futuro merece números reales — así te los entrega MAXX.</strong>' +
-        '</div>' +
-      '</div>' +
       '<div style="background:#EAF3DE;border-radius:10px;padding:12px;text-align:center;">' +
         '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-bottom:6px;line-height:1.4;">🎉 Esto es lo que se estima que tus aportaciones acumularán para tu retiro a los ' + r.edadRetiro + ' años de edad</div>' +
         '<div style="font-size:26px;font-weight:800;color:#3B6D11;line-height:1.1;">$' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</div>' +
