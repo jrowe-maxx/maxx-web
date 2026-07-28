@@ -651,7 +651,6 @@ function maxxCargarConfig(url, timeoutMs) {
     var el = document.getElementById('maxx-panel-1');
     el.innerHTML =
       '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">SECCIÓN I · TU LIBERTAD ECONÓMICA</div>' +
-      '<div style="font-size:13px;font-weight:500;color:#3B6D11;margin-bottom:7px;line-height:1.4;">Imagina tu retiro: tranquilo, sin preocupaciones.<br>Dinos qué necesitas para lograrlo.</div>' +
       '<div style="display:flex;gap:8px;margin-bottom:8px;">' +
         '<div style="flex:1;"><div class="maxx-field-label" style="color:#042C53;">Edad actual</div>' +
           '<input class="maxx-input" type="number" id="maxx-edad" placeholder="Ej. 45" min="18" max="80"></div>' +
@@ -668,14 +667,12 @@ function maxxCargarConfig(url, timeoutMs) {
         '<div id="maxx-retiro-warn" style="font-size:12px;color:#042C53;margin-top:3px;display:none;"></div>' +
       '</div>' +
       '<div style="margin-bottom:7px;">' +
-        '<div class="maxx-field-label" style="color:#042C53;">Monto mensual que necesitarías para vivir tranquilo en tu retiro <span style="font-weight:400;color:#5F5E5A;">(incluye a tu cónyuge/dependientes)</span></div>' +
+        '<div class="maxx-field-label" style="color:#042C53;">Monto mensual que deseas para tranquilidad en TU Retiro</div>' +
         '<input class="maxx-input" type="text" id="maxx-monto-deseado" placeholder="$ 30,000">' +
-      '</div>' +
-      maxxSabiasQueHTML('esperanza', '¿Cuánto ha crecido la esperanza de vida en México?', 0);
+      '</div>';
 
     document.getElementById('maxx-genero-h').onclick = function() { maxxSetGenero('H'); };
     document.getElementById('maxx-genero-m').onclick = function() { maxxSetGenero('M'); };
-    maxxWireSabiasQue('esperanza');
     document.getElementById('maxx-edad').addEventListener('input', function() {
       window.maxxData.edadActual = parseInt(this.value, 10) || 0;
       maxxCheckSeccion1();
@@ -1334,14 +1331,25 @@ function maxxCargarConfig(url, timeoutMs) {
         '<div style="display:flex;align-items:center;gap:6px;"><div style="width:11px;height:11px;border-radius:50%;background:#042C53;"></div><span style="font-size:13px;font-weight:700;color:#3D3B36;">Pensión: $' + Math.round(pensionMensualAlRetiro).toLocaleString('es-MX') + '/mes</span></div>' +
       '</div>' +
       '<div style="display:flex;flex-wrap:wrap;justify-content:center;column-gap:22px;row-gap:4px;margin-top:10px;padding-top:8px;border-top:1px solid #E6E4DA;">' + maxxGenerarLeyendaHTML() + '</div>' +
-      '<div id="maxx-zona-comoleer" style="margin-top:10px;">' +
-        '<button type="button" id="maxx-toggle-comoleer" style="border:none;background:#E8EEF4;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">📊 ¿Cómo leer TU gráfica? →</button>' +
-        '<div id="maxx-cuerpo-comoleer" style="display:none;background:#fff;border-radius:8px;padding:10px;margin-top:6px;font-size:13px;color:#3D3B36;line-height:1.4;">' +
-          '<strong style="color:#042C53;">①</strong> <strong style="color:#042C53;">Azul</strong> y <strong style="color:#EF9F27;">naranja</strong>: tu dinero creciendo mes a mes, hasta tu retiro.<br>' +
-          '<strong style="color:#042C53;">②</strong> Al llegar a tu retiro, se SUMAN y nace la línea <strong style="color:#639922;">verde</strong>.<br>' +
-          '<strong style="color:#042C53;">③</strong> La <strong style="color:#639922;">verde</strong> solo BAJA — cada mes se usa un poco para completar lo que tu pensión no alcanza.<br>' +
-          '<strong style="color:#042C53;">④</strong> La línea vertical <strong style="color:#042C53;">roja</strong> marca tu esperanza de vida; la <strong style="color:#042C53;">azul marino</strong>, tu edad de retiro.<br>' +
-          '<strong style="color:#042C53;">⑤</strong> Si la <strong style="color:#639922;">verde</strong> llega a $0 antes de tu esperanza de vida, tu capital se agotó — de ahí en adelante vives solo de tu pensión (o sin ingreso, si no tienes).' +
+      '<div style="display:flex;gap:8px;margin-top:10px;">' +
+        '<div id="maxx-zona-comoleer" style="flex:1;">' +
+          '<button type="button" id="maxx-toggle-comoleer" style="border:none;background:#E8EEF4;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">📊 ¿Cómo leer TU gráfica? →</button>' +
+          '<div id="maxx-cuerpo-comoleer" style="display:none;background:#fff;border-radius:8px;padding:10px;margin-top:6px;font-size:13px;color:#3D3B36;line-height:1.4;">' +
+            '<strong style="color:#042C53;">①</strong> <strong style="color:#042C53;">Azul</strong> y <strong style="color:#EF9F27;">naranja</strong>: tu dinero creciendo mes a mes, hasta tu retiro.<br>' +
+            '<strong style="color:#042C53;">②</strong> Al llegar a tu retiro, se SUMAN y nace la línea <strong style="color:#639922;">verde</strong>.<br>' +
+            '<strong style="color:#042C53;">③</strong> La <strong style="color:#639922;">verde</strong> solo BAJA — cada mes se usa un poco para completar lo que tu pensión no alcanza.<br>' +
+            '<strong style="color:#042C53;">④</strong> La línea vertical <strong style="color:#042C53;">roja</strong> marca tu esperanza de vida; la <strong style="color:#042C53;">azul marino</strong>, tu edad de retiro.<br>' +
+            '<strong style="color:#042C53;">⑤</strong> Si la <strong style="color:#639922;">verde</strong> llega a $0 antes de tu esperanza de vida, tu capital se agotó — de ahí en adelante vives solo de tu pensión (o sin ingreso, si no tienes).' +
+          '</div>' +
+        '</div>' +
+        '<div id="maxx-zona-notatransparencia" style="flex:1;">' +
+          '<button type="button" id="maxx-toggle-notatransparencia" style="border:none;background:#FCEBD9;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">⚠️ Nota de Transparencia MAXX →</button>' +
+          '<div id="maxx-cuerpo-notatransparencia" style="display:none;background:#fff;border-radius:8px;padding:10px;margin-top:6px;font-size:12px;color:#3D3B36;line-height:1.4;">' +
+            '<strong>OJO al comparar cotizaciones.</strong> Otros cotizadores <strong>NO restan costos</strong>, y muchos <strong>ni siquiera calculan tu pensión</strong>.<br>' +
+            'Este cálculo YA incluye: a) el <strong>costo real</strong> de tu plan, b) tu <strong>pensión IMSS/AFORE</strong>.<br>' +
+            'Por eso, si comparas cifras, <strong>MAXX puede verse con un monto menor</strong>.<br>' +
+            '<strong>Tu futuro merece números reales — así te los entrega MAXX.</strong>' +
+          '</div>' +
         '</div>' +
       '</div>';
 
@@ -1357,19 +1365,22 @@ function maxxCargarConfig(url, timeoutMs) {
         document.getElementById('maxx-cuerpo-comoleer').style.display = 'none';
       });
     }
+    var toggleNotaTransparencia = document.getElementById('maxx-toggle-notatransparencia');
+    var zonaNotaTransparencia = document.getElementById('maxx-zona-notatransparencia');
+    if (toggleNotaTransparencia) {
+      toggleNotaTransparencia.addEventListener('click', function() {
+        var cuerpo = document.getElementById('maxx-cuerpo-notatransparencia');
+        var abrir = cuerpo.style.display === 'none';
+        cuerpo.style.display = abrir ? 'block' : 'none';
+      });
+      zonaNotaTransparencia.addEventListener('mouseleave', function() {
+        document.getElementById('maxx-cuerpo-notatransparencia').style.display = 'none';
+      });
+    }
 
     // ---- Calificaciones ----
     var mensajeSin = 'Este es tu punto de partida. Vamos a mejorarlo.';
     document.getElementById('maxx-panel-califn1').innerHTML =
-      '<div style="background:#FCEBD9;border-left:4px solid #EF9F27;border-radius:6px;padding:8px 10px;margin-bottom:12px;text-align:left;">' +
-        '<div style="font-size:11.5px;font-weight:800;color:#042C53;margin-bottom:3px;">⚠️ NOTA DE TRANSPARENCIA MAXX</div>' +
-        '<div style="font-size:11px;color:#3D3B36;line-height:1.35;">' +
-          '<strong>OJO al comparar cotizaciones.</strong> Otros cotizadores <strong>NO restan costos</strong>, y muchos <strong>ni siquiera calculan tu pensión</strong>.<br>' +
-          'Este cálculo YA incluye: a) el <strong>costo real</strong> de tu plan, b) tu <strong>pensión IMSS/AFORE</strong>.<br>' +
-          'Por eso, si comparas cifras, <strong>MAXX puede verse con un monto menor</strong>.<br>' +
-          '<strong>Tu futuro merece números reales — así te los entrega MAXX.</strong>' +
-        '</div>' +
-      '</div>' +
       '<div style="text-align:center;">' +
         '<div style="font-size:15px;color:#042C53;font-weight:700;letter-spacing:0.5px;margin-bottom:14px;">TUS CALIFICACIONES</div>' +
         '<div style="font-size:15px;color:#5F5E5A;font-weight:700;margin-bottom:8px;">SIN Solución propuesta de MAXX</div>' +
@@ -1414,7 +1425,8 @@ function maxxCargarConfig(url, timeoutMs) {
         '<span style="font-size:13px;color:#5F5E5A;">Costo anual de tu plan <span style="font-weight:400;">(según tu plazo de ' + r.plazoComprometido + ' años)</span></span>' +
         '<span style="font-size:13px;font-weight:700;color:#042C53;">' + costoPct + '%</span>' +
       '</div>' +
-      maxxSabiasQueHTML('costo', 'Entre más largo tu plazo, más bajo tu costo', 4).replace('margin-top:4px;', 'margin-top:4px;margin-bottom:10px;');
+      maxxSabiasQueHTML('costo', 'Entre más largo tu plazo, más bajo tu costo', 4).replace('margin-top:4px;', 'margin-top:4px;margin-bottom:6px;') +
+      maxxSabiasQueHTML('esperanza', '¿Cuánto ha crecido la esperanza de vida en México?', 0);
 
     document.getElementById('maxx-panel-5').innerHTML =
       '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:9px;letter-spacing:0.5px;">SECCIÓN III · RESULTADOS</div>' +
@@ -1424,15 +1436,19 @@ function maxxCargarConfig(url, timeoutMs) {
         '<div style="font-size:12px;font-weight:400;color:#5F8A3A;margin-top:2px;">(incluye inflación)</div>' +
         '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:10px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
       '</div>' +
-      '<div style="font-size:11px;color:#8A8778;font-style:italic;margin-bottom:10px;line-height:1.4;">Esta es tu primera estimación — afina los Datos Relevantes de abajo para un cálculo más preciso.</div>' +
-      '<div style="font-size:12px;color:#3B6D11;font-weight:600;font-style:italic;margin-bottom:6px;">Este fondo sigue creciendo mientras lo usas — por eso cubre más de lo que parece.</div>' +
-      '<div style="font-size:12px;color:#042C53;font-weight:500;line-height:1.4;margin-bottom:10px;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalBrutaPct.toFixed(2) + '% anual <span style="font-weight:400;">(estimado con S&P500)</span>. Esta proyección ya descuenta el costo de tu plan (' + costoPct + '% anual, según tu plazo) — <strong>por eso creció con una tasa NOMINAL neta de ' + tasaNominalNetaPct.toFixed(2) + '% anual</strong> (en pesos de cada año). En poder de compra real — ya sin inflación — esto equivale a la <strong>Tasa Real Neta de ' + (r.tasaRealNetaCosto*100).toFixed(2) + '%</strong> que ves en Indicadores Financieros: la cifra 100% transparente de tu plan.<br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
+      '<div style="font-size:12px;color:#042C53;font-weight:600;line-height:1.4;margin-bottom:10px;"><strong>Lo logras aportando tan solo $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes.</strong><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
+      '<div style="font-size:13px;color:#042C53;font-weight:800;margin-bottom:6px;">En MAXX preferimos la transparencia</div>' +
+      '<div style="font-size:12px;color:#5F5E5A;font-weight:500;line-height:1.4;margin-bottom:10px;">Tus aportaciones se invertirán a una <strong>tasa nominal de ' + tasaNominalBrutaPct.toFixed(2) + '% anual</strong> (estimado con S&P500).<br>Esta proyección ya <strong>descuenta el costo de tu plan</strong> (' + costoPct + '% anual, según tu plazo) — por eso creció con una <strong>tasa nominal neta de ' + tasaNominalNetaPct.toFixed(2) + '% anual</strong> (en pesos de cada año).<br>En poder de compra real — descontando la inflación — esto equivale a la <strong>Tasa Real Neta de ' + (r.tasaRealNetaCosto*100).toFixed(2) + '%</strong> que ves en la sección de Indicadores Financieros.</div>' +
       '<div style="font-size:12px;color:#5F5E5A;font-weight:700;margin-bottom:6px;">Así se compone tu resultado:</div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Necesidad total</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.necesidadTotal).toLocaleString('es-MX') + '</span></div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Tu pensión IMSS/AFORE cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.pensionFondeada).toLocaleString('es-MX') + '</span></div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Tu pensión vía AFORE, al retiro <span style="font-weight:400;">(mensual, pesos de ese momento)</span></span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(pensionMensualAlRetiro).toLocaleString('es-MX') + '</span></div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="font-size:13px;color:#5F5E5A;">Tu ahorro actual cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.ahorroFondeado).toLocaleString('es-MX') + '</span></div>' +
-      bloqueCosto;
+      bloqueCosto +
+      '<div style="background:#E6F1FB;border-radius:8px;padding:8px 10px;margin-top:10px;font-size:11.5px;color:#185FA5;font-weight:600;line-height:1.4;">Esta es tu primera estimación — afina los Datos Relevantes de abajo para un cálculo más preciso.</div>';
+
+    maxxWireSabiasQue('costo');
+    maxxWireSabiasQue('esperanza');
 
     // Pintar la tabla de costo dentro del "sabías que" recien insertado (una vez que el DOM ya tiene el contenedor)
     var bodyCosto = document.getElementById('maxx-sq-body-costo');
