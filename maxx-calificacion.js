@@ -1525,7 +1525,6 @@ function maxxCargarConfig(url, timeoutMs) {
         '<div style="font-size:13px;color:#5F5E5A;margin-bottom:16px;line-height:1.4;">Ya tenemos tu resultado listo. Solo nos falta saber a dónde enviártelo.</div>' +
         '<div style="margin-bottom:10px;"><input type="text" id="maxx-pdf-nombre" placeholder="Nombre" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
         '<div style="margin-bottom:10px;"><input type="text" id="maxx-pdf-apellidos" placeholder="Apellidos" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
-        '<div style="margin-bottom:10px;"><input type="tel" id="maxx-pdf-telefono" placeholder="Teléfono" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
         '<div style="margin-bottom:14px;"><input type="email" id="maxx-pdf-correo" placeholder="Correo" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
         '<div id="maxx-pdf-error" style="display:none;color:#C0392B;font-size:12px;margin-bottom:10px;"></div>' +
         '<button type="button" id="maxx-pdf-enviar" style="display:block;width:100%;padding:13px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:14px;font-weight:800;cursor:pointer;">Enviarme mi PDF →</button>' +
@@ -1562,12 +1561,11 @@ function maxxCargarConfig(url, timeoutMs) {
     document.getElementById('maxx-pdf-enviar').addEventListener('click', function() {
       var nombre = document.getElementById('maxx-pdf-nombre').value.trim();
       var apellidos = document.getElementById('maxx-pdf-apellidos').value.trim();
-      var telefono = document.getElementById('maxx-pdf-telefono').value.trim();
       var correo = document.getElementById('maxx-pdf-correo').value.trim();
       var errEl = document.getElementById('maxx-pdf-error');
 
       var correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
-      if (!nombre || !apellidos || !telefono || !correoValido) {
+      if (!nombre || !apellidos || !correoValido) {
         errEl.style.display = 'block';
         errEl.textContent = '⚠ Completa todos los campos con un correo válido.';
         return;
@@ -1582,7 +1580,6 @@ function maxxCargarConfig(url, timeoutMs) {
         fields: [
           { objectTypeId: '0-1', name: 'firstname', value: nombre },
           { objectTypeId: '0-1', name: 'lastname', value: apellidos },
-          { objectTypeId: '0-1', name: 'phone', value: telefono },
           { objectTypeId: '0-1', name: 'email', value: correo },
           { objectTypeId: '0-1', name: 'detalle_cuestionario_maxx', value: maxxConstruirDetalleJSON() }
         ],
