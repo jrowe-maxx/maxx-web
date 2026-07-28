@@ -1526,6 +1526,7 @@ function maxxCargarConfig(url, timeoutMs) {
         '<div style="margin-bottom:10px;"><input type="text" id="maxx-pdf-nombre" placeholder="Nombre" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
         '<div style="margin-bottom:10px;"><input type="text" id="maxx-pdf-apellidos" placeholder="Apellidos" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
         '<div style="margin-bottom:14px;"><input type="email" id="maxx-pdf-correo" placeholder="Correo" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
+        '<input type="text" id="maxx-pdf-empresa" name="empresa_web" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">' +
         '<div id="maxx-pdf-error" style="display:none;color:#C0392B;font-size:12px;margin-bottom:10px;"></div>' +
         '<button type="button" id="maxx-pdf-enviar" style="display:block;width:100%;padding:13px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:14px;font-weight:800;cursor:pointer;">Enviarme mi PDF →</button>' +
         '<div id="maxx-pdf-exito" style="display:none;text-align:center;padding:12px 0 4px 0;">' +
@@ -1543,6 +1544,7 @@ function maxxCargarConfig(url, timeoutMs) {
       document.body.appendChild(wrapper.firstChild);
       maxxWireModalPDF();
     }
+    window.maxxModalPdfAbiertoEn = Date.now();
     var overlay = document.getElementById('maxx-modal-pdf-overlay');
     overlay.style.display = 'flex';
   };
@@ -1562,7 +1564,17 @@ function maxxCargarConfig(url, timeoutMs) {
       var nombre = document.getElementById('maxx-pdf-nombre').value.trim();
       var apellidos = document.getElementById('maxx-pdf-apellidos').value.trim();
       var correo = document.getElementById('maxx-pdf-correo').value.trim();
+      var trampa = document.getElementById('maxx-pdf-empresa').value.trim();
       var errEl = document.getElementById('maxx-pdf-error');
+
+      // Anti-bot silencioso: si cayó en la trampa, o si "llenó" el formulario
+      // en menos de 2 segundos, simulamos éxito pero no mandamos nada a HubSpot.
+      var tiempoTranscurrido = Date.now() - (window.maxxModalPdfAbiertoEn || 0);
+      if (trampa || tiempoTranscurrido < 2000) {
+        document.getElementById('maxx-pdf-enviar').style.display = 'none';
+        document.getElementById('maxx-pdf-exito').style.display = 'block';
+        return;
+      }
 
       var correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
       if (!nombre || !apellidos || !correoValido) {
@@ -1570,6 +1582,16 @@ function maxxCargarConfig(url, timeoutMs) {
         errEl.textContent = '⚠ Completa todos los campos con un correo válido.';
         return;
       }
+
+      try {
+        var yaEnviadosCheck = JSON.parse(localStorage.getItem('maxxPdfEnviados') || '[]');
+        if (yaEnviadosCheck.indexOf(correo.toLowerCase()) !== -1) {
+          errEl.style.display = 'block';
+          errEl.textContent = 'Ya te enviamos TU Calificación a este correo antes — revisa tu bandeja de entrada (o spam).';
+          return;
+        }
+      } catch (err) { /* si el navegador bloquea localStorage, seguimos normal */ }
+
       errEl.style.display = 'none';
 
       var btn = document.getElementById('maxx-pdf-enviar');
@@ -1592,6 +1614,11 @@ function maxxCargarConfig(url, timeoutMs) {
         body: JSON.stringify(payload)
       }).then(function(resp) {
         if (!resp.ok) throw new Error('submit failed');
+        try {
+          var yaEnviados = JSON.parse(localStorage.getItem('maxxPdfEnviados') || '[]');
+          if (yaEnviados.indexOf(correo.toLowerCase()) === -1) yaEnviados.push(correo.toLowerCase());
+          localStorage.setItem('maxxPdfEnviados', JSON.stringify(yaEnviados));
+        } catch (err) { /* si el navegador bloquea localStorage, no pasa nada grave */ }
         document.getElementById('maxx-pdf-enviar').style.display = 'none';
         document.getElementById('maxx-pdf-exito').style.display = 'block';
       }).catch(function() {
