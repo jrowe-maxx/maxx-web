@@ -960,6 +960,40 @@ function maxxCargarConfig(url, timeoutMs) {
     return '<button type="button" data-pill="' + name + '" data-val="' + value + '" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid ' + (activo ? '#042C53' : '#D3D1C7') + ';background:' + (activo ? '#042C53' : '#fff') + ';color:' + (activo ? '#fff' : '#5F5E5A') + ';font-size:12px;font-weight:600;cursor:pointer;">' + label + '</button>';
   }
 
+  function maxxSorpresaHTML(d) {
+    var aniosSorpresa = [5, 10, 15, 20, 25, 30];
+    var filasSorpresa = aniosSorpresa.map(function(a) {
+      var valorHoy = d.capacidadAhorro / Math.pow(1 + d.inflacion, a);
+      return '<tr><td style="padding:5px 6px;color:#5F5E5A;font-size:13px;border-top:1px solid #E6E4DA;">' + a + '</td>' +
+        '<td style="padding:5px 6px;text-align:center;color:#5F5E5A;font-size:13px;border-top:1px solid #E6E4DA;">$' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '</td>' +
+        '<td style="padding:5px 6px;text-align:right;font-weight:800;color:#042C53;font-size:13px;border-top:1px solid #E6E4DA;">$' + Math.round(valorHoy).toLocaleString('es-MX') + '</td></tr>';
+    }).join('');
+    return '<div id="maxx-zona-sorpresa" style="margin-top:10px;">' +
+      '<button type="button" id="maxx-toggle-sorpresa" style="border:none;background:#E8EEF4;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">🔷 Tengo una <u>sorpresa</u> que te va a encantar... →</button>' +
+      '<div id="maxx-cuerpo-sorpresa" style="display:none;background:#fff;border-radius:8px;padding:12px;margin-top:6px;">' +
+        '<div style="font-size:12px;color:#3D3B36;line-height:1.4;margin-bottom:8px;">Tu aportación de <strong>$' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes se queda FIJA</strong> — nunca la subes. Como tu sueldo normalmente sí sube con la inflación, con el tiempo te va a doler cada vez menos pagarla:</div>' +
+        '<table style="width:100%;border-collapse:collapse;">' +
+          '<tr><th style="padding:4px 6px;text-align:left;font-size:12px;color:#5F5E5A;">Año</th><th style="padding:4px 6px;text-align:center;font-size:12px;color:#5F5E5A;">Seguirás pagando</th><th style="padding:4px 6px;text-align:right;font-size:12px;color:#5F5E5A;">Pesará como (hoy)</th></tr>' +
+          filasSorpresa +
+        '</table>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function maxxWireSorpresa() {
+    var toggleSorpresa = document.getElementById('maxx-toggle-sorpresa');
+    var zonaSorpresa = document.getElementById('maxx-zona-sorpresa');
+    if (toggleSorpresa) {
+      toggleSorpresa.addEventListener('click', function() {
+        var cuerpo = document.getElementById('maxx-cuerpo-sorpresa');
+        cuerpo.style.display = cuerpo.style.display === 'none' ? 'block' : 'none';
+      });
+      zonaSorpresa.addEventListener('mouseleave', function() {
+        document.getElementById('maxx-cuerpo-sorpresa').style.display = 'none';
+      });
+    }
+  }
+
   function renderPanelEsencial(unlocked) {
     var el = document.getElementById('maxx-panel-2');
     var lockIcon = unlocked ? '' : '🔒 ';
@@ -1104,6 +1138,8 @@ function maxxCargarConfig(url, timeoutMs) {
     paint('maxx-panel-cta', completo);
     paint('maxx-panel-indicadores', completo);
     paint('maxx-panel-apoyo', completo);
+    var seccion4Wrapper = document.getElementById('maxx-seccion4-wrapper');
+    if (seccion4Wrapper) seccion4Wrapper.style.display = completo ? 'block' : 'none';
     if (completo) {
       maxxRenderizarResultados();
       renderPanelIndicadores(true);
@@ -1200,41 +1236,11 @@ function maxxCargarConfig(url, timeoutMs) {
       html += maxxSabiasQueHTML('semanas', '¿Qué pasa si no completas tus semanas del IMSS?', 6);
     }
 
-    // Sorpresa: aportacion fija vs inflacion
-    var aniosSorpresa = [5, 10, 15, 20, 25, 30];
-    var filasSorpresa = aniosSorpresa.map(function(a) {
-      var valorHoy = d.capacidadAhorro / Math.pow(1 + d.inflacion, a);
-      return '<tr><td style="padding:5px 6px;color:#5F5E5A;font-size:13px;border-top:1px solid #E6E4DA;">' + a + '</td>' +
-        '<td style="padding:5px 6px;text-align:center;color:#5F5E5A;font-size:13px;border-top:1px solid #E6E4DA;">$' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '</td>' +
-        '<td style="padding:5px 6px;text-align:right;font-weight:800;color:#042C53;font-size:13px;border-top:1px solid #E6E4DA;">$' + Math.round(valorHoy).toLocaleString('es-MX') + '</td></tr>';
-    }).join('');
-    html += '<div id="maxx-zona-sorpresa" style="margin-top:6px;">' +
-      '<button type="button" id="maxx-toggle-sorpresa" style="border:none;background:#E8EEF4;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">🔷 Tengo una <u>sorpresa</u> que te va a encantar... →</button>' +
-      '<div id="maxx-cuerpo-sorpresa" style="display:none;background:#fff;border-radius:8px;padding:12px;margin-top:6px;">' +
-        '<div style="font-size:12px;color:#3D3B36;line-height:1.4;margin-bottom:8px;">Tu aportación de <strong>$' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes se queda FIJA</strong> — nunca la subes. Como tu sueldo normalmente sí sube con la inflación, con el tiempo te va a doler cada vez menos pagarla:</div>' +
-        '<table style="width:100%;border-collapse:collapse;">' +
-          '<tr><th style="padding:4px 6px;text-align:left;font-size:12px;color:#5F5E5A;">Año</th><th style="padding:4px 6px;text-align:center;font-size:12px;color:#5F5E5A;">Seguirás pagando</th><th style="padding:4px 6px;text-align:right;font-size:12px;color:#5F5E5A;">Pesará como (hoy)</th></tr>' +
-          filasSorpresa +
-        '</table>' +
-      '</div>' +
-    '</div>';
-
     el.innerHTML = html;
     maxxWireApoyo();
     maxxWireSabiasQue('salario');
     if (d.tieneAfore === 'S' && d.aniosCotizando > 0 && (d.aniosCotizando * 54) < 875) {
       maxxWireSabiasQue('semanas');
-    }
-    var toggleSorpresa = document.getElementById('maxx-toggle-sorpresa');
-    var zonaSorpresa = document.getElementById('maxx-zona-sorpresa');
-    if (toggleSorpresa) {
-      toggleSorpresa.addEventListener('click', function() {
-        var cuerpo = document.getElementById('maxx-cuerpo-sorpresa');
-        cuerpo.style.display = cuerpo.style.display === 'none' ? 'block' : 'none';
-      });
-      zonaSorpresa.addEventListener('mouseleave', function() {
-        document.getElementById('maxx-cuerpo-sorpresa').style.display = 'none';
-      });
     }
   }
 
@@ -1445,10 +1451,11 @@ function maxxCargarConfig(url, timeoutMs) {
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Tu pensión vía AFORE, al retiro <span style="font-weight:400;">(mensual, pesos de ese momento)</span></span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(pensionMensualAlRetiro).toLocaleString('es-MX') + '</span></div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="font-size:13px;color:#5F5E5A;">Tu ahorro actual cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.ahorroFondeado).toLocaleString('es-MX') + '</span></div>' +
       bloqueCosto +
-      '<div style="background:#E6F1FB;border-radius:8px;padding:8px 10px;margin-top:10px;font-size:11.5px;color:#185FA5;font-weight:600;line-height:1.4;">Esta es tu primera estimación — afina los Datos Relevantes de abajo para un cálculo más preciso.</div>';
+      maxxSorpresaHTML(d);
 
     maxxWireSabiasQue('costo');
     maxxWireSabiasQue('esperanza');
+    maxxWireSorpresa();
 
     // Pintar la tabla de costo dentro del "sabías que" recien insertado (una vez que el DOM ya tiene el contenedor)
     var bodyCosto = document.getElementById('maxx-sq-body-costo');
