@@ -1147,7 +1147,7 @@ function maxxCargarConfig(url, timeoutMs) {
     } else {
       renderPlaceholder('maxx-panel-grafica', 'GRÁFICA · ACUMULACIÓN Y DESACUMULACIÓN');
       renderPlaceholder('maxx-panel-5', 'SECCIÓN III · RESULTADOS');
-      renderPlaceholder('maxx-panel-califn1', 'SIN Solución propuesta de MAXX');
+      renderPlaceholder('maxx-panel-califn1', 'SIN TU Propuesta de Aportaciones');
       renderPlaceholder('maxx-panel-califn2', 'CON TU Propuesta de Aportaciones');
       renderPlaceholder('maxx-panel-cta', 'AGENDA TU CITA');
       renderPlaceholder('maxx-panel-indicadores', 'Indicadores Financieros');
@@ -1389,7 +1389,7 @@ function maxxCargarConfig(url, timeoutMs) {
     document.getElementById('maxx-panel-califn1').innerHTML =
       '<div style="text-align:center;">' +
         '<div style="font-size:15px;color:#042C53;font-weight:700;letter-spacing:0.5px;margin-bottom:14px;">TUS CALIFICACIONES</div>' +
-        '<div style="font-size:15px;color:#5F5E5A;font-weight:700;margin-bottom:8px;">SIN Solución propuesta de MAXX</div>' +
+        '<div style="font-size:15px;color:#5F5E5A;font-weight:700;margin-bottom:8px;">SIN TU Propuesta de Aportaciones</div>' +
         '<div style="font-size:52px;font-weight:800;color:#042C53;line-height:1;">' + r.califSin + '<span style="font-size:20px;">/100</span></div>' +
         '<div style="font-size:15px;color:#042C53;font-weight:700;margin-top:5px;">Tu GAP: ' + (100 - r.califSin) + '%</div>' +
         '<div style="font-size:13px;color:#042C53;font-weight:600;margin-top:6px;line-height:1.4;">' + mensajeSin + '</div>' +
@@ -1437,10 +1437,10 @@ function maxxCargarConfig(url, timeoutMs) {
     document.getElementById('maxx-panel-5').innerHTML =
       '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:9px;letter-spacing:0.5px;">SECCIÓN III · RESULTADOS</div>' +
       '<div style="background:#EAF3DE;border-radius:10px;padding:14px;text-align:center;margin-bottom:10px;">' +
-        '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-bottom:6px;line-height:1.4;">🎉 Esto es lo que se estima que tus aportaciones acumularán para tu retiro a los ' + r.edadRetiro + ' años de edad</div>' +
-        '<div style="font-size:32px;font-weight:800;color:#3B6D11;line-height:1.1;">$' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</div>' +
-        '<div style="font-size:12px;font-weight:400;color:#5F8A3A;margin-top:2px;">(incluye inflación)</div>' +
-        '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:10px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
+        '<div style="font-size:15px;color:#3B6D11;font-weight:700;margin-bottom:7px;line-height:1.4;">🎉 Esto es lo que se estima que tus aportaciones acumularán para tu retiro a los ' + r.edadRetiro + ' años de edad</div>' +
+        '<div style="font-size:38px;font-weight:800;color:#3B6D11;line-height:1.1;">$' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</div>' +
+        '<div style="font-size:13px;font-weight:400;color:#5F8A3A;margin-top:3px;">(incluye inflación)</div>' +
+        '<div style="font-size:15px;color:#3B6D11;font-weight:700;margin-top:11px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
       '</div>' +
       '<div style="font-size:12px;color:#042C53;font-weight:600;line-height:1.4;margin-bottom:10px;"><strong>Lo logras aportando tan solo $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes.</strong><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
       '<div style="font-size:13px;color:#042C53;font-weight:800;margin-bottom:6px;">En MAXX preferimos la transparencia</div>' +
@@ -1472,7 +1472,7 @@ function maxxCargarConfig(url, timeoutMs) {
 
     // ---- CTA ----
     document.getElementById('maxx-panel-cta').innerHTML =
-      '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=cuestionario&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:14px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1.4;text-align:center;text-decoration:none;box-sizing:border-box;">¿Quieres conocer la Solución Ideal para TI?<br><span style="font-size:18px;">Agenda TU Cita →</span><br><span style="font-size:12px;font-weight:600;">Gratuita. Sin Compromiso.</span></a>';
+      '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=cuestionario&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:14px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1.5;text-align:center;text-decoration:none;box-sizing:border-box;">¿Quieres conocer la Solución Ideal para TI?<br><span style="font-size:19px;">Agenda TU Cita. ¡Hazlo YA! →</span><br><span style="font-size:13px;font-weight:600;">30 minutos. Gratuito. Sin Compromisos.</span></a>';
   }
 
   // ---------- Placeholders bloqueados (se construyen despues) ----------
@@ -1482,7 +1482,7 @@ function maxxCargarConfig(url, timeoutMs) {
   }
   renderPlaceholder('maxx-panel-grafica', 'GRÁFICA · ACUMULACIÓN Y DESACUMULACIÓN');
   renderPlaceholder('maxx-panel-5', 'SECCIÓN III · RESULTADOS');
-  renderPlaceholder('maxx-panel-califn1', 'SIN Solución propuesta de MAXX');
+  renderPlaceholder('maxx-panel-califn1', 'SIN TU Propuesta de Aportaciones');
   renderPlaceholder('maxx-panel-califn2', 'CON TU Propuesta de Aportaciones');
   renderPlaceholder('maxx-panel-cta', 'AGENDA TU CITA');
   renderPlaceholder('maxx-panel-indicadores', 'Indicadores Financieros');
