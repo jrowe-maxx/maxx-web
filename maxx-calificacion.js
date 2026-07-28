@@ -1314,6 +1314,8 @@ function maxxCargarConfig(url, timeoutMs) {
         pensionMensualAlRetiro = f.pensionMensual || 0;
       }
     });
+    window.maxxData.fondoAlRetiro = fondoAlRetiro;
+    window.maxxData.pensionMensualAlRetiro = pensionMensualAlRetiro;
 
     // ---- Grafica ----
     var edadEsperanzaVida = r.edadRetiro + r.esperanzaVida;
@@ -1472,10 +1474,139 @@ function maxxCargarConfig(url, timeoutMs) {
 
     // ---- CTA ----
     document.getElementById('maxx-panel-cta').innerHTML =
-      '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=cuestionario&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:14px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1.5;text-align:center;text-decoration:none;box-sizing:border-box;">¿Quieres conocer la Solución Ideal para TI?<br><span style="font-size:19px;">Agenda TU Cita. ¡Hazlo YA! →</span><br><span style="font-size:13px;font-weight:600;">30 minutos. Gratuito. Sin Compromisos.</span></a>';
+      '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=cuestionario&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:14px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1.5;text-align:center;text-decoration:none;box-sizing:border-box;">¿Quieres conocer la Solución Ideal para TI?<br><span style="font-size:19px;">Agenda TU Cita. ¡Hazlo YA! →</span><br><span style="font-size:13px;font-weight:600;">30 minutos. Gratuito. Sin Compromisos.</span></a>' +
+      '<button type="button" id="maxx-btn-pdf" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;border-radius:10px;border:1.5px solid #042C53;background:#fff;color:#042C53;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;box-sizing:border-box;">🖨️ Recibe TU Calificación en PDF</button>';
+
+    var btnPdf = document.getElementById('maxx-btn-pdf');
+    if (btnPdf) btnPdf.addEventListener('click', function() { maxxAbrirModalPDF(); });
   }
 
-  // ---------- Placeholders bloqueados (se construyen despues) ----------
+  // ---------- MODAL: Solicitud de PDF (contacto + toda la data del Cuestionario) ----------
+  // IMPORTANTE (Javier): antes de que esto funcione en vivo, necesitas crear en HubSpot:
+  // 1) Un formulario NUEVO (Marketing > Forms > Create) con SOLO estos campos: Nombre, Apellidos,
+  //    Teléfono, Correo (los 4 ya existen como propiedades estándar de contacto, no hay que crearlos).
+  // 2) Una propiedad de contacto NUEVA, tipo "Texto de varias líneas" (multi-line text),
+  //    con el label exacto: "Detalle Cuestionario MAXX" (así el internal name sale limpio:
+  //    detalle_cuestionario_maxx — evita el bug de nombres corruptos que ya vivimos antes).
+  //    Agrégala a este mismo formulario nuevo (puede ser un campo oculto/hidden si quieres).
+  // 3) Copia el Form GUID del formulario nuevo y pégalo abajo en MAXX_PDF_FORM_GUID.
+  var MAXX_PDF_PORTAL_ID = '51441967';
+  var MAXX_PDF_FORM_GUID = 'PENDIENTE-CREAR-EN-HUBSPOT'; // <-- Javier: reemplaza con el GUID real
+
+  function maxxConstruirDetalleJSON() {
+    var d = window.maxxData;
+    var r = window.maxxUltimoResultado || {};
+    var detalle = {
+      edadActual: d.edadActual, genero: d.genero, edadRetiro: d.edadRetiro,
+      montoDeseado: d.montoDeseado, capacidadAhorro: d.capacidadAhorro,
+      tieneAfore: d.tieneAfore, aniosCotizando: d.aniosCotizando, sueldoBruto: d.sueldoBruto,
+      ingresoActual: d.ingresoActual, ley73: d.ley73,
+      conyugeApoya: d.conyugeApoya, conyugeEdadActual: d.conyugeEdadActual, conyugeAfore: d.conyugeAfore,
+      conyugeAnios: d.conyugeAnios, conyugeSueldo: d.conyugeSueldo, conyugeIngreso: d.conyugeIngreso, conyugeLey73: d.conyugeLey73,
+      tieneAhorros: d.tieneAhorros, montoAhorros: d.montoAhorros,
+      casaPropia: d.casaPropia, valorCasa: d.valorCasa,
+      otraFuente: d.otraFuente, montoOtraFuente: d.montoOtraFuente,
+      inflacion: d.inflacion, tasaSolucion: d.tasaSolucion,
+      fondoAlRetiro: d.fondoAlRetiro, pensionMensualAlRetiro: d.pensionMensualAlRetiro,
+      califSin: r.califSin, califCon: r.califCon, necesidadTotal: r.necesidadTotal,
+      pensionFondeada: r.pensionFondeada, ahorroFondeado: r.ahorroFondeado,
+      costoAnualAplicado: r.costoAnualAplicado, tasaSolucionNeta: r.tasaSolucionNeta,
+      tasaRealNetaCosto: r.tasaRealNetaCosto, esperanzaVida: r.esperanzaVida,
+      plazoComprometido: r.plazoComprometido
+    };
+    return JSON.stringify(detalle);
+  }
+
+  function maxxModalHTML() {
+    return '<div id="maxx-modal-pdf-overlay" style="display:none;position:fixed;inset:0;background:rgba(4,44,83,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;">' +
+      '<div style="background:#fff;border-radius:14px;max-width:420px;width:100%;padding:22px;box-sizing:border-box;position:relative;">' +
+        '<button type="button" id="maxx-modal-pdf-cerrar" style="position:absolute;top:10px;right:12px;border:none;background:transparent;font-size:20px;color:#5F5E5A;cursor:pointer;line-height:1;">×</button>' +
+        '<div style="font-size:17px;font-weight:800;color:#042C53;margin-bottom:4px;">Recibe TU Calificación en PDF</div>' +
+        '<div style="font-size:13px;color:#5F5E5A;margin-bottom:16px;line-height:1.4;">Ya tenemos tu resultado listo. Solo nos falta saber a dónde enviártelo.</div>' +
+        '<div style="margin-bottom:10px;"><input type="text" id="maxx-pdf-nombre" placeholder="Nombre" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
+        '<div style="margin-bottom:10px;"><input type="text" id="maxx-pdf-apellidos" placeholder="Apellidos" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
+        '<div style="margin-bottom:10px;"><input type="tel" id="maxx-pdf-telefono" placeholder="Teléfono" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
+        '<div style="margin-bottom:14px;"><input type="email" id="maxx-pdf-correo" placeholder="Correo" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
+        '<div id="maxx-pdf-error" style="display:none;color:#C0392B;font-size:12px;margin-bottom:10px;"></div>' +
+        '<button type="button" id="maxx-pdf-enviar" style="display:block;width:100%;padding:13px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:14px;font-weight:800;cursor:pointer;">Enviarme mi PDF →</button>' +
+        '<div id="maxx-pdf-exito" style="display:none;text-align:center;padding:12px 0 4px 0;">' +
+          '<div style="font-size:15px;font-weight:800;color:#3B6D11;margin-bottom:4px;">¡Listo! 🎉</div>' +
+          '<div style="font-size:13px;color:#5F5E5A;line-height:1.4;">Te llegará TU PDF muy pronto a tu correo.</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  window.maxxAbrirModalPDF = function() {
+    if (!document.getElementById('maxx-modal-pdf-overlay')) {
+      var wrapper = document.createElement('div');
+      wrapper.innerHTML = maxxModalHTML();
+      document.body.appendChild(wrapper.firstChild);
+      maxxWireModalPDF();
+    }
+    var overlay = document.getElementById('maxx-modal-pdf-overlay');
+    overlay.style.display = 'flex';
+  };
+
+  function maxxCerrarModalPDF() {
+    var overlay = document.getElementById('maxx-modal-pdf-overlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  function maxxWireModalPDF() {
+    document.getElementById('maxx-modal-pdf-cerrar').addEventListener('click', maxxCerrarModalPDF);
+    document.getElementById('maxx-modal-pdf-overlay').addEventListener('click', function(e) {
+      if (e.target.id === 'maxx-modal-pdf-overlay') maxxCerrarModalPDF();
+    });
+
+    document.getElementById('maxx-pdf-enviar').addEventListener('click', function() {
+      var nombre = document.getElementById('maxx-pdf-nombre').value.trim();
+      var apellidos = document.getElementById('maxx-pdf-apellidos').value.trim();
+      var telefono = document.getElementById('maxx-pdf-telefono').value.trim();
+      var correo = document.getElementById('maxx-pdf-correo').value.trim();
+      var errEl = document.getElementById('maxx-pdf-error');
+
+      var correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
+      if (!nombre || !apellidos || !telefono || !correoValido) {
+        errEl.style.display = 'block';
+        errEl.textContent = '⚠ Completa todos los campos con un correo válido.';
+        return;
+      }
+      errEl.style.display = 'none';
+
+      var btn = document.getElementById('maxx-pdf-enviar');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
+
+      var payload = {
+        fields: [
+          { objectTypeId: '0-1', name: 'firstname', value: nombre },
+          { objectTypeId: '0-1', name: 'lastname', value: apellidos },
+          { objectTypeId: '0-1', name: 'phone', value: telefono },
+          { objectTypeId: '0-1', name: 'email', value: correo },
+          { objectTypeId: '0-1', name: 'detalle_cuestionario_maxx', value: maxxConstruirDetalleJSON() }
+        ],
+        context: { pageUri: window.location.href, pageName: document.title }
+      };
+
+      fetch('https://api.hsforms.com/submissions/v3/integration/submit/' + MAXX_PDF_PORTAL_ID + '/' + MAXX_PDF_FORM_GUID, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function(resp) {
+        if (!resp.ok) throw new Error('submit failed');
+        document.getElementById('maxx-pdf-enviar').style.display = 'none';
+        document.getElementById('maxx-pdf-exito').style.display = 'block';
+      }).catch(function() {
+        btn.disabled = false;
+        btn.textContent = 'Enviarme mi PDF →';
+        errEl.style.display = 'block';
+        errEl.textContent = '⚠ Algo falló. Intenta de nuevo en un momento.';
+      });
+    });
+  }
+
+
   function renderPlaceholder(panelId, titulo) {
     var el = document.getElementById(panelId);
     el.innerHTML = '<div style="font-size:15px;color:#5F5E5A;font-weight:700;letter-spacing:0.5px;">🔒 ' + titulo + '</div>';
