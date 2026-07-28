@@ -744,7 +744,7 @@ function maxxCargarConfig(url, timeoutMs) {
     var completo = edad >= 18 && valido && monto > 0;
     window.maxxData.seccion1Valida = completo;
     paint('maxx-panel-2', completo);
-    renderPanel2(completo);
+    renderPanelEsencial(completo);
     if (window.maxxData.seccion3Valida) { maxxRenderizarResultados(); }
   };
 
@@ -754,14 +754,14 @@ function maxxCargarConfig(url, timeoutMs) {
   window.maxxData.inflacion = window.maxxData.inflacion || 0.0485;
   window.maxxData.tasaSolucion = window.maxxData.tasaSolucion || 0.1482;
 
-  function renderPanel2(unlocked) {
-    var el = document.getElementById('maxx-panel-2');
+  function renderPanelIndicadores(unlocked) {
+    var el = document.getElementById('maxx-panel-indicadores');
     var lockIcon = unlocked ? '' : '🔒 ';
     var titleColor = unlocked ? '#042C53' : '#5F5E5A';
 
     if (!unlocked) {
       el.innerHTML =
-        '<div style="font-size:15px;color:' + titleColor + ';font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">' + lockIcon + 'SECCIÓN II · INDICADORES</div>' +
+        '<div style="font-size:15px;color:' + titleColor + ';font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">' + lockIcon + 'Indicadores Financieros</div>' +
         '<div style="font-size:12px;color:#a8a69d;">Inflación, Tasa de la Solución propuesta por MAXX y Tasa Real</div>';
       return;
     }
@@ -773,7 +773,7 @@ function maxxCargarConfig(url, timeoutMs) {
     var realNetaCostoIndicadores = ((1 + tasaNetaCostoIndicadores) / (1 + window.maxxData.inflacion) - 1);
 
     el.innerHTML =
-      '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">SECCIÓN II · INDICADORES</div>' +
+      '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">Indicadores Financieros</div>' +
       '<div style="font-size:12px;color:#5F5E5A;margin-bottom:8px;line-height:1.4;">Estas tasas vienen de datos históricos públicos (INEGI, S&P 500). Puedes ajustarlas, con un piso conservador.</div>' +
 
       '<div style="margin-bottom:9px;">' +
@@ -873,10 +873,6 @@ function maxxCargarConfig(url, timeoutMs) {
 
     maxxWireSabiasQue('inflacion');
     maxxWireSabiasQue('sp500');
-
-    // Seccion II siempre queda valida (tiene valores por default razonables) -> desbloquea Seccion III de una vez
-    paint('maxx-panel-3', true);
-    renderPanel3(true);
   }
 
   // ---------- Tabla histórica de inflación (INEGI/Banxico, 1996-2025, verificada en el MVP de Excel) ----------
@@ -967,49 +963,20 @@ function maxxCargarConfig(url, timeoutMs) {
     return '<button type="button" data-pill="' + name + '" data-val="' + value + '" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid ' + (activo ? '#042C53' : '#D3D1C7') + ';background:' + (activo ? '#042C53' : '#fff') + ';color:' + (activo ? '#fff' : '#5F5E5A') + ';font-size:12px;font-weight:600;cursor:pointer;">' + label + '</button>';
   }
 
-  function renderPanel3(unlocked) {
-    var el = document.getElementById('maxx-panel-3');
+  function renderPanelEsencial(unlocked) {
+    var el = document.getElementById('maxx-panel-2');
     var lockIcon = unlocked ? '' : '🔒 ';
     var titleColor = unlocked ? '#042C53' : '#5F5E5A';
 
     if (!unlocked) {
-      el.innerHTML = '<div style="font-size:15px;color:' + titleColor + ';font-weight:700;letter-spacing:0.5px;">' + lockIcon + 'SECCIÓN III · CON QUÉ CUENTAS</div>';
+      el.innerHTML = '<div style="font-size:15px;color:' + titleColor + ';font-weight:700;letter-spacing:0.5px;">' + lockIcon + 'SECCIÓN II · CON QUÉ CUENTAS</div>';
       return;
     }
 
     var d = window.maxxData;
 
-    // Pre-calculo rapido de en que paso vamos, para el contador de progreso
-    var plazoPre = (d.edadRetiro || 65) - (d.edadActual || 0);
-    var minimoPre = plazoPre <= 10 ? 3000 : 2000;
-    var pasoActual = 1;
-    var p1 = d.capacidadAhorro >= minimoPre;
-    if (p1) pasoActual = 2;
-    var p2 = p1 && d.tieneAfore && (d.tieneAfore === 'N' ? d.ingresoActual > 0 : (d.aniosCotizando > 0 && d.sueldoBruto > 0 && !!d.ley73));
-    if (p2) pasoActual = 3;
-    // En cuanto AFORE queda completo, precargamos "No" en las preguntas restantes —
-    // el usuario ve todo de una vez y solo cambia lo que sí le aplique.
-    if (p2) {
-      if (!d.conyugeApoya) d.conyugeApoya = 'N';
-      if (!d.tieneAhorros) d.tieneAhorros = 'N';
-      if (d.casaPropia === null || d.casaPropia === undefined) d.casaPropia = 'N';
-      if (d.otraFuente === null || d.otraFuente === undefined) d.otraFuente = 'N';
-    }
-    var p3 = p2 && (d.conyugeApoya === 'N' || (d.conyugeApoya === 'S' && d.conyugeEdadActual > 0 && d.conyugeAfore && (d.conyugeAfore === 'N' ? d.conyugeIngreso > 0 : (d.conyugeAnios > 0 && d.conyugeSueldo > 0 && !!d.conyugeLey73))));
-    if (p3) pasoActual = 4;
-    var p4 = p3 && (d.tieneAhorros === 'N' || (d.tieneAhorros === 'S' && d.montoAhorros > 0));
-    if (p4) pasoActual = 5;
-    var p5 = p4 && (d.casaPropia === 'S' || d.casaPropia === 'N');
-    if (p5) pasoActual = 6;
-    var p6 = p5 && (d.otraFuente === 'S' || d.otraFuente === 'N');
-    if (p6) pasoActual = 6;
-
-    var html = '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:4px;letter-spacing:0.5px;">SECCIÓN III · CON QUÉ CUENTAS</div>' +
-      '<div style="font-size:13px;font-weight:500;color:#3B6D11;margin-bottom:8px;line-height:1.4;">Solo cuenta lo que ya tienes hoy — nada de ingresos futuros inciertos.</div>' +
-      '<div style="display:flex;gap:4px;margin-bottom:4px;">' +
-        [1,2,3,4,5,6].map(function(n) { return '<div style="flex:1;height:6px;border-radius:3px;background:' + (n <= pasoActual ? '#042C53' : '#D3D1C7') + ';"></div>'; }).join('') +
-      '</div>' +
-      '<div style="font-size:12px;color:#5F5E5A;margin-bottom:9px;">Pregunta ' + pasoActual + ' de 6' + (p6 ? ' · ¡completo!' : '') + '</div>';
+    var html = '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:4px;letter-spacing:0.5px;">SECCIÓN II · CON QUÉ CUENTAS</div>' +
+      '<div style="font-size:13px;font-weight:500;color:#3B6D11;margin-bottom:8px;line-height:1.4;">Solo cuenta lo que ya tienes hoy — nada de ingresos futuros inciertos.</div>';
 
     // Capacidad de ahorro — SIEMPRE visible, es la primera pregunta
     var plazo = (d.edadRetiro || 65) - (d.edadActual || 0);
@@ -1023,7 +990,6 @@ function maxxCargarConfig(url, timeoutMs) {
     var paso1Completo = d.capacidadAhorro >= minimoAportacion;
 
     // AFORE — solo aparece si ya se lleno la capacidad de ahorro
-    var paso2Completo = false;
     if (paso1Completo) {
       html += '<div style="margin-bottom:9px;">' +
         '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes AFORE?</div>' +
@@ -1039,117 +1005,25 @@ function maxxCargarConfig(url, timeoutMs) {
           '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Cotizaste por primera vez antes de julio 1997?</div>' +
           '<div style="display:flex;gap:8px;">' + maxxPill('ley73','S',d.ley73,'Sí (Ley 73)') + maxxPill('ley73','N',d.ley73,'No (Ley 97)') + '</div>' +
           '</div>';
-        paso2Completo = d.aniosCotizando > 0 && d.sueldoBruto > 0 && !!d.ley73;
       } else if (d.tieneAfore === 'N') {
         html += '<div style="margin-top:6px;">' +
           '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Ingreso actual libre de impuestos</div>' +
           '<input type="text" id="maxx-ingreso-actual" placeholder="$ 15,000" value="' + (d.ingresoActual ? '$'+d.ingresoActual.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
-        paso2Completo = d.ingresoActual > 0;
       }
       html += '</div>';
-    }
-
-    // Conyuge — solo aparece si AFORE ya quedo completo
-    var paso3Completo = false;
-    if (paso2Completo) {
-      html += '<div style="margin-bottom:9px;">' +
-        '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tu cónyuge apoya a cubrir el retiro?</div>' +
-        '<div style="display:flex;gap:8px;">' + maxxPill('conyugeApoya','S',d.conyugeApoya,'Sí') + maxxPill('conyugeApoya','N',d.conyugeApoya,'No') + '</div>';
-      if (d.conyugeApoya === 'S') {
-        html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Edad actual del cónyuge</div>' +
-          '<input type="number" id="maxx-conyuge-edad" min="18" max="90" placeholder="Ej. 43" value="' + (d.conyugeEdadActual || '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
-        if (d.conyugeEdadActual > 0) {
-          html += '<div style="margin-top:6px;">' +
-            '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tu cónyuge tiene AFORE?</div>' +
-            '<div style="display:flex;gap:8px;">' + maxxPill('conyugeAfore','S',d.conyugeAfore,'Sí') + maxxPill('conyugeAfore','N',d.conyugeAfore,'No') + '</div></div>';
-          if (d.conyugeAfore === 'S') {
-            html += '<div style="margin-top:6px;display:flex;gap:8px;">' +
-              '<div style="flex:1;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Años cotizando (cónyuge)</div>' +
-              '<input type="number" id="maxx-conyuge-anios" min="0" placeholder="Ej. 10" value="' + (d.conyugeAnios || '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>' +
-              '<div style="flex:1;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Sueldo BRUTO (cónyuge)</div>' +
-              '<input type="text" id="maxx-conyuge-sueldo" placeholder="$ 18,000" value="' + (d.conyugeSueldo ? '$'+d.conyugeSueldo.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>' +
-              '</div>' +
-              '<div style="margin-top:6px;">' +
-              '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Cotizó antes de julio 1997?</div>' +
-              '<div style="display:flex;gap:8px;">' + maxxPill('conyugeLey73','S',d.conyugeLey73,'Sí (Ley 73)') + maxxPill('conyugeLey73','N',d.conyugeLey73,'No (Ley 97)') + '</div></div>';
-            paso3Completo = d.conyugeAnios > 0 && d.conyugeSueldo > 0 && !!d.conyugeLey73;
-          } else if (d.conyugeAfore === 'N') {
-            html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Ingreso actual del cónyuge</div>' +
-              '<input type="text" id="maxx-conyuge-ingreso" placeholder="$ 12,000" value="' + (d.conyugeIngreso ? '$'+d.conyugeIngreso.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
-            paso3Completo = d.conyugeIngreso > 0;
-          }
-        }
-      } else if (d.conyugeApoya === 'N') {
-        paso3Completo = true;
-      }
-      html += '</div>';
-    }
-
-    // Ahorros — solo aparece si conyuge ya quedo completo
-    var paso4Completo = false;
-    if (paso3Completo) {
-      html += '<div style="margin-bottom:9px;">' +
-        '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes ahorros que planeas MANTENER hasta tu retiro?</div>' +
-        '<div style="display:flex;gap:8px;">' + maxxPill('tieneAhorros','S',d.tieneAhorros,'Sí') + maxxPill('tieneAhorros','N',d.tieneAhorros,'No') + '</div>';
-      if (d.tieneAhorros === 'S') {
-        html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Monto actual</div>' +
-          '<input type="text" id="maxx-monto-ahorros" placeholder="$ 100,000" value="' + (d.montoAhorros ? '$'+d.montoAhorros.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
-        paso4Completo = d.montoAhorros > 0;
-      } else if (d.tieneAhorros === 'N') {
-        paso4Completo = true;
-      }
-      html += '</div>';
-    }
-
-    // Casa propia — solo aparece si ahorros ya quedo completo
-    var paso5Completo = false;
-    if (paso4Completo) {
-      html += '<div style="margin-bottom:9px;">' +
-        '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes casa propia? <span style="font-weight:400;color:#a8a69d;">(informativo)</span></div>' +
-        '<div style="display:flex;gap:8px;">' + maxxPill('casaPropia','S',d.casaPropia,'Sí') + maxxPill('casaPropia','N',d.casaPropia,'No') + '</div>';
-      if (d.casaPropia === 'S') {
-        html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Valor estimado</div>' +
-          '<input type="text" id="maxx-valor-casa" placeholder="$ 2,000,000" value="' + (d.valorCasa ? '$'+d.valorCasa.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
-      }
-      html += '</div>';
-      paso5Completo = d.casaPropia === 'S' || d.casaPropia === 'N';
-    }
-
-    // Otra fuente — solo aparece si casa propia ya se contesto
-    if (paso5Completo) {
-      html += '<div>' +
-        '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes otra fuente de ingreso? <span style="font-weight:400;color:#a8a69d;">(informativo)</span></div>' +
-        '<div style="display:flex;gap:8px;">' + maxxPill('otraFuente','S',d.otraFuente,'Sí') + maxxPill('otraFuente','N',d.otraFuente,'No') + '</div>';
-      if (d.otraFuente === 'S') {
-        html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Monto mensual equivalente</div>' +
-          '<input type="text" id="maxx-monto-otra" placeholder="$ 3,000" value="' + (d.montoOtraFuente ? '$'+d.montoOtraFuente.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
-      }
-      html += '</div>';
-    }
-
-    // Sabías que: crecimiento salarial real lento
-    html += maxxSabiasQueHTML('salario', '¿Cuánto ha crecido el salario real en México?', 12);
-
-    // Sabías que condicional: semanas insuficientes
-    if (d.tieneAfore === 'S' && d.aniosCotizando > 0 && (d.aniosCotizando * 54) < 875) {
-      html += maxxSabiasQueHTML('semanas', '¿Qué pasa si no completas tus semanas del IMSS?', 6);
     }
 
     el.innerHTML = html;
-    maxxWireSeccion3();
-    maxxWireSabiasQue('salario');
-    if (d.tieneAfore === 'S' && d.aniosCotizando > 0 && (d.aniosCotizando * 54) < 875) {
-      maxxWireSabiasQue('semanas');
-    }
+    maxxWireEsencial();
   }
 
-  var maxxDebounceTimer = null;
-  function maxxDebounceRevelar() {
-    if (maxxDebounceTimer) clearTimeout(maxxDebounceTimer);
-    maxxDebounceTimer = setTimeout(function() { renderPanel3(true); }, 700);
+  var maxxDebounceTimerEsencial = null;
+  function maxxDebounceRevelarEsencial() {
+    if (maxxDebounceTimerEsencial) clearTimeout(maxxDebounceTimerEsencial);
+    maxxDebounceTimerEsencial = setTimeout(function() { renderPanelEsencial(true); }, 700);
   }
 
-  function maxxMoneyField(id, dataKey) {
+  function maxxMoneyFieldEsencial(id, dataKey) {
     var input = document.getElementById(id);
     if (!input) return;
     input.addEventListener('input', function() {
@@ -1157,14 +1031,14 @@ function maxxCargarConfig(url, timeoutMs) {
       var num = parseInt(digits, 10) || 0;
       window.maxxData[dataKey] = num;
       this.value = num ? ('$' + num.toLocaleString('es-MX')) : '';
-      maxxCheckSeccion3();
-      maxxDebounceRevelar();
+      maxxCheckEsencial();
+      maxxDebounceRevelarEsencial();
     });
-    input.addEventListener('blur', function() { renderPanel3(true); });
+    input.addEventListener('blur', function() { renderPanelEsencial(true); });
   }
 
-  function maxxWireSeccion3() {
-    var el = document.getElementById('maxx-panel-3');
+  function maxxWireEsencial() {
+    var el = document.getElementById('maxx-panel-2');
 
     var capacidad = document.getElementById('maxx-capacidad');
     if (capacidad) capacidad.addEventListener('input', function() {
@@ -1181,82 +1055,247 @@ function maxxCargarConfig(url, timeoutMs) {
       } else {
         warnEl.style.display = 'none';
       }
-      maxxCheckSeccion3();
-      maxxDebounceRevelar();
+      maxxCheckEsencial();
+      maxxDebounceRevelarEsencial();
     });
-    capacidad.addEventListener('blur', function() { renderPanel3(true); });
+    if (capacidad) capacidad.addEventListener('blur', function() { renderPanelEsencial(true); });
 
     el.querySelectorAll('[data-pill]').forEach(function(btn) {
       btn.addEventListener('click', function() {
         var name = this.getAttribute('data-pill');
         var val = this.getAttribute('data-val');
         window.maxxData[name] = val;
-        renderPanel3(true);
+        renderPanelEsencial(true);
       });
     });
 
     var anios = document.getElementById('maxx-anios-cot');
     if (anios) anios.addEventListener('input', function() {
       window.maxxData.aniosCotizando = parseInt(this.value, 10) || 0;
-      maxxCheckSeccion3();
-      maxxDebounceRevelar();
+      maxxCheckEsencial();
+      maxxDebounceRevelarEsencial();
     });
-    if (anios) anios.addEventListener('blur', function() { renderPanel3(true); });
-    var conyugeAnios = document.getElementById('maxx-conyuge-anios');
-    if (conyugeAnios) conyugeAnios.addEventListener('input', function() {
-      window.maxxData.conyugeAnios = parseInt(this.value, 10) || 0;
-      maxxCheckSeccion3();
-      maxxDebounceRevelar();
-    });
-    if (conyugeAnios) conyugeAnios.addEventListener('blur', function() { renderPanel3(true); });
-    var conyugeEdad = document.getElementById('maxx-conyuge-edad');
-    if (conyugeEdad) conyugeEdad.addEventListener('input', function() {
-      window.maxxData.conyugeEdadActual = parseInt(this.value, 10) || 0;
-      maxxCheckSeccion3();
-      maxxDebounceRevelar();
-    });
-    if (conyugeEdad) conyugeEdad.addEventListener('blur', function() { renderPanel3(true); });
+    if (anios) anios.addEventListener('blur', function() { renderPanelEsencial(true); });
 
-    maxxMoneyField('maxx-sueldo-bruto', 'sueldoBruto');
-    maxxMoneyField('maxx-ingreso-actual', 'ingresoActual');
-    maxxMoneyField('maxx-conyuge-sueldo', 'conyugeSueldo');
-    maxxMoneyField('maxx-conyuge-ingreso', 'conyugeIngreso');
-    maxxMoneyField('maxx-monto-ahorros', 'montoAhorros');
-    maxxMoneyField('maxx-valor-casa', 'valorCasa');
-    maxxMoneyField('maxx-monto-otra', 'montoOtraFuente');
+    maxxMoneyFieldEsencial('maxx-sueldo-bruto', 'sueldoBruto');
+    maxxMoneyFieldEsencial('maxx-ingreso-actual', 'ingresoActual');
 
-    maxxCheckSeccion3();
+    maxxCheckEsencial();
   }
 
-  window.maxxCheckSeccion3 = function() {
+  window.maxxCheckEsencial = function() {
     var d = window.maxxData;
     var plazo = (d.edadRetiro || 65) - (d.edadActual || 0);
     var minimoAportacion = plazo <= 10 ? 3000 : 2000;
     var completo = d.capacidadAhorro >= minimoAportacion && d.tieneAfore &&
-      (d.tieneAfore === 'N' ? d.ingresoActual > 0 : (d.aniosCotizando > 0 && d.sueldoBruto > 0 && d.ley73)) &&
-      d.conyugeApoya &&
-      (d.conyugeApoya === 'N' || (d.conyugeEdadActual > 0 && d.conyugeAfore && (d.conyugeAfore === 'N' ? d.conyugeIngreso > 0 : (d.conyugeAnios > 0 && d.conyugeSueldo > 0 && d.conyugeLey73)))) &&
-      d.tieneAhorros && (d.tieneAhorros === 'N' || d.montoAhorros > 0) &&
-      d.casaPropia !== null &&
-      d.otraFuente !== null;
+      (d.tieneAfore === 'N' ? d.ingresoActual > 0 : (d.aniosCotizando > 0 && d.sueldoBruto > 0 && d.ley73));
+
+    // En cuanto lo esencial queda completo, precargamos "No" en las preguntas de Apoyo —
+    // el usuario ve su resultado de inmediato y solo cambia lo que sí le aplique después.
+    if (completo) {
+      if (!d.conyugeApoya) d.conyugeApoya = 'N';
+      if (!d.tieneAhorros) d.tieneAhorros = 'N';
+      if (d.casaPropia === null || d.casaPropia === undefined) d.casaPropia = 'N';
+      if (d.otraFuente === null || d.otraFuente === undefined) d.otraFuente = 'N';
+    }
+
     window.maxxData.seccion3Valida = completo;
     paint('maxx-panel-grafica', completo);
-    paint('maxx-panel-4', completo);
     paint('maxx-panel-5', completo);
     paint('maxx-panel-califn1', completo);
     paint('maxx-panel-califn2', completo);
     paint('maxx-panel-cta', completo);
+    paint('maxx-panel-indicadores', completo);
+    paint('maxx-panel-apoyo', completo);
     if (completo) {
       maxxRenderizarResultados();
+      renderPanelIndicadores(true);
+      renderPanelApoyo(true);
     } else {
       renderPlaceholder('maxx-panel-grafica', 'GRÁFICA · ACUMULACIÓN Y DESACUMULACIÓN');
-      renderPlaceholder('maxx-panel-4', 'SECCIÓN IV · CÓMO LEER TU GRÁFICA');
-      renderPlaceholder('maxx-panel-5', 'SECCIÓN V · RESULTADOS');
+      renderPlaceholder('maxx-panel-5', 'SECCIÓN III · RESULTADOS');
       renderPlaceholder('maxx-panel-califn1', 'SIN Solución propuesta de MAXX');
       renderPlaceholder('maxx-panel-califn2', 'CON TU Propuesta de Aportaciones');
       renderPlaceholder('maxx-panel-cta', 'AGENDA TU CITA');
+      renderPlaceholder('maxx-panel-indicadores', 'Indicadores Financieros');
+      renderPlaceholder('maxx-panel-apoyo', 'Apoyo o Ahorro complementario');
     }
   };
+
+  // ---------- PANEL APOYO: Datos Relevantes (parte 2) — cónyuge, ahorros, casa, otra fuente ----------
+  function renderPanelApoyo(unlocked) {
+    var el = document.getElementById('maxx-panel-apoyo');
+    var lockIcon = unlocked ? '' : '🔒 ';
+    var titleColor = unlocked ? '#042C53' : '#5F5E5A';
+
+    if (!unlocked) {
+      el.innerHTML = '<div style="font-size:15px;color:' + titleColor + ';font-weight:700;letter-spacing:0.5px;">' + lockIcon + 'Apoyo o Ahorro complementario</div>';
+      return;
+    }
+
+    var d = window.maxxData;
+    var html = '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">Apoyo o Ahorro complementario</div>';
+
+    // Conyuge
+    html += '<div style="margin-bottom:9px;">' +
+      '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tu cónyuge apoya a cubrir el retiro?</div>' +
+      '<div style="display:flex;gap:8px;">' + maxxPill('conyugeApoya','S',d.conyugeApoya,'Sí') + maxxPill('conyugeApoya','N',d.conyugeApoya,'No') + '</div>';
+    if (d.conyugeApoya === 'S') {
+      html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Edad actual del cónyuge</div>' +
+        '<input type="number" id="maxx-conyuge-edad" min="18" max="90" placeholder="Ej. 43" value="' + (d.conyugeEdadActual || '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
+      if (d.conyugeEdadActual > 0) {
+        html += '<div style="margin-top:6px;">' +
+          '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tu cónyuge tiene AFORE?</div>' +
+          '<div style="display:flex;gap:8px;">' + maxxPill('conyugeAfore','S',d.conyugeAfore,'Sí') + maxxPill('conyugeAfore','N',d.conyugeAfore,'No') + '</div></div>';
+        if (d.conyugeAfore === 'S') {
+          html += '<div style="margin-top:6px;display:flex;gap:8px;">' +
+            '<div style="flex:1;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Años cotizando (cónyuge)</div>' +
+            '<input type="number" id="maxx-conyuge-anios" min="0" placeholder="Ej. 10" value="' + (d.conyugeAnios || '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>' +
+            '<div style="flex:1;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Sueldo BRUTO (cónyuge)</div>' +
+            '<input type="text" id="maxx-conyuge-sueldo" placeholder="$ 18,000" value="' + (d.conyugeSueldo ? '$'+d.conyugeSueldo.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>' +
+            '</div>' +
+            '<div style="margin-top:6px;">' +
+            '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Cotizó antes de julio 1997?</div>' +
+            '<div style="display:flex;gap:8px;">' + maxxPill('conyugeLey73','S',d.conyugeLey73,'Sí (Ley 73)') + maxxPill('conyugeLey73','N',d.conyugeLey73,'No (Ley 97)') + '</div></div>';
+        } else if (d.conyugeAfore === 'N') {
+          html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Ingreso actual del cónyuge</div>' +
+            '<input type="text" id="maxx-conyuge-ingreso" placeholder="$ 12,000" value="' + (d.conyugeIngreso ? '$'+d.conyugeIngreso.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
+        }
+      }
+    }
+    html += '</div>';
+
+    // Ahorros
+    html += '<div style="margin-bottom:9px;">' +
+      '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes ahorros que planeas MANTENER hasta tu retiro?</div>' +
+      '<div style="display:flex;gap:8px;">' + maxxPill('tieneAhorros','S',d.tieneAhorros,'Sí') + maxxPill('tieneAhorros','N',d.tieneAhorros,'No') + '</div>';
+    if (d.tieneAhorros === 'S') {
+      html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Monto actual</div>' +
+        '<input type="text" id="maxx-monto-ahorros" placeholder="$ 100,000" value="' + (d.montoAhorros ? '$'+d.montoAhorros.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
+    }
+    html += '</div>';
+
+    // Casa propia
+    html += '<div style="margin-bottom:9px;">' +
+      '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes casa propia? <span style="font-weight:400;color:#a8a69d;">(informativo)</span></div>' +
+      '<div style="display:flex;gap:8px;">' + maxxPill('casaPropia','S',d.casaPropia,'Sí') + maxxPill('casaPropia','N',d.casaPropia,'No') + '</div>';
+    if (d.casaPropia === 'S') {
+      html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Valor estimado</div>' +
+        '<input type="text" id="maxx-valor-casa" placeholder="$ 2,000,000" value="' + (d.valorCasa ? '$'+d.valorCasa.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
+    }
+    html += '</div>';
+
+    // Otra fuente
+    html += '<div style="margin-bottom:12px;">' +
+      '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes otra fuente de ingreso? <span style="font-weight:400;color:#a8a69d;">(informativo)</span></div>' +
+      '<div style="display:flex;gap:8px;">' + maxxPill('otraFuente','S',d.otraFuente,'Sí') + maxxPill('otraFuente','N',d.otraFuente,'No') + '</div>';
+    if (d.otraFuente === 'S') {
+      html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Monto mensual equivalente</div>' +
+        '<input type="text" id="maxx-monto-otra" placeholder="$ 3,000" value="' + (d.montoOtraFuente ? '$'+d.montoOtraFuente.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
+    }
+    html += '</div>';
+
+    // Sabías que: crecimiento salarial real lento
+    html += maxxSabiasQueHTML('salario', '¿Cuánto ha crecido el salario real en México?', 0);
+
+    // Sabías que condicional: semanas insuficientes
+    if (d.tieneAfore === 'S' && d.aniosCotizando > 0 && (d.aniosCotizando * 54) < 875) {
+      html += maxxSabiasQueHTML('semanas', '¿Qué pasa si no completas tus semanas del IMSS?', 6);
+    }
+
+    // Sorpresa: aportacion fija vs inflacion
+    var aniosSorpresa = [5, 10, 15, 20, 25, 30];
+    var filasSorpresa = aniosSorpresa.map(function(a) {
+      var valorHoy = d.capacidadAhorro / Math.pow(1 + d.inflacion, a);
+      return '<tr><td style="padding:5px 6px;color:#5F5E5A;font-size:13px;border-top:1px solid #E6E4DA;">' + a + '</td>' +
+        '<td style="padding:5px 6px;text-align:center;color:#5F5E5A;font-size:13px;border-top:1px solid #E6E4DA;">$' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '</td>' +
+        '<td style="padding:5px 6px;text-align:right;font-weight:800;color:#042C53;font-size:13px;border-top:1px solid #E6E4DA;">$' + Math.round(valorHoy).toLocaleString('es-MX') + '</td></tr>';
+    }).join('');
+    html += '<div id="maxx-zona-sorpresa" style="margin-top:6px;">' +
+      '<button type="button" id="maxx-toggle-sorpresa" style="border:none;background:#E8EEF4;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">🔷 Tengo una <u>sorpresa</u> que te va a encantar... →</button>' +
+      '<div id="maxx-cuerpo-sorpresa" style="display:none;background:#fff;border-radius:8px;padding:12px;margin-top:6px;">' +
+        '<div style="font-size:12px;color:#3D3B36;line-height:1.4;margin-bottom:8px;">Tu aportación de <strong>$' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes se queda FIJA</strong> — nunca la subes. Como tu sueldo normalmente sí sube con la inflación, con el tiempo te va a doler cada vez menos pagarla:</div>' +
+        '<table style="width:100%;border-collapse:collapse;">' +
+          '<tr><th style="padding:4px 6px;text-align:left;font-size:12px;color:#5F5E5A;">Año</th><th style="padding:4px 6px;text-align:center;font-size:12px;color:#5F5E5A;">Seguirás pagando</th><th style="padding:4px 6px;text-align:right;font-size:12px;color:#5F5E5A;">Pesará como (hoy)</th></tr>' +
+          filasSorpresa +
+        '</table>' +
+      '</div>' +
+    '</div>';
+
+    el.innerHTML = html;
+    maxxWireApoyo();
+    maxxWireSabiasQue('salario');
+    if (d.tieneAfore === 'S' && d.aniosCotizando > 0 && (d.aniosCotizando * 54) < 875) {
+      maxxWireSabiasQue('semanas');
+    }
+    var toggleSorpresa = document.getElementById('maxx-toggle-sorpresa');
+    var zonaSorpresa = document.getElementById('maxx-zona-sorpresa');
+    if (toggleSorpresa) {
+      toggleSorpresa.addEventListener('click', function() {
+        var cuerpo = document.getElementById('maxx-cuerpo-sorpresa');
+        cuerpo.style.display = cuerpo.style.display === 'none' ? 'block' : 'none';
+      });
+      zonaSorpresa.addEventListener('mouseleave', function() {
+        document.getElementById('maxx-cuerpo-sorpresa').style.display = 'none';
+      });
+    }
+  }
+
+  var maxxDebounceTimerApoyo = null;
+  function maxxDebounceRevelarApoyo() {
+    if (maxxDebounceTimerApoyo) clearTimeout(maxxDebounceTimerApoyo);
+    maxxDebounceTimerApoyo = setTimeout(function() { renderPanelApoyo(true); }, 700);
+  }
+
+  function maxxMoneyFieldApoyo(id, dataKey) {
+    var input = document.getElementById(id);
+    if (!input) return;
+    input.addEventListener('input', function() {
+      var digits = this.value.replace(/[^0-9]/g, '');
+      var num = parseInt(digits, 10) || 0;
+      window.maxxData[dataKey] = num;
+      this.value = num ? ('$' + num.toLocaleString('es-MX')) : '';
+      if (window.maxxData.seccion3Valida) { maxxRenderizarResultados(); }
+      maxxDebounceRevelarApoyo();
+    });
+    input.addEventListener('blur', function() { renderPanelApoyo(true); });
+  }
+
+  function maxxWireApoyo() {
+    var el = document.getElementById('maxx-panel-apoyo');
+
+    el.querySelectorAll('[data-pill]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var name = this.getAttribute('data-pill');
+        var val = this.getAttribute('data-val');
+        window.maxxData[name] = val;
+        renderPanelApoyo(true);
+        if (window.maxxData.seccion3Valida) { maxxRenderizarResultados(); }
+      });
+    });
+
+    var conyugeAnios = document.getElementById('maxx-conyuge-anios');
+    if (conyugeAnios) conyugeAnios.addEventListener('input', function() {
+      window.maxxData.conyugeAnios = parseInt(this.value, 10) || 0;
+      if (window.maxxData.seccion3Valida) { maxxRenderizarResultados(); }
+      maxxDebounceRevelarApoyo();
+    });
+    if (conyugeAnios) conyugeAnios.addEventListener('blur', function() { renderPanelApoyo(true); });
+    var conyugeEdad = document.getElementById('maxx-conyuge-edad');
+    if (conyugeEdad) conyugeEdad.addEventListener('input', function() {
+      window.maxxData.conyugeEdadActual = parseInt(this.value, 10) || 0;
+      if (window.maxxData.seccion3Valida) { maxxRenderizarResultados(); }
+      maxxDebounceRevelarApoyo();
+    });
+    if (conyugeEdad) conyugeEdad.addEventListener('blur', function() { renderPanelApoyo(true); });
+
+    maxxMoneyFieldApoyo('maxx-conyuge-sueldo', 'conyugeSueldo');
+    maxxMoneyFieldApoyo('maxx-conyuge-ingreso', 'conyugeIngreso');
+    maxxMoneyFieldApoyo('maxx-monto-ahorros', 'montoAhorros');
+    maxxMoneyFieldApoyo('maxx-valor-casa', 'valorCasa');
+    maxxMoneyFieldApoyo('maxx-monto-otra', 'montoOtraFuente');
+  }
+
 
   function maxxRenderizarResultados() {
     var d = window.maxxData;
@@ -1294,7 +1333,30 @@ function maxxCargarConfig(url, timeoutMs) {
         '<div style="display:flex;align-items:center;gap:6px;"><div style="width:11px;height:11px;border-radius:50%;background:#888780;"></div><span style="font-size:13px;font-weight:700;color:#3D3B36;">Deseado: $' + Math.round(d.montoDeseado * Math.pow(1 + d.inflacion, r.edadRetiro - d.edadActual)).toLocaleString('es-MX') + '/mes</span></div>' +
         '<div style="display:flex;align-items:center;gap:6px;"><div style="width:11px;height:11px;border-radius:50%;background:#042C53;"></div><span style="font-size:13px;font-weight:700;color:#3D3B36;">Pensión: $' + Math.round(pensionMensualAlRetiro).toLocaleString('es-MX') + '/mes</span></div>' +
       '</div>' +
-      '<div style="display:flex;flex-wrap:wrap;justify-content:center;column-gap:22px;row-gap:4px;margin-top:10px;padding-top:8px;border-top:1px solid #E6E4DA;">' + maxxGenerarLeyendaHTML() + '</div>';
+      '<div style="display:flex;flex-wrap:wrap;justify-content:center;column-gap:22px;row-gap:4px;margin-top:10px;padding-top:8px;border-top:1px solid #E6E4DA;">' + maxxGenerarLeyendaHTML() + '</div>' +
+      '<div id="maxx-zona-comoleer" style="margin-top:10px;">' +
+        '<button type="button" id="maxx-toggle-comoleer" style="border:none;background:#E8EEF4;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">📊 ¿Cómo leer TU gráfica? →</button>' +
+        '<div id="maxx-cuerpo-comoleer" style="display:none;background:#fff;border-radius:8px;padding:10px;margin-top:6px;font-size:13px;color:#3D3B36;line-height:1.4;">' +
+          '<strong style="color:#042C53;">①</strong> <strong style="color:#042C53;">Azul</strong> y <strong style="color:#EF9F27;">naranja</strong>: tu dinero creciendo mes a mes, hasta tu retiro.<br>' +
+          '<strong style="color:#042C53;">②</strong> Al llegar a tu retiro, se SUMAN y nace la línea <strong style="color:#639922;">verde</strong>.<br>' +
+          '<strong style="color:#042C53;">③</strong> La <strong style="color:#639922;">verde</strong> solo BAJA — cada mes se usa un poco para completar lo que tu pensión no alcanza.<br>' +
+          '<strong style="color:#042C53;">④</strong> La línea vertical <strong style="color:#042C53;">roja</strong> marca tu esperanza de vida; la <strong style="color:#042C53;">azul marino</strong>, tu edad de retiro.<br>' +
+          '<strong style="color:#042C53;">⑤</strong> Si la <strong style="color:#639922;">verde</strong> llega a $0 antes de tu esperanza de vida, tu capital se agotó — de ahí en adelante vives solo de tu pensión (o sin ingreso, si no tienes).' +
+        '</div>' +
+      '</div>';
+
+    var toggleComoLeer = document.getElementById('maxx-toggle-comoleer');
+    var zonaComoLeer = document.getElementById('maxx-zona-comoleer');
+    if (toggleComoLeer) {
+      toggleComoLeer.addEventListener('click', function() {
+        var cuerpo = document.getElementById('maxx-cuerpo-comoleer');
+        var abrir = cuerpo.style.display === 'none';
+        cuerpo.style.display = abrir ? 'block' : 'none';
+      });
+      zonaComoLeer.addEventListener('mouseleave', function() {
+        document.getElementById('maxx-cuerpo-comoleer').style.display = 'none';
+      });
+    }
 
     // ---- Calificaciones ----
     var mensajeSin = 'Este es tu punto de partida. Vamos a mejorarlo.';
@@ -1355,15 +1417,16 @@ function maxxCargarConfig(url, timeoutMs) {
       maxxSabiasQueHTML('costo', 'Entre más largo tu plazo, más bajo tu costo', 4).replace('margin-top:4px;', 'margin-top:4px;margin-bottom:10px;');
 
     document.getElementById('maxx-panel-5').innerHTML =
-      '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:9px;letter-spacing:0.5px;">SECCIÓN V · RESULTADOS</div>' +
-      '<div style="background:#EAF3DE;border-radius:10px;padding:12px;text-align:center;margin-bottom:12px;">' +
+      '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:9px;letter-spacing:0.5px;">SECCIÓN III · RESULTADOS</div>' +
+      '<div style="background:#EAF3DE;border-radius:10px;padding:14px;text-align:center;margin-bottom:10px;">' +
         '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-bottom:6px;line-height:1.4;">🎉 Esto es lo que se estima que tus aportaciones acumularán para tu retiro a los ' + r.edadRetiro + ' años de edad</div>' +
-        '<div style="font-size:26px;font-weight:800;color:#3B6D11;line-height:1.1;">$' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</div>' +
+        '<div style="font-size:32px;font-weight:800;color:#3B6D11;line-height:1.1;">$' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</div>' +
         '<div style="font-size:12px;font-weight:400;color:#5F8A3A;margin-top:2px;">(incluye inflación)</div>' +
-        '<div style="font-size:12px;color:#3B6D11;font-weight:600;font-style:italic;margin-top:4px;">Este fondo sigue creciendo mientras lo usas — por eso cubre más de lo que parece.</div>' +
-        '<div style="font-size:12px;color:#3B6D11;font-weight:600;margin-top:5px;line-height:1.4;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalBrutaPct.toFixed(2) + '% anual <span style="font-weight:400;">(estimado con S&P500)</span>. Esta proyección ya descuenta el costo de tu plan (' + costoPct + '% anual, según tu plazo) — <strong>por eso creció con una tasa NOMINAL neta de ' + tasaNominalNetaPct.toFixed(2) + '% anual</strong> (en pesos de cada año). En poder de compra real — ya sin inflación — esto equivale a la <strong>Tasa Real Neta de ' + (r.tasaRealNetaCosto*100).toFixed(2) + '%</strong> que ves en la Sección II: la cifra 100% transparente de tu plan.<br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
-        '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:6px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
+        '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:10px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
       '</div>' +
+      '<div style="font-size:11px;color:#8A8778;font-style:italic;margin-bottom:10px;line-height:1.4;">Esta es tu primera estimación — afina los Datos Relevantes de abajo para un cálculo más preciso.</div>' +
+      '<div style="font-size:12px;color:#3B6D11;font-weight:600;font-style:italic;margin-bottom:6px;">Este fondo sigue creciendo mientras lo usas — por eso cubre más de lo que parece.</div>' +
+      '<div style="font-size:12px;color:#042C53;font-weight:500;line-height:1.4;margin-bottom:10px;">Lo logras aportando $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes, invertido a una tasa nominal de ' + tasaNominalBrutaPct.toFixed(2) + '% anual <span style="font-weight:400;">(estimado con S&P500)</span>. Esta proyección ya descuenta el costo de tu plan (' + costoPct + '% anual, según tu plazo) — <strong>por eso creció con una tasa NOMINAL neta de ' + tasaNominalNetaPct.toFixed(2) + '% anual</strong> (en pesos de cada año). En poder de compra real — ya sin inflación — esto equivale a la <strong>Tasa Real Neta de ' + (r.tasaRealNetaCosto*100).toFixed(2) + '%</strong> que ves en Indicadores Financieros: la cifra 100% transparente de tu plan.<br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
       '<div style="font-size:12px;color:#5F5E5A;font-weight:700;margin-bottom:6px;">Así se compone tu resultado:</div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Necesidad total</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.necesidadTotal).toLocaleString('es-MX') + '</span></div>' +
       '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Tu pensión IMSS/AFORE cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.pensionFondeada).toLocaleString('es-MX') + '</span></div>' +
@@ -1382,46 +1445,11 @@ function maxxCargarConfig(url, timeoutMs) {
     }
     maxxWireSabiasQue('costo');
 
-    // ---- Seccion V: Como leer tu grafica ----
-    document.getElementById('maxx-panel-4').innerHTML =
-      '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">SECCIÓN IV · CÓMO LEER TU GRÁFICA</div>' +
-      '<div style="font-size:13px;color:#3D3B36;line-height:1.4;">' +
-        '<strong style="color:#042C53;">①</strong> <strong style="color:#042C53;">Azul</strong> y <strong style="color:#EF9F27;">naranja</strong>: tu dinero creciendo mes a mes, hasta tu retiro.<br>' +
-        '<strong style="color:#042C53;">②</strong> Al llegar a tu retiro, se SUMAN y nace la línea <strong style="color:#639922;">verde</strong>.<br>' +
-        '<strong style="color:#042C53;">③</strong> La <strong style="color:#639922;">verde</strong> solo BAJA — cada mes se usa un poco para completar lo que tu pensión no alcanza.<br>' +
-        '<strong style="color:#042C53;">④</strong> La línea vertical <strong style="color:#042C53;">roja</strong> marca tu esperanza de vida; la <strong style="color:#042C53;">azul marino</strong>, tu edad de retiro.<br>' +
-        '<strong style="color:#042C53;">⑤</strong> Si la <strong style="color:#639922;">verde</strong> llega a $0 antes de tu esperanza de vida, tu capital se agotó — de ahí en adelante vives solo de tu pensión (o sin ingreso, si no tienes).' +
-      '</div>';
+
 
     // ---- CTA ----
-    var aniosSorpresa = [5, 10, 15, 20, 25, 30];
-    var filasSorpresa = aniosSorpresa.map(function(a) {
-      var valorHoy = d.capacidadAhorro / Math.pow(1 + d.inflacion, a);
-      return '<tr><td style="padding:5px 6px;color:#5F5E5A;font-size:13px;border-top:1px solid #E6E4DA;">' + a + '</td>' +
-        '<td style="padding:5px 6px;text-align:center;color:#5F5E5A;font-size:13px;border-top:1px solid #E6E4DA;">$' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '</td>' +
-        '<td style="padding:5px 6px;text-align:right;font-weight:800;color:#042C53;font-size:13px;border-top:1px solid #E6E4DA;">$' + Math.round(valorHoy).toLocaleString('es-MX') + '</td></tr>';
-    }).join('');
-
     document.getElementById('maxx-panel-cta').innerHTML =
-      '<div id="maxx-zona-sorpresa" style="margin-bottom:10px;">' +
-        '<button type="button" id="maxx-toggle-sorpresa" style="border:none;background:#E8EEF4;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">🔷 Tengo una <u>sorpresa</u> que te va a encantar... →</button>' +
-        '<div id="maxx-cuerpo-sorpresa" style="display:none;background:#fff;border-radius:8px;padding:12px;margin-top:6px;">' +
-          '<div style="font-size:12px;color:#3D3B36;line-height:1.4;margin-bottom:8px;">Tu aportación de <strong>$' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes se queda FIJA</strong> — nunca la subes. Como tu sueldo normalmente sí sube con la inflación, con el tiempo te va a doler cada vez menos pagarla:</div>' +
-          '<table style="width:100%;border-collapse:collapse;">' +
-            '<tr><th style="padding:4px 6px;text-align:left;font-size:12px;color:#5F5E5A;">Año</th><th style="padding:4px 6px;text-align:center;font-size:12px;color:#5F5E5A;">Seguirás pagando</th><th style="padding:4px 6px;text-align:right;font-size:12px;color:#5F5E5A;">Pesará como (hoy)</th></tr>' +
-            filasSorpresa +
-          '</table>' +
-        '</div>' +
-      '</div>' +
       '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=cuestionario&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:14px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1.4;text-align:center;text-decoration:none;box-sizing:border-box;">¿Quieres conocer la Solución Ideal para TI?<br><span style="font-size:18px;">Agenda TU Cita →</span><br><span style="font-size:12px;font-weight:600;">Gratuita. Sin Compromiso.</span></a>';
-
-    document.getElementById('maxx-toggle-sorpresa').addEventListener('click', function() {
-      var cuerpo = document.getElementById('maxx-cuerpo-sorpresa');
-      cuerpo.style.display = cuerpo.style.display === 'none' ? 'block' : 'none';
-    });
-    document.getElementById('maxx-zona-sorpresa').addEventListener('mouseleave', function() {
-      document.getElementById('maxx-cuerpo-sorpresa').style.display = 'none';
-    });
   }
 
   // ---------- Placeholders bloqueados (se construyen despues) ----------
@@ -1430,11 +1458,12 @@ function maxxCargarConfig(url, timeoutMs) {
     el.innerHTML = '<div style="font-size:15px;color:#5F5E5A;font-weight:700;letter-spacing:0.5px;">🔒 ' + titulo + '</div>';
   }
   renderPlaceholder('maxx-panel-grafica', 'GRÁFICA · ACUMULACIÓN Y DESACUMULACIÓN');
-  renderPlaceholder('maxx-panel-4', 'SECCIÓN IV · CÓMO LEER TU GRÁFICA');
-  renderPlaceholder('maxx-panel-5', 'SECCIÓN V · RESULTADOS');
+  renderPlaceholder('maxx-panel-5', 'SECCIÓN III · RESULTADOS');
   renderPlaceholder('maxx-panel-califn1', 'SIN Solución propuesta de MAXX');
   renderPlaceholder('maxx-panel-califn2', 'CON TU Propuesta de Aportaciones');
   renderPlaceholder('maxx-panel-cta', 'AGENDA TU CITA');
+  renderPlaceholder('maxx-panel-indicadores', 'Indicadores Financieros');
+  renderPlaceholder('maxx-panel-apoyo', 'Apoyo o Ahorro complementario');
 
   // ---------- Inicializar ----------
   maxxCargarConfig(MAXX_CONFIG_URL).then(function(resultado) {
@@ -1447,7 +1476,6 @@ function maxxCargarConfig(url, timeoutMs) {
     window.maxxConfigFuente = resultado.fuente; // util para verificar en consola si se leyo la hoja o la reserva
 
     renderPanel1();
-    renderPanel2(false);
-    renderPanel3(false);
+    renderPanelEsencial(false);
     window.maxxSetGenero(window.maxxData.genero);
   });
