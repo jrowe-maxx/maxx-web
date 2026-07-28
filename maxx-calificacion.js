@@ -1491,7 +1491,7 @@ function maxxCargarConfig(url, timeoutMs) {
   //    Agrégala a este mismo formulario nuevo (puede ser un campo oculto/hidden si quieres).
   // 3) Copia el Form GUID del formulario nuevo y pégalo abajo en MAXX_PDF_FORM_GUID.
   var MAXX_PDF_PORTAL_ID = '51441967';
-  var MAXX_PDF_FORM_GUID = 'PENDIENTE-CREAR-EN-HUBSPOT'; // <-- Javier: reemplaza con el GUID real
+  var MAXX_PDF_FORM_GUID = '56befb9b-6412-4b29-a1d2-51818a0f8697'; // conectado 28-jul-2026
 
   function maxxConstruirDetalleJSON() {
     var d = window.maxxData;
