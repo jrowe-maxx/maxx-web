@@ -1474,25 +1474,36 @@ function maxxCargarConfig(url, timeoutMs) {
   }
 
   function maxxModalHTML() {
-    return '<div id="maxx-modal-pdf-overlay" style="display:none;position:fixed;inset:0;background:rgba(4,44,83,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;">' +
+    return '<div id="maxx-modal-pdf-overlay" style="display:none;position:fixed;inset:0;background:rgba(4,44,83,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;font-family:Roboto,-apple-system,sans-serif;">' +
       '<div style="background:#fff;border-radius:14px;max-width:420px;width:100%;padding:22px;box-sizing:border-box;position:relative;">' +
         '<button type="button" id="maxx-modal-pdf-cerrar" style="position:absolute;top:10px;right:12px;border:none;background:transparent;font-size:20px;color:#5F5E5A;cursor:pointer;line-height:1;">×</button>' +
-        '<div style="font-size:17px;font-weight:800;color:#042C53;margin-bottom:4px;">Recibe TU Calificación en PDF</div>' +
-        '<div style="font-size:13px;color:#5F5E5A;margin-bottom:16px;line-height:1.4;">Ya tenemos tu resultado listo. Solo nos falta saber a dónde enviártelo.</div>' +
+        '<div id="maxx-pdf-header-normal">' +
+          '<div style="font-size:19px;font-weight:800;color:#042C53;margin-bottom:6px;line-height:1.3;">Recibe TU Calificación en PDF</div>' +
+          '<div style="font-size:14px;color:#5F5E5A;margin-bottom:16px;line-height:1.45;">Ya diste el primer paso hacia TU Destino.<br>Ahora dinos a dónde enviar TU resultado.</div>' +
+        '</div>' +
         '<div style="margin-bottom:10px;"><input type="text" id="maxx-pdf-nombre" placeholder="Nombre" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
         '<div style="margin-bottom:10px;"><input type="text" id="maxx-pdf-apellidos" placeholder="Apellidos" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
         '<div style="margin-bottom:14px;"><input type="email" id="maxx-pdf-correo" placeholder="Correo" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
         '<input type="text" id="maxx-pdf-empresa" name="empresa_web" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">' +
         '<div id="maxx-pdf-error" style="display:none;color:#C0392B;font-size:12px;margin-bottom:10px;"></div>' +
-        '<button type="button" id="maxx-pdf-enviar" style="display:block;width:100%;padding:13px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:14px;font-weight:800;cursor:pointer;">Enviarme mi PDF →</button>' +
-        '<div id="maxx-pdf-exito" style="display:none;text-align:center;padding:12px 0 4px 0;">' +
-          '<div style="font-size:15px;font-weight:800;color:#3B6D11;margin-bottom:4px;">¡Listo! 🎉</div>' +
-          '<div style="font-size:13px;color:#5F5E5A;line-height:1.4;">Te llegará TU PDF muy pronto a tu correo.</div>' +
+        '<button type="button" id="maxx-pdf-enviar" style="display:block;width:100%;padding:13px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;">Enviarme el PDF →</button>' +
+        '<div id="maxx-pdf-exito" style="display:none;">' +
+          '<div style="font-size:20px;font-weight:800;color:#042C53;margin-bottom:8px;line-height:1.3;">¡YA lograste el primer paso! 🎉</div>' +
+          '<div style="font-size:14px;color:#3D3B36;margin-bottom:6px;line-height:1.5;"><strong style="color:#042C53;">La visión de TU Futuro ya viaja hacia tu correo.</strong> Revisa tu bandeja de entrada y/o SPAM en los próximos minutos.</div>' +
+          '<div style="font-size:14px;font-weight:700;color:#3B6D11;line-height:1.4;">Ya tienes TUS números. Ahora falta construir TU Destino con ellos.</div>' +
         '</div>' +
-        '<div id="maxx-pdf-cta-repetido" style="display:none;text-align:center;padding:6px 0 4px 0;">' +
-          '<div style="font-size:15px;font-weight:800;color:#042C53;margin-bottom:6px;">Ya tienes TU PDF ✓</div>' +
-          '<div style="font-size:13px;color:#5F5E5A;line-height:1.4;margin-bottom:14px;">Por persona solo enviamos una Calificación en PDF — revisa tu correo (o spam) si no la encuentras.<br><br>El siguiente paso ideal es platicarlo a detalle con nosotros.</div>' +
-          '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=pdf_repetido&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:13px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:14px;font-weight:800;cursor:pointer;text-decoration:none;box-sizing:border-box;">Agenda TU Cita gratuita →</a>' +
+        '<div id="maxx-pdf-cta-repetido" style="display:none;">' +
+          '<div style="font-size:21px;font-weight:800;color:#042C53;margin-bottom:8px;line-height:1.25;">¡YA lograste el primer paso! 🎉</div>' +
+          '<div style="font-size:14px;color:#3D3B36;margin-bottom:14px;line-height:1.5;"><strong style="color:#042C53;">TU Calificación en PDF ya fue enviada a tu correo.</strong> Revisa tu bandeja de entrada y/o SPAM.</div>' +
+          '<div style="font-size:16px;font-weight:700;color:#3B6D11;margin-bottom:16px;line-height:1.35;">Ahora es momento de mejorar TU Calificación y construir TU Destino.</div>' +
+          '<div style="background:#EAF3DE;border-radius:10px;padding:14px;margin-bottom:16px;">' +
+            '<div style="font-size:13px;color:#3B6D11;font-weight:700;line-height:1.6;">' +
+              'a) YA tienes TUS números reales, no genéricos.<br>' +
+              'b) YA sabes exactamente en dónde estás parado.<br>' +
+              'c) Solo falta el paso que TODO lo cambia: platicarlo con MAXX.' +
+            '</div>' +
+          '</div>' +
+          '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=pdf_repetido&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:14px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1.4;text-align:center;text-decoration:none;box-sizing:border-box;">Agenda TU Cita y Empieza HOY a Construir TU Futuro →<br><span style="font-size:12px;font-weight:600;">30 minutos. Gratuito. Sin Compromisos.</span></a>' +
         '</div>' +
       '</div>' +
     '</div>';
@@ -1504,6 +1515,20 @@ function maxxCargarConfig(url, timeoutMs) {
       wrapper.innerHTML = maxxModalHTML();
       document.body.appendChild(wrapper.firstChild);
       maxxWireModalPDF();
+    } else {
+      // El modal ya existía (se abrió antes en esta sesión): reseteamos su estado visual
+      // para que no quede atorado en "ya recibiste tu PDF" o en "¡Listo!" de una vez anterior.
+      document.getElementById('maxx-pdf-header-normal').style.display = 'block';
+      document.getElementById('maxx-pdf-nombre').parentElement.style.display = 'block';
+      document.getElementById('maxx-pdf-apellidos').parentElement.style.display = 'block';
+      document.getElementById('maxx-pdf-correo').parentElement.style.display = 'block';
+      document.getElementById('maxx-pdf-cta-repetido').style.display = 'none';
+      document.getElementById('maxx-pdf-exito').style.display = 'none';
+      var btnReset = document.getElementById('maxx-pdf-enviar');
+      btnReset.style.display = 'block';
+      btnReset.disabled = false;
+      btnReset.textContent = 'Enviarme el PDF →';
+      document.getElementById('maxx-pdf-error').style.display = 'none';
     }
     window.maxxModalPdfAbiertoEn = Date.now();
     var overlay = document.getElementById('maxx-modal-pdf-overlay');
@@ -1553,6 +1578,7 @@ function maxxCargarConfig(url, timeoutMs) {
       maxxConsultarChecador(correo, 'pdf').then(function(resultadoChecador) {
         if (resultadoChecador.yaEnviado) {
           // Ya lo recibió antes: NO se envía nada a HubSpot. Se muestra el CTA a la Cita.
+          document.getElementById('maxx-pdf-header-normal').style.display = 'none';
           document.getElementById('maxx-pdf-nombre').parentElement.style.display = 'none';
           document.getElementById('maxx-pdf-apellidos').parentElement.style.display = 'none';
           document.getElementById('maxx-pdf-correo').parentElement.style.display = 'none';
@@ -1584,7 +1610,7 @@ function maxxCargarConfig(url, timeoutMs) {
           document.getElementById('maxx-pdf-exito').style.display = 'block';
         }).catch(function() {
           btn.disabled = false;
-          btn.textContent = 'Enviarme mi PDF →';
+          btn.textContent = 'Enviarme el PDF →';
           errEl.style.display = 'block';
           errEl.textContent = '⚠ Algo falló. Intenta de nuevo en un momento.';
         });
