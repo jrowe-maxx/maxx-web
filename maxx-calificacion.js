@@ -1479,7 +1479,7 @@ function maxxCargarConfig(url, timeoutMs) {
         '<button type="button" id="maxx-modal-pdf-cerrar" style="position:absolute;top:10px;right:12px;border:none;background:transparent;font-size:20px;color:#5F5E5A;cursor:pointer;line-height:1;">×</button>' +
         '<div id="maxx-pdf-header-normal">' +
           '<div style="font-size:19px;font-weight:800;color:#042C53;margin-bottom:6px;line-height:1.3;">Recibe TU Calificación en PDF</div>' +
-          '<div style="font-size:14px;color:#5F5E5A;margin-bottom:16px;line-height:1.45;">Ya diste el primer paso hacia TU Destino.<br>Ahora dinos a dónde enviar TU resultado.</div>' +
+          '<div style="font-size:14px;color:#378ADD;font-weight:600;margin-bottom:16px;line-height:1.45;">Ya diste el primer paso hacia TU Destino.<br>Ahora dinos a dónde enviar TU resultado.</div>' +
         '</div>' +
         '<div style="margin-bottom:10px;"><input type="text" id="maxx-pdf-nombre" placeholder="Nombre" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
         '<div style="margin-bottom:10px;"><input type="text" id="maxx-pdf-apellidos" placeholder="Apellidos" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
@@ -1489,12 +1489,16 @@ function maxxCargarConfig(url, timeoutMs) {
         '<button type="button" id="maxx-pdf-enviar" style="display:block;width:100%;padding:13px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;">Enviarme el PDF →</button>' +
         '<div id="maxx-pdf-exito" style="display:none;">' +
           '<div style="font-size:20px;font-weight:800;color:#042C53;margin-bottom:8px;line-height:1.3;">¡YA lograste el primer paso! 🎉</div>' +
-          '<div style="font-size:14px;color:#3D3B36;margin-bottom:6px;line-height:1.5;"><strong style="color:#042C53;">La visión de TU Futuro ya viaja hacia tu correo.</strong> Revisa tu bandeja de entrada y/o SPAM en los próximos minutos.</div>' +
-          '<div style="font-size:14px;font-weight:700;color:#3B6D11;line-height:1.4;">Ya tienes TUS números. Ahora falta construir TU Destino con ellos.</div>' +
+          '<div style="font-size:14px;color:#3D3B36;line-height:1.5;margin-bottom:2px;"><strong style="color:#042C53;">La visión de TU Futuro ya viaja hacia tu correo.</strong></div>' +
+          '<div style="font-size:14px;color:#3D3B36;line-height:1.5;margin-bottom:10px;">Revisa tu bandeja de entrada y/o SPAM en los próximos minutos.</div>' +
+          '<div style="font-size:14px;font-weight:700;color:#3B6D11;line-height:1.4;margin-bottom:2px;">Ya tienes TUS números.</div>' +
+          '<div style="font-size:14px;font-weight:700;color:#3B6D11;line-height:1.4;margin-bottom:16px;">Ahora falta construir TU Destino con ellos.</div>' +
+          '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=pdf_exito&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:14px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1.4;text-align:center;text-decoration:none;box-sizing:border-box;">Agenda TU Cita. ¡Empieza HOY! →<br><span style="font-size:12px;font-weight:600;">30 minutos. Gratuito. Sin Compromisos.</span></a>' +
         '</div>' +
         '<div id="maxx-pdf-cta-repetido" style="display:none;">' +
           '<div style="font-size:21px;font-weight:800;color:#042C53;margin-bottom:8px;line-height:1.25;">¡YA lograste el primer paso! 🎉</div>' +
-          '<div style="font-size:14px;color:#3D3B36;margin-bottom:14px;line-height:1.5;"><strong style="color:#042C53;">TU Calificación en PDF ya fue enviada a tu correo.</strong> Revisa tu bandeja de entrada y/o SPAM.</div>' +
+          '<div style="font-size:14px;color:#3D3B36;line-height:1.5;margin-bottom:2px;"><strong style="color:#042C53;">TU Calificación en PDF ya fue enviada a tu correo.</strong></div>' +
+          '<div style="font-size:14px;color:#3D3B36;line-height:1.5;margin-bottom:10px;">Revisa tu bandeja de entrada y/o SPAM.</div>' +
           '<div style="font-size:16px;font-weight:700;color:#3B6D11;margin-bottom:16px;line-height:1.35;">Ahora es momento de mejorar TU Calificación y construir TU Destino.</div>' +
           '<div style="background:#EAF3DE;border-radius:10px;padding:14px;margin-bottom:16px;">' +
             '<div style="font-size:13px;color:#3B6D11;font-weight:700;line-height:1.6;">' +
