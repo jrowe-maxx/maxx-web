@@ -348,12 +348,20 @@ this.value = this.value.replace(/\D/g, '');
 });
 
 aporteInput.addEventListener('blur', function() {
-setAporteFormateado(getAporteRaw());
+var raw = getAporteRaw();
+if (raw > 0 && raw < 2000) {
+raw = 2000;
+showError('err-aporte', true);
+document.getElementById('err-aporte').textContent = 'El monto mínimo es $2,000. Lo ajustamos por ti.';
+} else {
+showError('err-aporte', false);
+}
+setAporteFormateado(raw);
 });
 
 aporteMenosBtn.addEventListener('click', function() {
 var actual = getAporteRaw();
-var nuevo = Math.max(0, actual - 500);
+var nuevo = actual <= 2000 ? 2000 : actual - 500;
 setAporteFormateado(nuevo);
 showError('err-aporte', false);
 });
