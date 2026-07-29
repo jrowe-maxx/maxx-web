@@ -1,0 +1,535 @@
+<style>
+#maxx-lead-form {
+font-family: 'Roboto', Arial, sans-serif;
+max-width: 560px;
+margin: 0 auto;
+background: #F5F4F0;
+border-radius: 14px;
+padding: 24px 26px;
+}
+#maxx-lead-form h3 {
+color: #042C53;
+font-size: 20px;
+margin: 0 0 18px 0;
+}
+.maxx-lf-row {
+display: flex;
+gap: 12px;
+margin-bottom: 14px;
+flex-wrap: wrap;
+}
+.maxx-lf-field {
+flex: 1;
+min-width: 220px;
+}
+.maxx-lf-field label {
+display: block;
+color: #185FA5;
+font-weight: bold;
+font-size: 13.5px;
+margin-bottom: 5px;
+}
+.maxx-lf-help-icon {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+width: 20px;
+height: 20px;
+border-radius: 50%;
+background: #185FA5;
+color: #FFFFFF;
+font-size: 13px;
+font-weight: bold;
+cursor: pointer;
+margin-left: 8px;
+vertical-align: middle;
+border: none;
+flex-shrink: 0;
+box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.maxx-lf-help-icon:hover { background: #EF9F27; transform: scale(1.1); }
+.maxx-lf-help {
+display: none;
+color: #777;
+font-size: 11.5px;
+margin: 4px 0 6px 0;
+background: #FFFFFF;
+border-left: 3px solid #185FA5;
+padding: 6px 10px;
+border-radius: 4px;
+}
+.maxx-lf-help.show { display: block; }
+.maxx-lf-field input,
+.maxx-lf-field select {
+width: 100%;
+box-sizing: border-box;
+padding: 10px 12px;
+border: 1.5px solid #CBD5DE;
+border-radius: 8px;
+font-size: 14px;
+font-family: 'Roboto', Arial, sans-serif;
+background: #FFFFFF;
+}
+.maxx-lf-field input:focus,
+.maxx-lf-field select:focus {
+outline: none;
+border-color: #185FA5;
+}
+.maxx-lf-phone-wrap {
+display: flex;
+align-items: center;
+border: 1.5px solid #CBD5DE;
+border-radius: 8px;
+overflow: hidden;
+background: #FFFFFF;
+}
+.maxx-lf-phone-prefix {
+background: #E6F1FB;
+color: #185FA5;
+font-weight: bold;
+padding: 10px 10px;
+font-size: 14px;
+border-right: 1.5px solid #CBD5DE;
+}
+.maxx-lf-phone-wrap input {
+border: none;
+border-radius: 0;
+}
+.maxx-lf-aporte-wrap {
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.maxx-lf-stepper-btn {
+flex-shrink: 0;
+width: 34px;
+height: 34px;
+border-radius: 50%;
+background: #185FA5;
+color: #FFFFFF;
+font-size: 18px;
+font-weight: bold;
+border: none;
+cursor: pointer;
+line-height: 1;
+}
+.maxx-lf-stepper-btn:hover { background: #EF9F27; }
+.maxx-lf-radio-group {
+display: flex;
+gap: 18px;
+padding: 8px 0;
+}
+.maxx-lf-radio-group label {
+display: flex;
+align-items: center;
+gap: 6px;
+color: #333;
+font-weight: normal;
+font-size: 14px;
+}
+.maxx-lf-consent {
+font-size: 12.5px;
+color: #555;
+margin: 14px 0;
+display: flex;
+gap: 8px;
+align-items: flex-start;
+}
+.maxx-lf-consent a { color: #185FA5; }
+#maxx-lf-submit {
+background: #EF9F27;
+color: #FFFFFF;
+font-weight: bold;
+font-size: 15px;
+border: none;
+border-radius: 24px;
+padding: 12px 28px;
+cursor: pointer;
+width: 100%;
+}
+#maxx-lf-submit:disabled {
+opacity: 0.6;
+cursor: not-allowed;
+}
+.maxx-lf-error {
+color: #C0392B;
+font-size: 12.5px;
+margin-top: 4px;
+display: none;
+}
+.maxx-lf-error.show { display: block; }
+#maxx-lf-status {
+margin-top: 14px;
+font-size: 14px;
+font-weight: bold;
+text-align: center;
+display: none;
+}
+#maxx-lf-status.success { color: #639922; display: block; }
+#maxx-lf-status.error { color: #C0392B; display: block; }
+</style>
+
+<div id="maxx-lead-form">
+<h3>A MAXX le encantará realizar y enviarte TU Cuestionario de Finanzas Personales para el Retiro.</h3>
+<p style="color:#555; font-size:13.5px; line-height:1.5; margin:0 0 18px 0;">Para ello, es importante que nos brindes la información que te solicitamos en el presente formulario.<br>TU resultado te será enviado al día siguiente hábil.<br>Muchas gracias.</p>
+
+<div class="maxx-lf-row">
+<div class="maxx-lf-field">
+<label>Nombre *</label>
+<input type="text" id="maxx-lf-nombre" required>
+<div class="maxx-lf-error" id="err-nombre">Escribe tu nombre.</div>
+</div>
+<div class="maxx-lf-field">
+<label>Apellidos</label>
+<input type="text" id="maxx-lf-apellidos">
+</div>
+</div>
+
+<div class="maxx-lf-row">
+<div class="maxx-lf-field">
+<label>Edad * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-1">?</button></label>
+<span class="maxx-lf-help" id="maxx-help-1">Es crítico conocer TU edad actual para conocer la cantidad de años a proyectar conforme a medias de "vida esperada".</span>
+<input type="number" id="maxx-lf-edad" min="18" max="99" required>
+<div class="maxx-lf-error" id="err-edad">Ingresa una edad válida (18-99).</div>
+</div>
+<div class="maxx-lf-field">
+<label>Sexo/Género <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-2">?</button></label>
+<span class="maxx-lf-help" id="maxx-help-2">Es necesario conocer este dato, debido a que existe diferencia en la estimación de "vida esperada".</span>
+<select id="maxx-lf-genero">
+<option value="">Prefiero no decir</option>
+<option value="Femenino">Femenino</option>
+<option value="Masculino">Masculino</option>
+</select>
+</div>
+</div>
+
+<div class="maxx-lf-row">
+<div class="maxx-lf-field">
+<label>¿Tienes aportaciones en una AFORE actualmente? * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-3">?</button></label>
+<span class="maxx-lf-help" id="maxx-help-3">Marca "Sí" en el caso de que has realizado aportaciones a una AFORE, ya sea de forma personal o a través de tu empleador - no importa si estás en periodo de pausa, por la razón que sea.</span>
+<div class="maxx-lf-radio-group">
+<label><input type="radio" name="maxx-lf-afore" value="Si"> Sí</label>
+<label><input type="radio" name="maxx-lf-afore" value="No"> No</label>
+</div>
+<div class="maxx-lf-error" id="err-afore">Selecciona una opción.</div>
+</div>
+<div class="maxx-lf-field" id="maxx-lf-anos-wrap" style="display:none;">
+<label>¿Cuántos años has aportado a tu AFORE? * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-4">?</button></label>
+<span class="maxx-lf-help" id="maxx-help-4">Puede ser un número aproximado. No necesitas el dato exacto.</span>
+<input type="number" id="maxx-lf-anos" min="0" max="60">
+<div class="maxx-lf-error" id="err-anos">Ingresa un número válido de años.</div>
+</div>
+</div>
+
+<div class="maxx-lf-row">
+<div class="maxx-lf-field">
+<label>¿Cuál es TU ingreso mensual aproximado? * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-5">?</button></label>
+<span class="maxx-lf-help" id="maxx-help-5">Registra TU ingreso mensual neto - libre de impuestos.</span>
+<select id="maxx-lf-ingreso" required>
+<option value="">Selecciona un rango</option>
+<option value="Menos de $15,000">Menos de $15,000</option>
+<option value="$15,000 - $20,000">$15,000 - $20,000</option>
+<option value="$20,000 - $25,000">$20,000 - $25,000</option>
+<option value="$25,000 - $30,000">$25,000 - $30,000</option>
+<option value="$30,000 - $35,000">$30,000 - $35,000</option>
+<option value="$35,000 - $40,000">$35,000 - $40,000</option>
+<option value="$40,000 - $50,000">$40,000 - $50,000</option>
+<option value="$50,000 - $60,000">$50,000 - $60,000</option>
+<option value="$60,000 - $70,000">$60,000 - $70,000</option>
+<option value="Más de $70,000">Más de $70,000</option>
+</select>
+<div class="maxx-lf-error" id="err-ingreso">Selecciona tu rango de ingreso.</div>
+</div>
+<div class="maxx-lf-field">
+<label>¿Cuánto deseas o necesitas ganar cada MES en tu retiro? * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-6">?</button></label>
+<span class="maxx-lf-help" id="maxx-help-6">Piensa en lo que te gustaría recibir cada mes para vivir tranquilo en tu retiro. Este es el monto que te dará Libertad Económica.</span>
+<select id="maxx-lf-meta" required>
+<option value="">Selecciona un rango</option>
+<option value="Menos de $15,000">Menos de $15,000</option>
+<option value="$15,000 - $20,000">$15,000 - $20,000</option>
+<option value="$20,000 - $25,000">$20,000 - $25,000</option>
+<option value="$25,000 - $30,000">$25,000 - $30,000</option>
+<option value="$30,000 - $35,000">$30,000 - $35,000</option>
+<option value="$35,000 - $40,000">$35,000 - $40,000</option>
+<option value="$40,000 - $50,000">$40,000 - $50,000</option>
+<option value="$50,000 - $60,000">$50,000 - $60,000</option>
+<option value="$60,000 - $70,000">$60,000 - $70,000</option>
+<option value="Más de $70,000">Más de $70,000</option>
+</select>
+<div class="maxx-lf-error" id="err-meta">Selecciona tu meta de retiro.</div>
+</div>
+</div>
+
+<div class="maxx-lf-row">
+<div class="maxx-lf-field">
+<label>¿Cuánto puedes aportar mensualmente para lograrlo? * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-9">?</button></label>
+<span class="maxx-lf-help" id="maxx-help-9">Piensa en lo que hoy podrías destinar cada mes para construir TU Libertad Económica. Se aceptan múltiplos de $500. El monto mínimo es de $2,000. También puedes escribir la cantidad que gustes directamente.</span>
+<div class="maxx-lf-aporte-wrap">
+<button type="button" id="maxx-lf-aporte-menos" class="maxx-lf-stepper-btn" aria-label="Restar $500">−</button>
+<div class="maxx-lf-phone-wrap" style="flex:1;">
+<span class="maxx-lf-phone-prefix">$</span>
+<input type="text" inputmode="numeric" id="maxx-lf-aporte" placeholder="Ej. 2,500">
+</div>
+<button type="button" id="maxx-lf-aporte-mas" class="maxx-lf-stepper-btn" aria-label="Sumar $500">+</button>
+</div>
+<div class="maxx-lf-error" id="err-aporte">Ingresa un monto de al menos $2,000 mensuales.</div>
+</div>
+</div>
+
+<div class="maxx-lf-row">
+<div class="maxx-lf-field">
+<label>Correo <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-7">?</button></label>
+<span class="maxx-lf-help" id="maxx-help-7">Requerimos TU correo para poderte enviar tu resultado por esta vía.</span>
+<input type="email" id="maxx-lf-correo">
+</div>
+<div class="maxx-lf-field">
+<label>Teléfono Móvil <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-8">?</button></label>
+<span class="maxx-lf-help" id="maxx-help-8">Ingresa TU número a 10 dígitos, sin espacios ni guiones. Requerimos TU teléfono para poderte enviar tu resultado por esta vía.</span>
+<div class="maxx-lf-phone-wrap">
+<span class="maxx-lf-phone-prefix">+52</span>
+<input type="tel" id="maxx-lf-telefono" maxlength="10" placeholder="10 dígitos">
+</div>
+</div>
+</div>
+<div class="maxx-lf-error" id="err-contacto">Déjanos al menos tu correo o tu teléfono (WhatsApp) para poder enviarte tu Calificación.</div>
+
+<div class="maxx-lf-consent">
+<input type="checkbox" id="maxx-lf-consent" required style="margin-top:3px;">
+<label for="maxx-lf-consent">Acepto que MAXX almacene y trate mis datos personales, de acuerdo al <a href="https://maxx.mx/#aviso" target="_blank">Aviso de Privacidad</a>. *</label>
+</div>
+<div class="maxx-lf-error" id="err-consent">Debes aceptar el Aviso de Privacidad para continuar.</div>
+
+<button type="button" id="maxx-lf-submit">Generar y enviar mi Calificación</button>
+<div id="maxx-lf-status"></div>
+</div>
+
+<script>
+(function() {
+
+document.querySelectorAll('.maxx-lf-help-icon').forEach(function(iconBtn) {
+iconBtn.addEventListener('click', function() {
+var target = document.getElementById(iconBtn.getAttribute('data-target'));
+if (target) target.classList.toggle('show');
+});
+});
+
+// Mostrar/ocultar "años aportados a AFORE" según la respuesta de Sí/No
+var anosWrap = document.getElementById('maxx-lf-anos-wrap');
+var anosInput = document.getElementById('maxx-lf-anos');
+document.querySelectorAll('input[name="maxx-lf-afore"]').forEach(function(radio) {
+radio.addEventListener('change', function() {
+if (this.value === 'Si') {
+anosWrap.style.display = '';
+} else {
+anosWrap.style.display = 'none';
+anosInput.value = '0';
+showError('err-anos', false);
+}
+});
+});
+
+// Campo de aporte mensual: formato con comas + botones de +/- $500
+var aporteInput = document.getElementById('maxx-lf-aporte');
+var aporteMenosBtn = document.getElementById('maxx-lf-aporte-menos');
+var aporteMasBtn = document.getElementById('maxx-lf-aporte-mas');
+
+function getAporteRaw() {
+var digits = aporteInput.value.replace(/\D/g, '');
+return digits ? parseInt(digits, 10) : 0;
+}
+
+function setAporteFormateado(num) {
+aporteInput.value = num > 0 ? num.toLocaleString('es-MX') : '';
+}
+
+aporteInput.addEventListener('input', function() {
+// Mientras se escribe, solo se limpian caracteres no numéricos (sin comas todavía, para no saltar el cursor)
+this.value = this.value.replace(/\D/g, '');
+});
+
+aporteInput.addEventListener('blur', function() {
+setAporteFormateado(getAporteRaw());
+});
+
+aporteMenosBtn.addEventListener('click', function() {
+var actual = getAporteRaw();
+var nuevo = Math.max(0, actual - 500);
+setAporteFormateado(nuevo);
+showError('err-aporte', false);
+});
+
+aporteMasBtn.addEventListener('click', function() {
+var actual = getAporteRaw();
+var nuevo = actual === 0 ? 2000 : actual + 500;
+setAporteFormateado(nuevo);
+showError('err-aporte', false);
+});
+
+var PORTAL_ID = "51441967";
+var FORM_GUID = "8fd67435-addc-4141-8ae2-d22f733e9126";
+var ENDPOINT = "https://api.hsforms.com/submissions/v3/integration/submit/" + PORTAL_ID + "/" + FORM_GUID;
+
+var btn = document.getElementById('maxx-lf-submit');
+var status = document.getElementById('maxx-lf-status');
+
+function showError(id, show) {
+var el = document.getElementById(id);
+if (el) el.classList.toggle('show', show);
+}
+
+function validate() {
+var ok = true;
+var firstErrorEl = null;
+
+function flagError(errId, fieldEl, condition) {
+showError(errId, condition);
+if (condition) {
+ok = false;
+if (!firstErrorEl) firstErrorEl = fieldEl;
+}
+}
+
+var nombre = document.getElementById('maxx-lf-nombre').value.trim();
+flagError('err-nombre', document.getElementById('maxx-lf-nombre'), !nombre);
+
+var edad = document.getElementById('maxx-lf-edad').value;
+flagError('err-edad', document.getElementById('maxx-lf-edad'), !edad || edad < 18 || edad > 99);
+
+var ingreso = document.getElementById('maxx-lf-ingreso').value;
+flagError('err-ingreso', document.getElementById('maxx-lf-ingreso'), !ingreso);
+
+var meta = document.getElementById('maxx-lf-meta').value;
+flagError('err-meta', document.getElementById('maxx-lf-meta'), !meta);
+
+var aporte = getAporteRaw();
+flagError('err-aporte', aporteInput, !aporte || aporte < 2000);
+
+var afore = document.querySelector('input[name="maxx-lf-afore"]:checked');
+flagError('err-afore', document.querySelector('.maxx-lf-radio-group'), !afore);
+
+if (afore && afore.value === 'Si') {
+var anos = document.getElementById('maxx-lf-anos').value;
+flagError('err-anos', document.getElementById('maxx-lf-anos'), anos === '' || anos < 0);
+}
+
+var correo = document.getElementById('maxx-lf-correo').value.trim();
+var telRaw = document.getElementById('maxx-lf-telefono').value.trim();
+var telDigits = telRaw.replace(/\D/g, '');
+
+var telValid = telDigits.length === 0 || telDigits.length === 10;
+var atLeastOne = correo.length > 0 || telDigits.length === 10;
+
+if (!telValid) {
+showError('err-contacto', true);
+document.getElementById('err-contacto').textContent = 'Tu teléfono debe tener exactamente 10 dígitos.';
+ok = false;
+if (!firstErrorEl) firstErrorEl = document.getElementById('maxx-lf-telefono');
+} else if (!atLeastOne) {
+showError('err-contacto', true);
+document.getElementById('err-contacto').textContent = 'Déjanos al menos tu correo o tu teléfono (WhatsApp) para poder enviarte tu Calificación.';
+ok = false;
+if (!firstErrorEl) firstErrorEl = document.getElementById('maxx-lf-correo');
+} else {
+showError('err-contacto', false);
+}
+
+var consent = document.getElementById('maxx-lf-consent').checked;
+flagError('err-consent', document.getElementById('maxx-lf-consent'), !consent);
+
+if (!ok && firstErrorEl) {
+firstErrorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+return ok;
+}
+
+btn.addEventListener('click', function() {
+status.className = '';
+status.textContent = '';
+
+if (!validate()) {
+return;
+}
+
+btn.disabled = true;
+btn.textContent = 'Enviando...';
+
+var telDigits = document.getElementById('maxx-lf-telefono').value.trim().replace(/\D/g, '');
+var telFull = telDigits ? '+52' + telDigits : '';
+
+var aporteNum = getAporteRaw();
+var aporteFormateado = aporteNum ? '$' + aporteNum.toLocaleString('es-MX') : '';
+
+// ---- NOMBRES INTERNOS REALES CONFIRMADOS EN HUBSPOT (24-jul-2026) ----
+// Los campos personalizados quedaron con nombres internos "sucios" porque
+// las etiquetas se crearon pegando HTML con formato en vez de texto plano.
+// HubSpot no permite editar un nombre interno ya creado, así que se usan
+// tal cual quedaron generados (confirmados campo por campo en Configuración > Propiedades).
+//
+// NUEVO (28-jul-2026): "¿Cuánto puedes aportar mensualmente?" reutiliza la
+// propiedad "Cuenta de LinkedIn" (nombre interno: linkedin_account), que no
+// se usaba en nada. Se hizo así porque el plan de HubSpot de Javier ya tenía
+// las 10 propiedades personalizadas agotadas. La etiqueta visible en HubSpot
+// debe renombrarse a algo como "Aporte Mensual (MAXX)" para no confundir.
+var fields = [
+{ name: "firstname", value: document.getElementById('maxx-lf-nombre').value.trim() },
+{ name: "lastname", value: document.getElementById('maxx-lf-apellidos').value.trim() },
+{ name: "email", value: document.getElementById('maxx-lf-correo').value.trim() },
+{ name: "span_style__color___37761d____strong_telefono_movil___strong___span_", value: telFull },
+{ name: "edad", value: document.getElementById('maxx-lf-edad').value },
+{ name: "span_style__color___37761d____strong_sexo_genero___strong___span_", value: document.getElementById('maxx-lf-genero').value },
+{ name: "span_stylecolor_073763strongcual_es_tu_ingreso_mensual_aproximadostrongspan", value: document.getElementById('maxx-lf-ingreso').value },
+{ name: "span_style__color___073763____strong__cuanto_deseas_o_necesitas_ganar_cada_mes_en_tu_retiro___stron", value: document.getElementById('maxx-lf-meta').value },
+{ name: "span_style__color___073763____strong__tienes_afore_actualmente___strong___span_", value: document.querySelector('input[name="maxx-lf-afore"]:checked').value },
+{ name: "span_stylecolor_073763strongcuantos_anos_has_aportado_a_la_aforestrongspan", value: document.getElementById('maxx-lf-anos').value },
+{ name: "linkedin_account", value: aporteFormateado }
+];
+
+var payload = {
+fields: fields,
+context: {
+pageUri: window.location.href,
+pageName: document.title
+},
+legalConsentOptions: {
+consent: {
+consentToProcess: true,
+text: "He leído y acepto el Aviso de Privacidad de MAXX.",
+communications: [
+{
+value: true,
+subscriptionTypeId: 999,
+text: "Acepto recibir comunicaciones de MAXX."
+}
+]
+}
+}
+};
+
+fetch(ENDPOINT, {
+method: 'POST',
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify(payload)
+})
+.then(function(res) {
+if (res.ok) {
+status.className = 'success';
+status.textContent = '¡Listo! Recibimos tu información. En breve te contactamos con tu Calificación.';
+document.getElementById('maxx-lead-form').querySelectorAll('input, select').forEach(function(el) { el.disabled = true; });
+btn.style.display = 'none';
+} else {
+return res.json().then(function(data) {
+throw new Error(JSON.stringify(data));
+});
+}
+})
+.catch(function(err) {
+status.className = 'error';
+status.textContent = 'Hubo un problema al enviar. Por favor intenta de nuevo, o contáctanos directo a contacto@maxx.mx.';
+btn.disabled = false;
+btn.textContent = 'Generar y enviar mi Calificación';
+console.error('MAXX lead form error:', err);
+});
+});
+})();
+</script>
