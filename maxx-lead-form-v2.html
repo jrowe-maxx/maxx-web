@@ -165,11 +165,14 @@ font-weight: bold;
 text-align: center;
 display: none;
 }
-#maxx-lf-status.success { color: #639922; display: block; }
 #maxx-lf-status.error { color: #C0392B; display: block; }
+#maxx-lf-success {
+display: none;
+}
 </style>
 
 <div id="maxx-lead-form">
+<div id="maxx-lf-form-content">
 <h3>A MAXX le encantará realizar y enviarte TU Cuestionario de Finanzas Personales para el Retiro.</h3>
 <p style="color:#555; font-size:13.5px; line-height:1.5; margin:0 0 18px 0;">Para ello, es importante que nos brindes la información que te solicitamos en el presente formulario.<br>TU resultado te será enviado a la brevedad.<br>Muchas gracias.</p>
 
@@ -301,6 +304,16 @@ display: none;
 
 <button type="button" id="maxx-lf-submit">Generar y enviar mi Calificación</button>
 <div id="maxx-lf-status"></div>
+</div>
+
+<div id="maxx-lf-success">
+<div style="font-size:20px;font-weight:800;color:#042C53;margin-bottom:8px;line-height:1.3;">¡YA lograste el primer paso! 🎉</div>
+<div style="font-size:14px;color:#3D3B36;line-height:1.5;margin-bottom:2px;"><strong style="color:#042C53;">Recibimos TU información correctamente.</strong></div>
+<div style="font-size:14px;color:#3D3B36;line-height:1.5;margin-bottom:10px;">TU Calificación te llegará a la brevedad.</div>
+<div style="font-size:14px;font-weight:700;color:#3B6D11;line-height:1.4;margin-bottom:2px;">Ya diste el primer paso hacia TU Destino.</div>
+<div style="font-size:14px;font-weight:700;color:#3B6D11;line-height:1.4;margin-bottom:16px;">No esperes a que te contactemos — TU Futuro puede empezar HOY.</div>
+<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=calif_simplificada&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:14px;border-radius:24px;border:none;background:#639922;color:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1.4;text-align:center;text-decoration:none;box-sizing:border-box;">Agenda TU Cita. ¡Empieza HOY! →<br><span style="font-size:12px;font-weight:600;">30 minutos. Gratuito. Sin Compromisos.</span></a>
+</div>
 </div>
 
 <script>
@@ -525,10 +538,8 @@ body: JSON.stringify(payload)
 })
 .then(function(res) {
 if (res.ok) {
-status.className = 'success';
-status.textContent = '¡Listo! Recibimos tu información. En breve te contactamos con tu Calificación.';
-document.getElementById('maxx-lead-form').querySelectorAll('input, select').forEach(function(el) { el.disabled = true; });
-btn.style.display = 'none';
+document.getElementById('maxx-lf-form-content').style.display = 'none';
+document.getElementById('maxx-lf-success').style.display = 'block';
 } else {
 return res.json().then(function(data) {
 throw new Error(JSON.stringify(data));
