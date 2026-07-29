@@ -40,8 +40,6 @@ var MAXX_TABLA_COSTO_PLAZO = [
 ];
 
 function maxxCostoAnualPorPlazo(plazoAnios) {
-  // Escalon mas cercano HACIA ABAJO (el mas conservador): usa el ultimo renglon
-  // cuyo plazo de tabla sea <= al plazo real de la persona.
   var fila = MAXX_TABLA_COSTO_PLAZO[0];
   for (var i = 0; i < MAXX_TABLA_COSTO_PLAZO.length; i++) {
     if (MAXX_TABLA_COSTO_PLAZO[i][0] <= plazoAnios) fila = MAXX_TABLA_COSTO_PLAZO[i];
@@ -51,7 +49,6 @@ function maxxCostoAnualPorPlazo(plazoAnios) {
 }
 
 function maxxVlookupAprox(valor, tabla, colIndex) {
-  // busca la fila con el mayor 'desde' <= valor (como VLOOKUP aproximado ascendente)
   var fila = tabla[0];
   for (var i = 0; i < tabla.length; i++) {
     if (tabla[i][0] <= valor) fila = tabla[i];
@@ -62,21 +59,14 @@ function maxxVlookupAprox(valor, tabla, colIndex) {
 
 function maxxEsperanzaVida(genero, edadRetiro) {
   var base = genero === 'H' ? MAXX_ESPERANZA_H : MAXX_ESPERANZA_M;
-  // Simetrico: retirarte antes de los 65 suma años remanentes; retirarte despues los resta —
-  // porque tu esperanza de vida TOTAL no cambia segun cuando decidas retirarte.
   var ajuste = (65 - edadRetiro) * MAXX_INCREMENTO_ESPERANZA_POR_ANIO;
-  return Math.max(1, base + ajuste); // nunca menos de 1 anio, por seguridad matematica
+  return Math.max(1, base + ajuste);
 }
 
-// Reconstruye el saldo actual + proyecta a retiro (metodologia CONSAR / Ley 97)
-// CORREGIDO: usa tasa REAL (no nominal) para todo el proyecto, igual que la metodologia oficial
-// de CONSAR 2026 (Sf = Si(1+tr)^n + d[aportaciones]), que trabaja enteramente en pesos de HOY,
-// no en pesos nominales futuros. Calibrado contra el ejemplo oficial publicado por CONSAR
-// (trabajador de 30 anios, sueldo $10,000, retiro a los 65, pension real $2,927 = 29.3% de reemplazo).
 var MAXX_FACTOR_CALIBRACION_CONSAR = 0.79; // 1/1.27, cierra la brecha remanente tras corregir a tasa real
 
 function maxxCalcularSaldoLey97(sueldoTopado, aniosCotizando, aniosHastaRetiro, tasaRCV, inflacion) {
-  var tasaNeta = (1 + MAXX_TASA_REAL_AFORE) * (1 - MAXX_COMISION_AFORE) - 1; // tasa REAL neta, sin inflacion mezclada
+  var tasaNeta = (1 + MAXX_TASA_REAL_AFORE) * (1 - MAXX_COMISION_AFORE) - 1;
 
   var saldoActual = 0;
   for (var k = 1; k <= 45; k++) {
@@ -113,9 +103,7 @@ function maxxCalcularPensionLey73(sueldoTopado, aniosCotizando, edadRetiro) {
   return pension;
 }
 
-// Calcula la pension mensual (Ley73 real o Ley97 saldo+piso), con tope 25 UMA ya aplicado
 function maxxCalcularPension(params) {
-  // params: { sueldoBruto, aniosCotizando, edadActual, edadRetiro, genero, ley73 ('S'/'N') }
   var sueldoTopado = Math.min(params.sueldoBruto, MAXX_TOPE_25_UMA);
   var aniosHastaRetiro = params.edadRetiro - params.edadActual;
   var vecesUma = sueldoTopado / MAXX_UMA_MENSUAL;
@@ -143,28 +131,21 @@ function maxxCalcularPension(params) {
 // Traducción fiel de la hoja "Motor" del Excel MAXX_Calificacion_MVP.xlsx
 // ============================================================
 
-// datos: objeto con TODOS los campos capturados en Secciones I, II, III
-// Requiere que motor_pension.js ya esté cargado (maxxCalcularPension, maxxEsperanzaVida)
-
 function maxxCorrerMotor(datos, config) {
   var inflacion = config.parametros_extra ? config.parametros_extra.inflacion : datos.inflacion;
   var tasaSolucion = datos.tasaSolucion;
-  var tasaConservadora = 0.07; // ahorro NO-Solucion MAXX, tasa conservadora fija
+  var tasaConservadora = 0.07;
 
   var edadActual = datos.edadActual;
-  var edadRetiro = datos.edadRetiro; // cuando la persona deja de aportar a Solucion MAXX (su eleccion personal)
-  var edadInicioPensionTitular = Math.min(edadRetiro, 65); // el IMSS/AFORE paga desde los 65 como tope, aunque sigas aportando a tu plan despues
-  var esperanzaVida = maxxEsperanzaVida(datos.genero, edadRetiro); // ligada a TU retiro personal (cuando empieza tu necesidad real)
-  var edadFinVida = edadActual + 64; // igual que el Excel: 65 filas, t=0..64
+  var edadRetiro = datos.edadRetiro;
+  var edadInicioPensionTitular = Math.min(edadRetiro, 65);
+  var esperanzaVida = maxxEsperanzaVida(datos.genero, edadRetiro);
+  var edadFinVida = edadActual + 64;
 
-  // Costo Anual Promedio Ponderado del Plan MAXX, segun el PLAZO COMPROMETIDO (edad actual -> edad de retiro).
-  // Se resta directo de la tasa de la Solucion MAXX antes de proyectar — asi el costo queda
-  // reflejado en TODA la simulacion (acumulacion y desacumulacion), sin duplicar los 3 cargos por separado.
   var plazoComprometido = Math.max(0, edadRetiro - edadActual);
   var costoAnualAplicado = maxxCostoAnualPorPlazo(plazoComprometido);
   var tasaSolucionNeta = tasaSolucion - costoAnualAplicado;
 
-  // Pension titular — empieza en edadInicioPensionTitular (tope 65), el AFORE paga desde que corresponde por ley
   var pensionTitularMensualBase = maxxCalcularPension({
     sueldoBruto: datos.tieneAfore === 'S' ? datos.sueldoBruto : 0,
     aniosCotizando: datos.aniosCotizando || 0,
@@ -173,22 +154,20 @@ function maxxCorrerMotor(datos, config) {
   });
   if (datos.tieneAfore === 'N') pensionTitularMensualBase = 0;
 
-  // Pension conyuge — usa SU PROPIA edad actual, y empieza a fluir cuando EL/ELLA cumple 65, no cuando el titular se retira
   var edadActualConyuge = datos.conyugeEdadActual || null;
   var pensionConyugeMensualBase = 0;
-  var edadInicioPensionConyuge = null; // en años del TITULAR (mismo eje t), para saber cuando empieza a fluir
+  var edadInicioPensionConyuge = null;
   if (datos.conyugeApoya === 'S' && datos.conyugeAfore === 'S' && edadActualConyuge) {
-    var edadInicioPensionConyugePropia = Math.min(65, 65); // el conyuge SIEMPRE puede cobrar desde los 65 (no elige "edad de retiro" propia en este modelo)
+    var edadInicioPensionConyugePropia = Math.min(65, 65);
     pensionConyugeMensualBase = maxxCalcularPension({
       sueldoBruto: datos.conyugeSueldo || 0,
       aniosCotizando: datos.conyugeAnios || 0,
       edadActual: edadActualConyuge, edadRetiro: edadInicioPensionConyugePropia,
-      genero: datos.genero === 'H' ? 'M' : 'H', // aproximacion, igual que el Excel no distingue genero del conyuge
+      genero: datos.genero === 'H' ? 'M' : 'H',
       ley73: datos.conyugeLey73, inflacion: inflacion
     });
-    // convertir "cuando el conyuge cumple 65" al mismo eje t que usa todo el motor (anios desde HOY, usando la edad del TITULAR)
     var aniosParaQueConyugeCumpla65 = Math.max(0, 65 - edadActualConyuge);
-    edadInicioPensionConyuge = edadActual + aniosParaQueConyugeCumpla65; // expresado en "edad del titular" para comparar en el mismo eje
+    edadInicioPensionConyuge = edadActual + aniosParaQueConyugeCumpla65;
   }
 
   var ahorroInicial = datos.tieneAhorros === 'S' ? (datos.montoAhorros || 0) : 0;
@@ -196,10 +175,10 @@ function maxxCorrerMotor(datos, config) {
   var montoDeseadoHoy = datos.montoDeseado || 0;
 
   var filas = [];
-  var G = ahorroInicial; // saldo ahorro conservador (acumulacion) / capital combinado (retiro, junto con M)
-  var M = 0; // saldo Solucion MAXX
+  var G = ahorroInicial;
+  var M = 0;
   var solucionFondeadaTotal = 0;
-  var gFondeadoEnCon = 0; // lo que el ahorro conservador cubre DENTRO del escenario CON aportación
+  var gFondeadoEnCon = 0;
 
   var capitalAgotado = false;
 
@@ -207,7 +186,7 @@ function maxxCorrerMotor(datos, config) {
     var edad = edadActual + t;
     var fase;
     if (edad < edadRetiro) fase = 'Acumulacion';
-    else fase = 'Retiro'; // el retiro ahora corre hasta el final (90 se recorta en la gráfica) o hasta agotarse
+    else fase = 'Retiro';
     var dentroEsperanzaVida = edad < (edadRetiro + esperanzaVida);
 
     var gastoMensualNecesario = montoDeseadoHoy * Math.pow(1 + inflacion, t);
@@ -220,15 +199,13 @@ function maxxCorrerMotor(datos, config) {
       : 0;
     var pensionMensualT = pensionTitularT + pensionConyugeT;
 
-    var G_alLlegar = G, M_alLlegar = M; // valores tal como llegan a este renglon, antes de aplicar retiro de este anio
+    var G_alLlegar = G, M_alLlegar = M;
 
     if (t === 0) {
-      // t=0: valor crudo, sin crecimiento (igual que la fila 5 del Excel)
       if (fase === 'Acumulacion') {
         M = aportacionMensual * 12;
         M_alLlegar = M;
       }
-      // G ya es ahorroInicial (valor con el que arrancamos), no se toca aqui
     } else if (fase === 'Acumulacion') {
       G = G * (1 + tasaConservadora);
       M = M * (1 + tasaSolucionNeta) + aportacionMensual * 12;
@@ -251,10 +228,10 @@ function maxxCorrerMotor(datos, config) {
       }
     }
 
-    var mostrarCapitalEsteRenglon = !capitalAgotado; // usa el estado ANTES de este renglon, para no ocultar el ultimo valor real
+    var mostrarCapitalEsteRenglon = !capitalAgotado;
 
     if (!capitalAgotado && fase === 'Retiro' && (G + M) <= 0.01) {
-      capitalAgotado = true; // a partir de AQUI, los renglones siguientes se ocultan
+      capitalAgotado = true;
     }
 
     var esRenglonDeTransicion = (fase === 'Retiro' && edad === edadRetiro);
@@ -271,7 +248,6 @@ function maxxCorrerMotor(datos, config) {
     });
   }
 
-  // Calificacion: suma nominal de necesidad vs recursos, solo anios de Retiro
   var necesidadTotal = 0, pensionFondeada = 0, ahorroFondeado = 0;
   var filasSinAportacion = [];
   var G2 = ahorroInicial;
@@ -279,7 +255,6 @@ function maxxCorrerMotor(datos, config) {
     var edad2 = edadActual + t2;
     var fase2 = edad2 < edadRetiro ? 'Acumulacion' : (edad2 < edadRetiro + esperanzaVida ? 'Retiro' : 'Posterior');
     if (t2 === 0) {
-      // t=0: valor crudo, sin crecimiento
     } else if (fase2 === 'Acumulacion') {
       G2 = G2 * (1 + tasaConservadora);
     } else if (fase2 === 'Retiro') {
@@ -310,7 +285,6 @@ function maxxCorrerMotor(datos, config) {
 
   var califSin = necesidadTotal > 0 ? Math.min(100, Math.round(100 * (pensionFondeada + ahorroFondeado) / necesidadTotal)) : 0;
 
-  // CON aportacion: incluye lo que cubre el ahorro conservador (G) + Solucion MAXX (M)
   var califCon = necesidadTotal > 0 ? Math.min(100, Math.round(100 * (pensionFondeada + gFondeadoEnCon + solucionFondeadaTotal) / necesidadTotal)) : 0;
 
   return {
@@ -349,8 +323,6 @@ var MAXX_COLORES_GRAFICA = {
 };
 
 function maxxConstruirPaths(filas, campo, escalaX, escalaY) {
-  // Devuelve un arreglo de segmentos [ [ {x,y}, {x,y}, ... ], [ ... ] ]
-  // separando en un segmento nuevo cada vez que el valor es null/undefined (hueco real)
   var segmentos = [];
   var actual = [];
   filas.forEach(function(f) {
@@ -376,14 +348,12 @@ function maxxGenerarSVGGrafica(filasCompletas, opciones) {
   var ancho = opciones.ancho || 800;
   var alto = opciones.alto || 380;
   var edadMaxima = opciones.edadMaxima || 90;
-  var edadEsperanzaVida = opciones.edadEsperanzaVida || null; // edad exacta (retiro + esperanza de vida)
-  var edadRetiroMarca = opciones.edadRetiro || null; // edad elegida para retirarse
+  var edadEsperanzaVida = opciones.edadEsperanzaVida || null;
+  var edadRetiroMarca = opciones.edadRetiro || null;
   var margenIzq = 130, margenDer = 20, margenSup = 36, margenInf = 60;
   var areaAncho = ancho - margenIzq - margenDer;
   var areaAlto = alto - margenSup - margenInf;
 
-  // Recortar la gráfica a un máximo razonable de edad (por default 90), sin importar
-  // hasta dónde corra el motor internamente
   var filas = filasCompletas.filter(function(f) { return f.edad <= edadMaxima; });
 
   var edadMin = filas[0].edad;
@@ -397,9 +367,8 @@ function maxxGenerarSVGGrafica(filasCompletas, opciones) {
     });
   });
   if (maxY === 0) maxY = 1;
-  maxY = maxY * 1.08; // margen visual arriba
+  maxY = maxY * 1.08;
 
-  // Redondear el paso del eje Y a un numero "limpio" (25k, 50k, 100k, 250k, 500k, 1M, etc.)
   function maxxPasoLimpio(valorAprox) {
     var pasosLimpios = [10000, 25000, 50000, 100000, 200000, 250000, 500000, 1000000, 2000000, 2500000, 5000000, 10000000];
     for (var i = 0; i < pasosLimpios.length; i++) {
@@ -419,32 +388,27 @@ function maxxGenerarSVGGrafica(filasCompletas, opciones) {
 
   var svg = '<svg viewBox="0 0 ' + ancho + ' ' + alto + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:-apple-system,sans-serif;">';
 
-  // Grid horizontal, con pasos limpios (ej. de 100 en 100 mil) + etiquetas de eje Y grandes y legibles
   for (var i = 0; i <= numLineasY; i++) {
     var valor = pasoY * i;
     var y = escalaY(valor);
     svg += '<line x1="' + margenIzq + '" y1="' + y.toFixed(1) + '" x2="' + (ancho - margenDer) + '" y2="' + y.toFixed(1) + '" stroke="#C7C4B8" stroke-width="1.5"/>';
     svg += '<text x="' + (margenIzq - 10) + '" y="' + (y + 5).toFixed(1) + '" text-anchor="end" font-size="19" font-weight="600" fill="#3D3B36">$' + Math.round(valor).toLocaleString('es-MX') + '</text>';
   }
-  // Eje vertical e eje horizontal, mas marcados
   svg += '<line x1="' + margenIzq + '" y1="' + margenSup + '" x2="' + margenIzq + '" y2="' + (alto - margenInf) + '" stroke="#8A8778" stroke-width="1.5"/>';
   svg += '<line x1="' + margenIzq + '" y1="' + (alto - margenInf) + '" x2="' + (ancho - margenDer) + '" y2="' + (alto - margenInf) + '" stroke="#8A8778" stroke-width="1.5"/>';
 
-  // Linea vertical marcando la edad de retiro elegida
   if (edadRetiroMarca !== null && edadRetiroMarca >= edadMin && edadRetiroMarca <= edadMax) {
     var xRet = escalaX(edadRetiroMarca);
     svg += '<line x1="' + xRet.toFixed(1) + '" y1="' + margenSup + '" x2="' + xRet.toFixed(1) + '" y2="' + (alto - margenInf) + '" stroke="#042C53" stroke-width="2" stroke-dasharray="5,4" opacity="0.75"/>';
     svg += '<text x="' + xRet.toFixed(1) + '" y="' + (alto - margenInf + 34) + '" text-anchor="middle" font-size="22" fill="#042C53" font-weight="700">Tu retiro: ' + Math.round(edadRetiroMarca) + ' años</text>';
   }
 
-  // Linea vertical marcando la esperanza de vida (si cae dentro del rango mostrado)
   if (edadEsperanzaVida !== null && edadEsperanzaVida >= edadMin && edadEsperanzaVida <= edadMax) {
     var xEsp = escalaX(edadEsperanzaVida);
     svg += '<line x1="' + xEsp.toFixed(1) + '" y1="' + margenSup + '" x2="' + xEsp.toFixed(1) + '" y2="' + (alto - margenInf) + '" stroke="#042C53" stroke-width="2" stroke-dasharray="5,4" opacity="0.75"/>';
     svg += '<text x="' + xEsp.toFixed(1) + '" y="' + (margenSup - 8) + '" text-anchor="middle" font-size="22" fill="#042C53" font-weight="700">Esperanza de vida: ' + Math.round(edadEsperanzaVida) + ' años</text>';
   }
 
-  // Eje X: etiquetas de edad cada 5 anios
   filas.forEach(function(f) {
     if (f.edad % 5 === 0) {
       var x = escalaX(f.edad);
@@ -452,7 +416,6 @@ function maxxGenerarSVGGrafica(filasCompletas, opciones) {
     }
   });
 
-  // Dibujar las 5 series (orden: deseado primero para que quede atras, luego el resto)
   var ordenDibujo = [
     { campo: 'montoDeseadoAnual', color: MAXX_COLORES_GRAFICA.montoDeseadoAnual, dash: '3,4', ancho: 3 },
     { campo: 'pensionAnual', color: MAXX_COLORES_GRAFICA.pensionAnual, dash: '8,4', ancho: 4.5 },
@@ -470,9 +433,6 @@ function maxxGenerarSVGGrafica(filasCompletas, opciones) {
         (serie.dash ? ' stroke-dasharray="' + serie.dash + '"' : '') + ' stroke-linecap="round" stroke-linejoin="round"/>';
     });
   });
-
-  // (Los montos de Acumulado/Deseado/Pensión al retiro ya NO se dibujan dentro del SVG —
-  // se muestran como una fila de texto debajo de la gráfica, ver maxxRenderizarResultados())
 
   svg += '</svg>';
   return svg;
@@ -502,7 +462,7 @@ function maxxGenerarLeyendaHTML() {
 // para que la herramienta NUNCA se rompa.
 // ============================================================
 
-var MAXX_CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3ISAY_C5IHfWHk0hALRhGbISy63ix6NJGbW7AF8iEPdw8baD8lx_DudKVq7_x1c10WWDwv-pJ2pw5/pub?output=csv'; // <-- Javier pega aquí la URL de "Publicar en la web" (CSV) de su Google Sheet
+var MAXX_CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3ISAY_C5IHfWHk0hALRhGbISy63ix6NJGbW7AF8iEPdw8baD8lx_DudKVq7_x1c10WWDwv-pJ2pw5/pub?output=csv';
 
 var MAXX_CONFIG_RESERVA = {
   parametros: {
@@ -534,7 +494,7 @@ var MAXX_CONFIG_RESERVA = {
 function maxxParsearCSVConfig(texto) {
   var config = { parametros: {}, inflacion: {}, sp500: {} };
   var lineas = texto.trim().split('\n');
-  for (var i = 1; i < lineas.length; i++) { // saltar encabezado
+  for (var i = 1; i < lineas.length; i++) {
     var partes = lineas[i].split(',');
     if (partes.length < 3) continue;
     var tipo = partes[0].trim();
@@ -544,7 +504,7 @@ function maxxParsearCSVConfig(texto) {
 
     if (tipo === 'parametro') {
       if (clave.slice(-4) === '_pct') {
-        config.parametros[clave.slice(0, -4)] = valor / 100; // ej. descuento_salarial_bloque_pct -> descuento_salarial_bloque
+        config.parametros[clave.slice(0, -4)] = valor / 100;
       } else {
         config.parametros[clave] = valor;
       }
@@ -566,7 +526,6 @@ function maxxFusionarConfig(reserva, remoto) {
   return resultado;
 }
 
-// Devuelve una Promise que SIEMPRE resuelve (nunca falla) — con datos remotos si se pudo, si no, con la reserva
 function maxxCargarConfig(url, timeoutMs) {
   timeoutMs = timeoutMs || 5000;
   if (!url) {
@@ -593,7 +552,7 @@ function maxxCargarConfig(url, timeoutMs) {
   window.maxxData = window.maxxData || {};
 
   var MAXX_SABIAS_QUE = {
-    esperanza: '', // se genera dinámicamente — ver maxxTextoEsperanza()
+    esperanza: '',
     inflacion: 'En México ha habido años con más de 15% de inflación (1996-1998). Por eso es mejor ser conservador al proyectar — nunca asumir menos de 4% anual.',
     sp500: 'El S&P 500 es una excelente opción para hacer crecer tu dinero: incluso después de descontar la inflación, sigue dando rendimientos reales atractivos, año tras año. Por eso, la solución que MAXX te presentará en tu Cita usa esa misma estrategia de inversión — para que tu dinero realmente crezca, no solo en papel.',
     salario: 'En México, los sueldos casi no suben más rápido que la inflación — casi no te queda más dinero real cada año, aunque te suban el sueldo. Por eso, "ya ganaré más después" no es, por sí solo, un plan de retiro.',
@@ -606,7 +565,6 @@ function maxxCargarConfig(url, timeoutMs) {
     var genero = window.maxxData.genero || 'H';
     var retiro = window.maxxData.edadRetiro || 65;
     var baseAnios = genero === 'H' ? 15.7 : 20.2;
-    // Simetrico, igual que maxxEsperanzaVida() del motor: retirarte antes de los 65 suma años, despues los resta
     var incremento = (65 - retiro) * 0.95;
     var aniosRestantes = Math.max(1, Math.round((baseAnios + incremento) * 10) / 10);
     var edadFinal = Math.round(retiro + aniosRestantes);
@@ -856,7 +814,6 @@ function maxxCargarConfig(url, timeoutMs) {
       if (abrir) maxxPintarTablaSP();
     });
 
-    // Auto-cerrar la tabla cuando el cursor sale de la zona (enlace + tabla)
     document.getElementById('maxx-zona-inflacion').addEventListener('mouseleave', function() {
       var div = document.getElementById('maxx-tabla-inflacion');
       div.style.display = 'none';
@@ -872,7 +829,6 @@ function maxxCargarConfig(url, timeoutMs) {
     maxxWireSabiasQue('sp500');
   }
 
-  // ---------- Tabla histórica de inflación (INEGI/Banxico, 1996-2025, verificada en el MVP de Excel) ----------
   var MAXX_TABLA_INFLACION = [
     [1996,0.2770],[1997,0.1572],[1998,0.1861],[1999,0.1232],[2000,0.0896],
     [2001,0.0440],[2002,0.0570],[2003,0.0398],[2004,0.0519],[2005,0.0333],
@@ -896,7 +852,6 @@ function maxxCargarConfig(url, timeoutMs) {
     document.getElementById('maxx-tabla-inflacion').innerHTML = html;
   };
 
-  // ---------- Tabla histórica S&P 500 (5-30 años, verificada en el MVP de Excel) ----------
   var MAXX_TABLA_SP = [
     ['5 años', 0.1443, 0.0554], ['10 años', 0.1482, 0.0485], ['15 años', 0.1407, 0.0441],
     ['20 años', 0.1100, 0.0442], ['25 años', 0.0882, 0.0444], ['30 años', 0.1040, 0.0636]
@@ -1009,7 +964,6 @@ function maxxCargarConfig(url, timeoutMs) {
     var html = '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:4px;letter-spacing:0.5px;">SECCIÓN II · CON QUÉ CUENTAS</div>' +
       '<div style="font-size:13px;font-weight:500;color:#3B6D11;margin-bottom:8px;line-height:1.4;">Solo cuenta lo que ya tienes hoy — nada de ingresos futuros inciertos.</div>';
 
-    // Capacidad de ahorro — SIEMPRE visible, es la primera pregunta
     var plazo = (d.edadRetiro || 65) - (d.edadActual || 0);
     var minimoAportacion = plazo <= 10 ? 3000 : 2000;
     html += '<div style="margin-bottom:7px;">' +
@@ -1020,7 +974,6 @@ function maxxCargarConfig(url, timeoutMs) {
       '</div>';
     var paso1Completo = d.capacidadAhorro >= minimoAportacion;
 
-    // AFORE — solo aparece si ya se lleno la capacidad de ahorro
     if (paso1Completo) {
       html += '<div style="margin-bottom:9px;">' +
         '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes AFORE?</div>' +
@@ -1121,8 +1074,6 @@ function maxxCargarConfig(url, timeoutMs) {
     var completo = d.capacidadAhorro >= minimoAportacion && d.tieneAfore &&
       (d.tieneAfore === 'N' ? d.ingresoActual > 0 : (d.aniosCotizando > 0 && d.sueldoBruto > 0 && d.ley73));
 
-    // En cuanto lo esencial queda completo, precargamos "No" en las preguntas de Apoyo —
-    // el usuario ve su resultado de inmediato y solo cambia lo que sí le aplique después.
     if (completo) {
       if (!d.conyugeApoya) d.conyugeApoya = 'N';
       if (!d.tieneAhorros) d.tieneAhorros = 'N';
@@ -1169,7 +1120,6 @@ function maxxCargarConfig(url, timeoutMs) {
     var d = window.maxxData;
     var html = '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">Apoyo o Ahorro complementario</div>';
 
-    // Conyuge
     html += '<div style="margin-bottom:9px;">' +
       '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tu cónyuge apoya a cubrir el retiro?</div>' +
       '<div style="display:flex;gap:8px;">' + maxxPill('conyugeApoya','S',d.conyugeApoya,'Sí') + maxxPill('conyugeApoya','N',d.conyugeApoya,'No') + '</div>';
@@ -1198,7 +1148,6 @@ function maxxCargarConfig(url, timeoutMs) {
     }
     html += '</div>';
 
-    // Ahorros
     html += '<div style="margin-bottom:9px;">' +
       '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes ahorros que planeas MANTENER hasta tu retiro?</div>' +
       '<div style="display:flex;gap:8px;">' + maxxPill('tieneAhorros','S',d.tieneAhorros,'Sí') + maxxPill('tieneAhorros','N',d.tieneAhorros,'No') + '</div>';
@@ -1208,7 +1157,6 @@ function maxxCargarConfig(url, timeoutMs) {
     }
     html += '</div>';
 
-    // Casa propia
     html += '<div style="margin-bottom:9px;">' +
       '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes casa propia? <span style="font-weight:400;color:#a8a69d;">(informativo)</span></div>' +
       '<div style="display:flex;gap:8px;">' + maxxPill('casaPropia','S',d.casaPropia,'Sí') + maxxPill('casaPropia','N',d.casaPropia,'No') + '</div>';
@@ -1218,7 +1166,6 @@ function maxxCargarConfig(url, timeoutMs) {
     }
     html += '</div>';
 
-    // Otra fuente
     html += '<div style="margin-bottom:12px;">' +
       '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes otra fuente de ingreso? <span style="font-weight:400;color:#a8a69d;">(informativo)</span></div>' +
       '<div style="display:flex;gap:8px;">' + maxxPill('otraFuente','S',d.otraFuente,'Sí') + maxxPill('otraFuente','N',d.otraFuente,'No') + '</div>';
@@ -1228,10 +1175,8 @@ function maxxCargarConfig(url, timeoutMs) {
     }
     html += '</div>';
 
-    // Sabías que: crecimiento salarial real lento
     html += maxxSabiasQueHTML('salario', '¿Cuánto ha crecido el salario real en México?', 0);
 
-    // Sabías que condicional: semanas insuficientes
     if (d.tieneAfore === 'S' && d.aniosCotizando > 0 && (d.aniosCotizando * 54) < 875) {
       html += maxxSabiasQueHTML('semanas', '¿Qué pasa si no completas tus semanas del IMSS?', 6);
     }
@@ -1299,13 +1244,11 @@ function maxxCargarConfig(url, timeoutMs) {
     maxxMoneyFieldApoyo('maxx-monto-otra', 'montoOtraFuente');
   }
 
-
   function maxxRenderizarResultados() {
     var d = window.maxxData;
     var r = maxxCorrerMotor(d, {});
     window.maxxUltimoResultado = r;
 
-    // ---- Valores del punto de retiro (para callout de la grafica y para Seccion V) ----
     var fondoAlRetiro = 0;
     var pensionMensualAlRetiro = 0;
     r.filas.forEach(function(f) {
@@ -1317,7 +1260,6 @@ function maxxCargarConfig(url, timeoutMs) {
     window.maxxData.fondoAlRetiro = fondoAlRetiro;
     window.maxxData.pensionMensualAlRetiro = pensionMensualAlRetiro;
 
-    // ---- Grafica ----
     var edadEsperanzaVida = r.edadRetiro + r.esperanzaVida;
     var svg = maxxGenerarSVGGrafica(r.filas, {
       ancho: 1000, alto: 460, edadMaxima: 90,
@@ -1386,7 +1328,6 @@ function maxxCargarConfig(url, timeoutMs) {
       });
     }
 
-    // ---- Calificaciones ----
     var mensajeSin = 'Este es tu punto de partida. Vamos a mejorarlo.';
     document.getElementById('maxx-panel-califn1').innerHTML =
       '<div style="text-align:center;">' +
@@ -1408,10 +1349,8 @@ function maxxCargarConfig(url, timeoutMs) {
         '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:6px;line-height:1.4;">' + mensajeCon + '</div>' +
       '</div>';
 
-    // ---- Resultados (Seccion IV) ----
     var tasaNominalBrutaPct = d.tasaSolucion * 100;
     var tasaNominalNetaPct = r.tasaSolucionNeta * 100;
-    // Edad real donde el capital se agota, tomada de la MISMA simulacion que dibuja la grafica (nunca se contradicen)
     var edadCapitalAgotado = null;
     r.filas.forEach(function(f) {
       if (f.fase === 'Retiro' && f.capitalCombinado !== null) edadCapitalAgotado = f.edad;
@@ -1420,7 +1359,6 @@ function maxxCargarConfig(url, timeoutMs) {
       ? 'hasta los ' + edadCapitalAgotado + ' años de edad'
       : 'durante toda tu esperanza de vida';
 
-    // ---- Bloque de Costo del plan (nuevo) ----
     var costoPct = (r.costoAnualAplicado * 100).toFixed(2);
     var filasCostoTabla = MAXX_TABLA_COSTO_PLAZO.map(function(row) {
       var esActual = row[1] === r.costoAnualAplicado;
@@ -1459,7 +1397,6 @@ function maxxCargarConfig(url, timeoutMs) {
     maxxWireSabiasQue('esperanza');
     maxxWireSorpresa();
 
-    // Pintar la tabla de costo dentro del "sabías que" recien insertado (una vez que el DOM ya tiene el contenedor)
     var bodyCosto = document.getElementById('maxx-sq-body-costo');
     if (bodyCosto) {
       bodyCosto.innerHTML = MAXX_SABIAS_QUE.costo +
@@ -1470,9 +1407,6 @@ function maxxCargarConfig(url, timeoutMs) {
     }
     maxxWireSabiasQue('costo');
 
-
-
-    // ---- CTA ----
     document.getElementById('maxx-panel-cta').innerHTML =
       '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=cuestionario&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:14px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1.5;text-align:center;text-decoration:none;box-sizing:border-box;">¿Quieres conocer la Solución Ideal para TI?<br><span style="font-size:19px;">Agenda TU Cita. ¡Hazlo YA! →</span><br><span style="font-size:13px;font-weight:600;">30 minutos. Gratuito. Sin Compromisos.</span></a>' +
       '<button type="button" id="maxx-btn-pdf" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;border-radius:10px;border:1.5px solid #042C53;background:#fff;color:#042C53;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;box-sizing:border-box;">🖨️ Recibe TU Calificación en PDF</button>';
@@ -1492,6 +1426,28 @@ function maxxCargarConfig(url, timeoutMs) {
   // 3) Copia el Form GUID del formulario nuevo y pégalo abajo en MAXX_PDF_FORM_GUID.
   var MAXX_PDF_PORTAL_ID = '51441967';
   var MAXX_PDF_FORM_GUID = '56befb9b-6412-4b29-a1d2-51818a0f8697'; // conectado 28-jul-2026
+
+  // ---------- Checador: consulta al Apps Script (Checador.gs) ANTES de enviar, para saber si
+  // este correo ya recibió su PDF de "Solicitud de PDF" antes. Sustituye la protección débil
+  // de localStorage (que cualquiera puede evadir borrando su navegador o usando otro dispositivo).
+  // IMPORTANTE (Javier): pega aquí la URL de tu Checador publicado como Web App (termina en /exec).
+  // La consigues en Apps Script: Implementar → Nueva implementación → tipo "Aplicación web".
+  var MAXX_CHECADOR_URL = 'https://script.google.com/macros/s/AKfycbx7A6d9TlWEOo37S5yjBDzw4jv-aP1JzVdffHKSkucNJz_vOSkBkbG_335t3m5klq_4qg/exec';
+
+  function maxxConsultarChecador(correo, tipo) {
+    // Devuelve una Promise que SIEMPRE resuelve con { yaEnviado: true|false, error: true|false }.
+    // Si el checador falla o no está configurado, resuelve con yaEnviado:false (falla "abierto"
+    // — no bloquea al usuario por un problema técnico del checador; el pipeline en Apps Script
+    // sigue siendo la última línea de defensa real contra duplicados, vía pdfEnviadoFecha).
+    if (!MAXX_CHECADOR_URL || MAXX_CHECADOR_URL.indexOf('PENDIENTE') === 0) {
+      return Promise.resolve({ yaEnviado: false, error: true });
+    }
+    var url = MAXX_CHECADOR_URL + '?correo=' + encodeURIComponent(correo) + '&tipo=' + encodeURIComponent(tipo);
+    return fetch(url)
+      .then(function(resp) { return resp.json(); })
+      .then(function(data) { return { yaEnviado: !!data.yaEnviado, error: false }; })
+      .catch(function() { return { yaEnviado: false, error: true }; });
+  }
 
   function maxxConstruirDetalleJSON() {
     var d = window.maxxData;
@@ -1533,6 +1489,11 @@ function maxxCargarConfig(url, timeoutMs) {
           '<div style="font-size:15px;font-weight:800;color:#3B6D11;margin-bottom:4px;">¡Listo! 🎉</div>' +
           '<div style="font-size:13px;color:#5F5E5A;line-height:1.4;">Te llegará TU PDF muy pronto a tu correo.</div>' +
         '</div>' +
+        '<div id="maxx-pdf-cta-repetido" style="display:none;text-align:center;padding:6px 0 4px 0;">' +
+          '<div style="font-size:15px;font-weight:800;color:#042C53;margin-bottom:6px;">Ya tienes TU PDF ✓</div>' +
+          '<div style="font-size:13px;color:#5F5E5A;line-height:1.4;margin-bottom:14px;">Por persona solo enviamos una Calificación en PDF — revisa tu correo (o spam) si no la encuentras.<br><br>El siguiente paso ideal es platicarlo a detalle con nosotros.</div>' +
+          '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=pdf_repetido&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:13px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:14px;font-weight:800;cursor:pointer;text-decoration:none;box-sizing:border-box;">Agenda TU Cita gratuita →</a>' +
+        '</div>' +
       '</div>' +
     '</div>';
   }
@@ -1567,8 +1528,6 @@ function maxxCargarConfig(url, timeoutMs) {
       var trampa = document.getElementById('maxx-pdf-empresa').value.trim();
       var errEl = document.getElementById('maxx-pdf-error');
 
-      // Anti-bot silencioso: si cayó en la trampa, o si "llenó" el formulario
-      // en menos de 2 segundos, simulamos éxito pero no mandamos nada a HubSpot.
       var tiempoTranscurrido = Date.now() - (window.maxxModalPdfAbiertoEn || 0);
       if (trampa || tiempoTranscurrido < 2000) {
         document.getElementById('maxx-pdf-enviar').style.display = 'none';
@@ -1583,49 +1542,52 @@ function maxxCargarConfig(url, timeoutMs) {
         return;
       }
 
-      try {
-        var yaEnviadosCheck = JSON.parse(localStorage.getItem('maxxPdfEnviados') || '[]');
-        if (yaEnviadosCheck.indexOf(correo.toLowerCase()) !== -1) {
-          errEl.style.display = 'block';
-          errEl.textContent = 'Ya te enviamos TU Calificación a este correo antes — revisa tu bandeja de entrada (o spam).';
-          return;
-        }
-      } catch (err) { /* si el navegador bloquea localStorage, seguimos normal */ }
-
       errEl.style.display = 'none';
 
       var btn = document.getElementById('maxx-pdf-enviar');
       btn.disabled = true;
-      btn.textContent = 'Enviando...';
+      btn.textContent = 'Verificando...';
 
-      var payload = {
-        fields: [
-          { objectTypeId: '0-1', name: 'firstname', value: nombre },
-          { objectTypeId: '0-1', name: 'lastname', value: apellidos },
-          { objectTypeId: '0-1', name: 'email', value: correo },
-          { objectTypeId: '0-1', name: 'detalle_cuestionario_maxx', value: maxxConstruirDetalleJSON() }
-        ],
-        context: { pageUri: window.location.href, pageName: document.title }
-      };
+      // Antes de enviar nada a HubSpot, le preguntamos al Checador si este correo ya
+      // recibió su PDF antes (tipo "pdf" — separado del registro de Calificación Financiera).
+      maxxConsultarChecador(correo, 'pdf').then(function(resultadoChecador) {
+        if (resultadoChecador.yaEnviado) {
+          // Ya lo recibió antes: NO se envía nada a HubSpot. Se muestra el CTA a la Cita.
+          document.getElementById('maxx-pdf-nombre').parentElement.style.display = 'none';
+          document.getElementById('maxx-pdf-apellidos').parentElement.style.display = 'none';
+          document.getElementById('maxx-pdf-correo').parentElement.style.display = 'none';
+          btn.style.display = 'none';
+          document.getElementById('maxx-pdf-cta-repetido').style.display = 'block';
+          return;
+        }
 
-      fetch('https://api.hsforms.com/submissions/v3/integration/submit/' + MAXX_PDF_PORTAL_ID + '/' + MAXX_PDF_FORM_GUID, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }).then(function(resp) {
-        if (!resp.ok) throw new Error('submit failed');
-        try {
-          var yaEnviados = JSON.parse(localStorage.getItem('maxxPdfEnviados') || '[]');
-          if (yaEnviados.indexOf(correo.toLowerCase()) === -1) yaEnviados.push(correo.toLowerCase());
-          localStorage.setItem('maxxPdfEnviados', JSON.stringify(yaEnviados));
-        } catch (err) { /* si el navegador bloquea localStorage, no pasa nada grave */ }
-        document.getElementById('maxx-pdf-enviar').style.display = 'none';
-        document.getElementById('maxx-pdf-exito').style.display = 'block';
-      }).catch(function() {
-        btn.disabled = false;
-        btn.textContent = 'Enviarme mi PDF →';
-        errEl.style.display = 'block';
-        errEl.textContent = '⚠ Algo falló. Intenta de nuevo en un momento.';
+        // No lo ha recibido (o el Checador no pudo responder, y fallamos "abierto"): procede normal.
+        btn.textContent = 'Enviando...';
+
+        var payload = {
+          fields: [
+            { objectTypeId: '0-1', name: 'firstname', value: nombre },
+            { objectTypeId: '0-1', name: 'lastname', value: apellidos },
+            { objectTypeId: '0-1', name: 'email', value: correo },
+            { objectTypeId: '0-1', name: 'detalle_cuestionario_maxx', value: maxxConstruirDetalleJSON() }
+          ],
+          context: { pageUri: window.location.href, pageName: document.title }
+        };
+
+        fetch('https://api.hsforms.com/submissions/v3/integration/submit/' + MAXX_PDF_PORTAL_ID + '/' + MAXX_PDF_FORM_GUID, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(function(resp) {
+          if (!resp.ok) throw new Error('submit failed');
+          document.getElementById('maxx-pdf-enviar').style.display = 'none';
+          document.getElementById('maxx-pdf-exito').style.display = 'block';
+        }).catch(function() {
+          btn.disabled = false;
+          btn.textContent = 'Enviarme mi PDF →';
+          errEl.style.display = 'block';
+          errEl.textContent = '⚠ Algo falló. Intenta de nuevo en un momento.';
+        });
       });
     });
   }
@@ -1651,7 +1613,7 @@ function maxxCargarConfig(url, timeoutMs) {
     if (cfg.pmg_ley73) MAXX_PMG_LEY73 = cfg.pmg_ley73;
     if (cfg.pmg_ley97) MAXX_PMG_LEY97 = cfg.pmg_ley97;
     if (cfg.semanas_min_ley97_2026) MAXX_SEMANAS_MIN_LEY97 = cfg.semanas_min_ley97_2026;
-    window.maxxConfigFuente = resultado.fuente; // util para verificar en consola si se leyo la hoja o la reserva
+    window.maxxConfigFuente = resultado.fuente;
 
     renderPanel1();
     renderPanelEsencial(false);
