@@ -205,19 +205,35 @@ display: none;
 
 <div class="maxx-lf-row">
 <div class="maxx-lf-field">
-<label>¿Tienes aportaciones en una AFORE actualmente? * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-3">?</button></label>
-<span class="maxx-lf-help" id="maxx-help-3">Marca "Sí" en el caso de que has realizado aportaciones a una AFORE, ya sea de forma personal o a través de tu empleador - no importa si estás en periodo de pausa, por la razón que sea.</span>
-<div class="maxx-lf-radio-group">
-<label><input type="radio" name="maxx-lf-afore" value="Si"> Sí</label>
-<label><input type="radio" name="maxx-lf-afore" value="No"> No</label>
+<label>¿Cuánto deseas o necesitas ganar cada MES en tu retiro? * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-6">?</button></label>
+<span class="maxx-lf-help" id="maxx-help-6">Piensa en lo que te gustaría recibir cada mes para vivir tranquilo en tu retiro. Este es el monto que te dará Libertad Económica.</span>
+<select id="maxx-lf-meta" required>
+<option value="">Selecciona un rango</option>
+<option value="Menos de $15,000">Menos de $15,000</option>
+<option value="$15,000 - $20,000">$15,000 - $20,000</option>
+<option value="$20,000 - $25,000">$20,000 - $25,000</option>
+<option value="$25,000 - $30,000">$25,000 - $30,000</option>
+<option value="$30,000 - $35,000">$30,000 - $35,000</option>
+<option value="$35,000 - $40,000">$35,000 - $40,000</option>
+<option value="$40,000 - $50,000">$40,000 - $50,000</option>
+<option value="$50,000 - $60,000">$50,000 - $60,000</option>
+<option value="$60,000 - $70,000">$60,000 - $70,000</option>
+<option value="Más de $70,000">Más de $70,000</option>
+</select>
+<div class="maxx-lf-error" id="err-meta">Selecciona tu meta de retiro.</div>
 </div>
-<div class="maxx-lf-error" id="err-afore">Selecciona una opción.</div>
+<div class="maxx-lf-field">
+<label>¿Cuánto puedes aportar mensualmente para lograrlo? * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-9">?</button></label>
+<span class="maxx-lf-help" id="maxx-help-9">Piensa en lo que hoy podrías destinar cada mes para construir TU Libertad Económica. Se aceptan múltiplos de $500. El monto mínimo es de $2,000. También puedes escribir la cantidad que gustes directamente.</span>
+<div class="maxx-lf-aporte-wrap">
+<button type="button" id="maxx-lf-aporte-menos" class="maxx-lf-stepper-btn" aria-label="Restar $500">−</button>
+<div class="maxx-lf-phone-wrap" style="flex:1;">
+<span class="maxx-lf-phone-prefix">$</span>
+<input type="text" inputmode="numeric" id="maxx-lf-aporte" placeholder="Ej. 2,500">
 </div>
-<div class="maxx-lf-field" id="maxx-lf-anos-wrap" style="display:none;">
-<label>¿Cuántos años has aportado a tu AFORE? * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-4">?</button></label>
-<span class="maxx-lf-help" id="maxx-help-4">Puede ser un número aproximado. No necesitas el dato exacto.</span>
-<input type="number" id="maxx-lf-anos" min="0" max="60">
-<div class="maxx-lf-error" id="err-anos">Ingresa un número válido de años.</div>
+<button type="button" id="maxx-lf-aporte-mas" class="maxx-lf-stepper-btn" aria-label="Sumar $500">+</button>
+</div>
+<div class="maxx-lf-error" id="err-aporte">Ingresa un monto de al menos $2,000 mensuales.</div>
 </div>
 </div>
 
@@ -240,39 +256,23 @@ display: none;
 </select>
 <div class="maxx-lf-error" id="err-ingreso">Selecciona tu rango de ingreso.</div>
 </div>
-<div class="maxx-lf-field">
-<label>¿Cuánto deseas o necesitas ganar cada MES en tu retiro? * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-6">?</button></label>
-<span class="maxx-lf-help" id="maxx-help-6">Piensa en lo que te gustaría recibir cada mes para vivir tranquilo en tu retiro. Este es el monto que te dará Libertad Económica.</span>
-<select id="maxx-lf-meta" required>
-<option value="">Selecciona un rango</option>
-<option value="Menos de $15,000">Menos de $15,000</option>
-<option value="$15,000 - $20,000">$15,000 - $20,000</option>
-<option value="$20,000 - $25,000">$20,000 - $25,000</option>
-<option value="$25,000 - $30,000">$25,000 - $30,000</option>
-<option value="$30,000 - $35,000">$30,000 - $35,000</option>
-<option value="$35,000 - $40,000">$35,000 - $40,000</option>
-<option value="$40,000 - $50,000">$40,000 - $50,000</option>
-<option value="$50,000 - $60,000">$50,000 - $60,000</option>
-<option value="$60,000 - $70,000">$60,000 - $70,000</option>
-<option value="Más de $70,000">Más de $70,000</option>
-</select>
-<div class="maxx-lf-error" id="err-meta">Selecciona tu meta de retiro.</div>
-</div>
 </div>
 
 <div class="maxx-lf-row">
 <div class="maxx-lf-field">
-<label>¿Cuánto puedes aportar mensualmente para lograrlo? * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-9">?</button></label>
-<span class="maxx-lf-help" id="maxx-help-9">Piensa en lo que hoy podrías destinar cada mes para construir TU Libertad Económica. Se aceptan múltiplos de $500. El monto mínimo es de $2,000. También puedes escribir la cantidad que gustes directamente.</span>
-<div class="maxx-lf-aporte-wrap">
-<button type="button" id="maxx-lf-aporte-menos" class="maxx-lf-stepper-btn" aria-label="Restar $500">−</button>
-<div class="maxx-lf-phone-wrap" style="flex:1;">
-<span class="maxx-lf-phone-prefix">$</span>
-<input type="text" inputmode="numeric" id="maxx-lf-aporte" placeholder="Ej. 2,500">
+<label>¿Tienes aportaciones en una AFORE actualmente? * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-3">?</button></label>
+<span class="maxx-lf-help" id="maxx-help-3">Marca "Sí" en el caso de que has realizado aportaciones a una AFORE, ya sea de forma personal o a través de tu empleador - no importa si estás en periodo de pausa, por la razón que sea.</span>
+<div class="maxx-lf-radio-group">
+<label><input type="radio" name="maxx-lf-afore" value="Si"> Sí</label>
+<label><input type="radio" name="maxx-lf-afore" value="No"> No</label>
 </div>
-<button type="button" id="maxx-lf-aporte-mas" class="maxx-lf-stepper-btn" aria-label="Sumar $500">+</button>
+<div class="maxx-lf-error" id="err-afore">Selecciona una opción.</div>
 </div>
-<div class="maxx-lf-error" id="err-aporte">Ingresa un monto de al menos $2,000 mensuales.</div>
+<div class="maxx-lf-field" id="maxx-lf-anos-wrap" style="display:none;">
+<label>¿Cuántos años has aportado a tu AFORE? * <button type="button" class="maxx-lf-help-icon" data-target="maxx-help-4">?</button></label>
+<span class="maxx-lf-help" id="maxx-help-4">Puede ser un número aproximado. No necesitas el dato exacto.</span>
+<input type="number" id="maxx-lf-anos" min="0" max="60">
+<div class="maxx-lf-error" id="err-anos">Ingresa un número válido de años.</div>
 </div>
 </div>
 
@@ -474,11 +474,15 @@ var aporteFormateado = aporteNum ? '$' + aporteNum.toLocaleString('es-MX') : '';
 // HubSpot no permite editar un nombre interno ya creado, así que se usan
 // tal cual quedaron generados (confirmados campo por campo en Configuración > Propiedades).
 //
-// NUEVO (28-jul-2026): "¿Cuánto puedes aportar mensualmente?" reutiliza la
-// propiedad "Cuenta de LinkedIn" (nombre interno: linkedin_account), que no
-// se usaba en nada. Se hizo así porque el plan de HubSpot de Javier ya tenía
-// las 10 propiedades personalizadas agotadas. La etiqueta visible en HubSpot
-// debe renombrarse a algo como "Aporte Mensual (MAXX)" para no confundir.
+// NUEVO (29-jul-2026): "¿Cuánto puedes aportar mensualmente?" usa la propiedad
+// nueva "Aportación Posible Mensual a PPR" (creada desde cero, tipo Número),
+// nombre interno: aportacion_posible_mensual_a_ppr.
+// NOTA: originalmente se intentó reutilizar "Cuenta de LinkedIn" (linkedin_account)
+// para no gastar cupo de las 10 propiedades personalizadas, pero HubSpot nunca
+// permitió conectar ese campo a ningún formulario (posible restricción oculta de
+// esa propiedad en particular). Se resolvió liberando cupo real: se eliminó una
+// propiedad duplicada y sin uso ("TU ingreso mensual aproximado:", duplicada de
+// la que sí se usa) y se creó esta propiedad nueva y limpia en su lugar.
 var fields = [
 { name: "firstname", value: document.getElementById('maxx-lf-nombre').value.trim() },
 { name: "lastname", value: document.getElementById('maxx-lf-apellidos').value.trim() },
@@ -490,7 +494,7 @@ var fields = [
 { name: "span_style__color___073763____strong__cuanto_deseas_o_necesitas_ganar_cada_mes_en_tu_retiro___stron", value: document.getElementById('maxx-lf-meta').value },
 { name: "span_style__color___073763____strong__tienes_afore_actualmente___strong___span_", value: document.querySelector('input[name="maxx-lf-afore"]:checked').value },
 { name: "span_stylecolor_073763strongcuantos_anos_has_aportado_a_la_aforestrongspan", value: document.getElementById('maxx-lf-anos').value },
-{ name: "linkedin_account", value: aporteFormateado }
+{ name: "aportacion_posible_mensual_a_ppr", value: aporteNum || "" }
 ];
 
 var payload = {
