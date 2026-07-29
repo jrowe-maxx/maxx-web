@@ -1432,7 +1432,7 @@ function maxxCargarConfig(url, timeoutMs) {
   // de localStorage (que cualquiera puede evadir borrando su navegador o usando otro dispositivo).
   // IMPORTANTE (Javier): pega aquí la URL de tu Checador publicado como Web App (termina en /exec).
   // La consigues en Apps Script: Implementar → Nueva implementación → tipo "Aplicación web".
-  var MAXX_CHECADOR_URL = 'https://script.google.com/macros/s/AKfycbx7A6d9TlWEOo37S5yjBDzw4jv-aP1JzVdffHKSkucNJz_vOSkBkbG_335t3m5klq_4qg/exec';
+  var MAXX_CHECADOR_URL = 'https://script.google.com/macros/s/AKfycbyvfnISVdcSjgfidTMCY0LiDyyBeqZnRKjSzLmedCkqJwaxyB_r465MTxMZQ1cT0FcI4A/exec';
 
   function maxxConsultarChecador(correo, tipo) {
     // Devuelve una Promise que SIEMPRE resuelve con { yaEnviado: true|false, error: true|false }.
