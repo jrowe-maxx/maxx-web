@@ -1449,6 +1449,16 @@ function maxxCargarConfig(url, timeoutMs) {
       .catch(function() { return { yaEnviado: false, error: true }; });
   }
 
+  function maxxMarcarChecador(correo, tipo) {
+    // Avisa al checador AL INSTANTE que este correo ya recibió su PDF — no espera a que el
+    // pipeline de fondo (que corre cada 15 min, o manual) lo detecte y lo marque después.
+    // Es "fire and forget": no bloquea la UI ni afecta el flujo si falla (el pipeline de
+    // fondo sigue siendo el respaldo que sí marca esto tarde o temprano de todas formas).
+    if (!MAXX_CHECADOR_URL || MAXX_CHECADOR_URL.indexOf('PENDIENTE') === 0) return;
+    var url = MAXX_CHECADOR_URL + '?correo=' + encodeURIComponent(correo) + '&tipo=' + encodeURIComponent(tipo) + '&accion=marcar';
+    fetch(url).catch(function() { /* silencioso: el pipeline de fondo respalda esto */ });
+  }
+
   function maxxConstruirDetalleJSON() {
     var d = window.maxxData;
     var r = window.maxxUltimoResultado || {};
@@ -1610,6 +1620,8 @@ function maxxCargarConfig(url, timeoutMs) {
           body: JSON.stringify(payload)
         }).then(function(resp) {
           if (!resp.ok) throw new Error('submit failed');
+          // Aviso instantáneo al checador — no esperamos al pipeline de fondo.
+          maxxMarcarChecador(correo, 'pdf');
           document.getElementById('maxx-pdf-enviar').style.display = 'none';
           document.getElementById('maxx-pdf-exito').style.display = 'block';
         }).catch(function() {
