@@ -1,1663 +1,643 @@
-// ===== MOTOR DE CALCULO (fusionado) =====
-// ============================================================
-// MAXX — Motor de Cálculo: Pensión AFORE (Ley 73 / Ley 97)
-// Traducción fiel del Excel MAXX_Calificacion_MVP.xlsx
-// ============================================================
+/**
+ * MAXX — Pipeline de PDF para el Cuestionario Completo
+ * ---------------------------------------------------------
+ * Diferencia clave con el pipeline anterior (maxx-pdf-pipeline.gs):
+ * Este SÍ manda el PDF directo al usuario final, sin que Javier intervenga.
+ * También revisa que un mismo correo no reciba más de un PDF (protección real,
+ * a nivel de HubSpot — no depende del navegador de nadie).
+ *
+ * OJO — sin propiedades nuevas: el plan de HubSpot de Javier tiene un límite de 10
+ * propiedades personalizadas, y ya están todas usadas. Por eso este pipeline NO crea
+ * una propiedad nueva para "PDF enviado" — en su lugar, guarda esa marca DENTRO del
+ * mismo campo "Detalle Cuestionario MAXX" (detalle_cuestionario_maxx), que ya existe,
+ * agregando una llave "pdfEnviadoFecha" al JSON que ya vive ahí.
+ *
+ * NUEVO (29-jul-2026): además de esa marca en HubSpot, este pipeline ahora también
+ * llama a marcarPdfEnviado() — la función del Checador (ver Checador.gs, mismo proyecto)
+ * que guarda su propio registro en Propiedades del Script. Esto sincroniza el checador
+ * (que el modal de "Recibe TU Calificación en PDF" consulta ANTES de enviar, en vivo,
+ * desde el navegador) con lo que este pipeline ya sabe. No reemplaza pdfEnviadoFecha en
+ * HubSpot — ambos mecanismos coexisten, cada uno cumpliendo su función.
+ *
+ * Qué hace:
+ * 1. Revisa periódicamente los envíos del formulario "Recibe TU Calificación en PDF" en HubSpot.
+ * 2. Por cada envío NUEVO:
+ *    a) Busca al contacto por correo en HubSpot y lee su "Detalle Cuestionario MAXX".
+ *       Si ese JSON ya trae "pdfEnviadoFecha", se salta ese envío (no manda un segundo PDF).
+ *    b) Si no lo tiene, genera un PDF con los datos y resultados del Cuestionario, y lo
+ *       manda DIRECTO al correo del usuario.
+ *    c) Le manda una copia a Javier también, a modo de registro.
+ *    d) Actualiza el JSON en HubSpot agregando "pdfEnviadoFecha" (para que no se repita).
+ *    e) Marca el correo en el registro del Checador (Propiedades del Script), tipo "pdf".
+ *
+ * IMPORTANTE — Configuración inicial (una sola vez), Javier:
+ *
+ * 1. En este proyecto de Apps Script (puede ser el MISMO proyecto que ya tienes, o uno nuevo — tú decides):
+ *    a) Ve a "Configuración del proyecto" (⚙️) → "Propiedades del script".
+ *    b) Si ya tienes ahí HUBSPOT_SERVICE_KEY del pipeline anterior, no hace falta que la agregues otra vez
+ *       (Apps Script comparte las propiedades entre todos los archivos .gs del MISMO proyecto).
+ *       Si es un proyecto nuevo, agrégala igual que la vez pasada:
+ *         Nombre:  HUBSPOT_SERVICE_KEY
+ *         Valor:   [tu clave de servicio, la que empieza con "pat-na1-..."]
+ *
+ * 2. Activa el disparador automático:
+ *      Función a ejecutar: revisarEnviosCuestionario
+ *      Fuente del evento: Basado en tiempo
+ *      Tipo: Temporizador de minutos
+ *      Cada: 15 minutos
+ *
+ * 3. Corre "pruebaManualCuestionario" una vez manualmente desde el editor para confirmar que todo
+ *    funciona antes de dejarlo en automático.
+ *
+ * 4. Asegúrate de que Checador.gs también esté en este mismo proyecto — este pipeline llama
+ *    a marcarPdfEnviado(), que vive ahí. Si no está, este pipeline seguirá funcionando igual
+ *    (el paso 2e simplemente fallará silenciosamente en los logs), pero el checador del modal
+ *    no sabrá que este correo ya recibió su PDF.
+ */
 
-var MAXX_UMA_MENSUAL = 113.14 * 30.4; // 3439.456
-var MAXX_TOPE_25_UMA = 25 * MAXX_UMA_MENSUAL; // 85986.4
-var MAXX_TASA_REAL_AFORE = 0.04;
-var MAXX_COMISION_AFORE = 0.0055;
-var MAXX_DENSIDAD_COTIZACION = 0.8;
-var MAXX_DESCUENTO_SALARIAL_BLOQUE = 0.0667; // = (1.013)^5-1, derivado de crecimiento salarial real 1.3%/año (IMSS 1997-2018, vía Nexos)
-var MAXX_RETIRO_PATRON = 0.02;
-var MAXX_CYV_TRABAJADOR = 0.01125;
-var MAXX_PMG_LEY73 = 10636.53;
-var MAXX_PMG_LEY97 = 6600;
-var MAXX_SEMANAS_MIN_LEY97 = 875;
-var MAXX_SEMANAS_MIN_LEY73 = 500;
-var MAXX_INCREMENTO_ESPERANZA_POR_ANIO = 0.95;
-var MAXX_ESPERANZA_H = 15.7;
-var MAXX_ESPERANZA_M = 20.2;
+// ==== CONFIGURACIÓN ====
+var PORTAL_ID_CUESTIONARIO = "51441967";
+var FORM_GUID_CUESTIONARIO = "56befb9b-6412-4b29-a1d2-51818a0f8697";
+var CORREO_JAVIER = "jrowe@maxx.mx";
 
-// Tabla CEAV patronal 2026, por multiplo de UMA (desde, cuota)
-var MAXX_TABLA_CEAV = [
-  [0, 0.0315], [1.01, 0.0368], [1.51, 0.0485], [2.01, 0.0556],
-  [2.51, 0.0603], [3.01, 0.0636], [3.51, 0.0661], [4.01, 0.0751]
-];
+// Nombre interno de la propiedad "Detalle Cuestionario MAXX" (creada 28-jul-2026)
+// Esta MISMA propiedad guarda tanto el detalle del Cuestionario como la marca de "PDF enviado"
+// (agregamos una llave "pdfEnviadoFecha" al JSON) — así no necesitamos una propiedad nueva.
+var CAMPO_DETALLE = "detalle_cuestionario_maxx";
 
-// Tabla Ley73 Art.167, 5 bandas (desde veces UMA, cuantia basica, incremento anual)
-var MAXX_TABLA_LEY73 = [
-  [0, 0.80, 0.00563], [1.01, 0.595, 0.012], [2.01, 0.29, 0.0195],
-  [4.01, 0.163, 0.0235], [6.01, 0.13, 0.0245]
-];
-
-// Tabla de Costo Anual Promedio Ponderado del Plan MAXX, segun el PLAZO COMPROMETIDO
-// (fuente: FAQ Pregunta 37, "Que cargos tiene el plan?"). Entre mas largo el plazo,
-// mas eficiente (barata) la tasa. NO tiene relacion con retirarte antes de tiempo.
-var MAXX_TABLA_COSTO_PLAZO = [
-  [1.5, 0.0480], [5, 0.0230], [10, 0.0170], [15, 0.0160], [20, 0.0150], [25, 0.0140]
-];
-
-function maxxCostoAnualPorPlazo(plazoAnios) {
-  var fila = MAXX_TABLA_COSTO_PLAZO[0];
-  for (var i = 0; i < MAXX_TABLA_COSTO_PLAZO.length; i++) {
-    if (MAXX_TABLA_COSTO_PLAZO[i][0] <= plazoAnios) fila = MAXX_TABLA_COSTO_PLAZO[i];
-    else break;
-  }
-  return fila[1];
-}
-
-function maxxVlookupAprox(valor, tabla, colIndex) {
-  var fila = tabla[0];
-  for (var i = 0; i < tabla.length; i++) {
-    if (tabla[i][0] <= valor) fila = tabla[i];
-    else break;
-  }
-  return fila[colIndex];
-}
-
-function maxxEsperanzaVida(genero, edadRetiro) {
-  var base = genero === 'H' ? MAXX_ESPERANZA_H : MAXX_ESPERANZA_M;
-  var ajuste = (65 - edadRetiro) * MAXX_INCREMENTO_ESPERANZA_POR_ANIO;
-  return Math.max(1, base + ajuste);
-}
-
-var MAXX_FACTOR_CALIBRACION_CONSAR = 0.79; // 1/1.27, cierra la brecha remanente tras corregir a tasa real
-
-function maxxCalcularSaldoLey97(sueldoTopado, aniosCotizando, aniosHastaRetiro, tasaRCV, inflacion) {
-  var tasaNeta = (1 + MAXX_TASA_REAL_AFORE) * (1 - MAXX_COMISION_AFORE) - 1;
-
-  var saldoActual = 0;
-  for (var k = 1; k <= 45; k++) {
-    if (k > aniosCotizando) continue;
-    var bloque = Math.floor((k - 1) / 5);
-    var salarioHistorico = sueldoTopado / Math.pow(1 + MAXX_DESCUENTO_SALARIAL_BLOQUE, bloque);
-    var aportacionAnual = salarioHistorico * 12 * tasaRCV * MAXX_DENSIDAD_COTIZACION;
-    var factorCrecimiento = Math.pow(1 + tasaNeta, k);
-    saldoActual += aportacionAnual * factorCrecimiento;
+// ==== FUNCIÓN PRINCIPAL (la que corre el disparador cada 15 min) ====
+function revisarEnviosCuestionario() {
+  var apiKey = PropertiesService.getScriptProperties().getProperty("HUBSPOT_SERVICE_KEY");
+  if (!apiKey) {
+    Logger.log("ERROR: No se encontró HUBSPOT_SERVICE_KEY en Propiedades del script. Configúrala antes de continuar.");
+    return;
   }
 
-  var aportacionAnualFutura = sueldoTopado * 12 * tasaRCV * MAXX_DENSIDAD_COTIZACION;
-  var factorAnualidad = aniosHastaRetiro > 0 ? (Math.pow(1 + tasaNeta, aniosHastaRetiro) - 1) / tasaNeta : 0;
-  var saldoProyectadoReal = saldoActual * Math.pow(1 + tasaNeta, aniosHastaRetiro) + aportacionAnualFutura * factorAnualidad;
-
-  var saldoProyectadoNominal = saldoProyectadoReal * Math.pow(1 + inflacion, aniosHastaRetiro) * MAXX_FACTOR_CALIBRACION_CONSAR;
-
-  return saldoProyectadoNominal;
-}
-
-function maxxCalcularPensionLey73(sueldoTopado, aniosCotizando, edadRetiro) {
-  var semanas = aniosCotizando * 54;
-  if (semanas < MAXX_SEMANAS_MIN_LEY73) return 0;
-
-  var vecesUma = sueldoTopado / MAXX_UMA_MENSUAL;
-  var cuantiaBasica = maxxVlookupAprox(vecesUma, MAXX_TABLA_LEY73, 1);
-  var incrementoAnual = maxxVlookupAprox(vecesUma, MAXX_TABLA_LEY73, 2);
-  var periodosIncremento = Math.max(0, (semanas - MAXX_SEMANAS_MIN_LEY73) / 52);
-  var base = sueldoTopado * (cuantiaBasica + incrementoAnual * periodosIncremento);
-  var factorEdad = Math.min(1, Math.max(0.75, 0.75 + 0.05 * (edadRetiro - 60)));
-  var factorFox = 1.11;
-
-  var pension = Math.max(Math.min(base * factorEdad * factorFox, sueldoTopado), MAXX_PMG_LEY73);
-  return pension;
-}
-
-function maxxCalcularPension(params) {
-  var sueldoTopado = Math.min(params.sueldoBruto, MAXX_TOPE_25_UMA);
-  var aniosHastaRetiro = params.edadRetiro - params.edadActual;
-  var vecesUma = sueldoTopado / MAXX_UMA_MENSUAL;
-  var cuotaCEAV = maxxVlookupAprox(vecesUma, MAXX_TABLA_CEAV, 1);
-  var tasaRCV = MAXX_RETIRO_PATRON + MAXX_CYV_TRABAJADOR + cuotaCEAV;
-  var semanas = params.aniosCotizando * 54;
-
-  if (params.ley73 === 'S') {
-    return maxxCalcularPensionLey73(sueldoTopado, params.aniosCotizando, params.edadRetiro);
+  var submissions = obtenerEnviosCuestionario(apiKey);
+  if (!submissions || submissions.length === 0) {
+    Logger.log("No hay envíos nuevos para revisar.");
+    return;
   }
 
-  var saldoProyectado = maxxCalcularSaldoLey97(sueldoTopado, params.aniosCotizando, aniosHastaRetiro, tasaRCV, params.inflacion);
-  var esperanzaVida = maxxEsperanzaVida(params.genero, params.edadRetiro);
-  var pensionSaldo = saldoProyectado > 0 ? saldoProyectado / (esperanzaVida * 12) : 0;
+  var procesados = obtenerProcesadosCuestionario();
 
-  var aplicaPiso = semanas >= MAXX_SEMANAS_MIN_LEY97 && params.edadRetiro >= 60;
-  var piso = aplicaPiso ? MAXX_PMG_LEY97 : 0;
-
-  return Math.max(pensionSaldo, piso);
-}
-
-
-// ============================================================
-// MAXX — Motor Año por Año: Acumulación, Desacumulación y Calificación
-// Traducción fiel de la hoja "Motor" del Excel MAXX_Calificacion_MVP.xlsx
-// ============================================================
-
-function maxxCorrerMotor(datos, config) {
-  var inflacion = config.parametros_extra ? config.parametros_extra.inflacion : datos.inflacion;
-  var tasaSolucion = datos.tasaSolucion;
-  var tasaConservadora = 0.07;
-
-  var edadActual = datos.edadActual;
-  var edadRetiro = datos.edadRetiro;
-  var edadInicioPensionTitular = Math.min(edadRetiro, 65);
-  var esperanzaVida = maxxEsperanzaVida(datos.genero, edadRetiro);
-  var edadFinVida = edadActual + 64;
-
-  var plazoComprometido = Math.max(0, edadRetiro - edadActual);
-  var costoAnualAplicado = maxxCostoAnualPorPlazo(plazoComprometido);
-  var tasaSolucionNeta = tasaSolucion - costoAnualAplicado;
-
-  var pensionTitularMensualBase = maxxCalcularPension({
-    sueldoBruto: datos.tieneAfore === 'S' ? datos.sueldoBruto : 0,
-    aniosCotizando: datos.aniosCotizando || 0,
-    edadActual: edadActual, edadRetiro: edadInicioPensionTitular,
-    genero: datos.genero, ley73: datos.ley73, inflacion: inflacion
-  });
-  if (datos.tieneAfore === 'N') pensionTitularMensualBase = 0;
-
-  var edadActualConyuge = datos.conyugeEdadActual || null;
-  var pensionConyugeMensualBase = 0;
-  var edadInicioPensionConyuge = null;
-  if (datos.conyugeApoya === 'S' && datos.conyugeAfore === 'S' && edadActualConyuge) {
-    var edadInicioPensionConyugePropia = Math.min(65, 65);
-    pensionConyugeMensualBase = maxxCalcularPension({
-      sueldoBruto: datos.conyugeSueldo || 0,
-      aniosCotizando: datos.conyugeAnios || 0,
-      edadActual: edadActualConyuge, edadRetiro: edadInicioPensionConyugePropia,
-      genero: datos.genero === 'H' ? 'M' : 'H',
-      ley73: datos.conyugeLey73, inflacion: inflacion
-    });
-    var aniosParaQueConyugeCumpla65 = Math.max(0, 65 - edadActualConyuge);
-    edadInicioPensionConyuge = edadActual + aniosParaQueConyugeCumpla65;
-  }
-
-  var ahorroInicial = datos.tieneAhorros === 'S' ? (datos.montoAhorros || 0) : 0;
-  var aportacionMensual = datos.capacidadAhorro || 0;
-  var montoDeseadoHoy = datos.montoDeseado || 0;
-
-  var filas = [];
-  var G = ahorroInicial;
-  var M = 0;
-  var solucionFondeadaTotal = 0;
-  var gFondeadoEnCon = 0;
-
-  var capitalAgotado = false;
-
-  for (var t = 0; t <= 64; t++) {
-    var edad = edadActual + t;
-    var fase;
-    if (edad < edadRetiro) fase = 'Acumulacion';
-    else fase = 'Retiro';
-    var dentroEsperanzaVida = edad < (edadRetiro + esperanzaVida);
-
-    var gastoMensualNecesario = montoDeseadoHoy * Math.pow(1 + inflacion, t);
-
-    var pensionTitularT = edad >= edadInicioPensionTitular
-      ? pensionTitularMensualBase * Math.pow(1 + inflacion, Math.max(0, edad - edadInicioPensionTitular))
-      : 0;
-    var pensionConyugeT = (edadInicioPensionConyuge !== null && edad >= edadInicioPensionConyuge)
-      ? pensionConyugeMensualBase * Math.pow(1 + inflacion, Math.max(0, edad - edadInicioPensionConyuge))
-      : 0;
-    var pensionMensualT = pensionTitularT + pensionConyugeT;
-
-    var G_alLlegar = G, M_alLlegar = M;
-
-    if (t === 0) {
-      if (fase === 'Acumulacion') {
-        M = aportacionMensual * 12;
-        M_alLlegar = M;
-      }
-    } else if (fase === 'Acumulacion') {
-      G = G * (1 + tasaConservadora);
-      M = M * (1 + tasaSolucionNeta) + aportacionMensual * 12;
-      G_alLlegar = G; M_alLlegar = M;
-    } else if (fase === 'Retiro') {
-      var remanenteMensual = Math.max(0, gastoMensualNecesario - pensionMensualT);
-      var remanenteAnual = remanenteMensual * 12;
-      var capacidadG = G * (1 + tasaConservadora);
-      var capacidadM = M * (1 + tasaSolucionNeta);
-
-      var nEsteAnio = Math.min(Math.max(0, remanenteAnual - capacidadG), capacidadM);
-      var gEsteAnio = Math.min(remanenteAnual, capacidadG);
-
-      G = Math.max(0, capacidadG - remanenteAnual);
-      M = Math.max(0, capacidadM - nEsteAnio);
-
-      if (dentroEsperanzaVida) {
-        solucionFondeadaTotal += nEsteAnio;
-        gFondeadoEnCon += gEsteAnio;
-      }
+  submissions.forEach(function(sub) {
+    var idUnico = sub.conversionId;
+    if (!idUnico || procesados.indexOf(idUnico) !== -1) {
+      return; // ya se proceso antes en ESTA ejecucion del script, o no tiene ID
     }
 
-    var mostrarCapitalEsteRenglon = !capitalAgotado;
-
-    if (!capitalAgotado && fase === 'Retiro' && (G + M) <= 0.01) {
-      capitalAgotado = true;
+    var datos = extraerCamposCuestionario(sub);
+    if (!datos.correo) {
+      Logger.log("Envío sin correo, se salta.");
+      marcarComoProcesadoCuestionario(idUnico);
+      return;
     }
 
-    var esRenglonDeTransicion = (fase === 'Retiro' && edad === edadRetiro);
+    var contacto = buscarContactoPorCorreo(apiKey, datos.correo);
+    var detalleGuardado = {};
+    if (contacto && contacto.properties && contacto.properties[CAMPO_DETALLE]) {
+      try { detalleGuardado = JSON.parse(contacto.properties[CAMPO_DETALLE]); } catch (err) { detalleGuardado = {}; }
+    }
 
-    filas.push({
-      t: t, edad: edad, fase: fase, dentroEsperanzaVida: dentroEsperanzaVida,
-      ahorro: (fase === 'Acumulacion' || esRenglonDeTransicion) ? G_alLlegar : null,
-      solucionMaxx: (fase === 'Acumulacion' || esRenglonDeTransicion) ? M_alLlegar : null,
-      capitalCombinado: (fase === 'Retiro' && mostrarCapitalEsteRenglon) ? (esRenglonDeTransicion ? (G_alLlegar + M_alLlegar) : (G + M)) : null,
-      pensionAnual: (pensionTitularT > 0 || pensionConyugeT > 0) ? pensionMensualT * 12 : null,
-      montoDeseadoAnual: gastoMensualNecesario * 12,
-      gastoMensualNecesario: gastoMensualNecesario,
-      pensionMensual: pensionMensualT
-    });
-  }
+    if (detalleGuardado.pdfEnviadoFecha) {
+      Logger.log("El correo " + datos.correo + " YA recibió su PDF antes (" + detalleGuardado.pdfEnviadoFecha + "). No se manda de nuevo.");
+      marcarComoProcesadoCuestionario(idUnico);
+      return;
+    }
 
-  var necesidadTotal = 0, pensionFondeada = 0, ahorroFondeado = 0;
-  var filasSinAportacion = [];
-  var G2 = ahorroInicial;
-  for (var t2 = 0; t2 <= 64; t2++) {
-    var edad2 = edadActual + t2;
-    var fase2 = edad2 < edadRetiro ? 'Acumulacion' : (edad2 < edadRetiro + esperanzaVida ? 'Retiro' : 'Posterior');
-    if (t2 === 0) {
-    } else if (fase2 === 'Acumulacion') {
-      G2 = G2 * (1 + tasaConservadora);
-    } else if (fase2 === 'Retiro') {
-      var gastoT = montoDeseadoHoy * Math.pow(1 + inflacion, t2);
-      var pensionTitularT2 = edad2 >= edadInicioPensionTitular
-        ? pensionTitularMensualBase * Math.pow(1 + inflacion, Math.max(0, edad2 - edadInicioPensionTitular))
-        : 0;
-      var pensionConyugeT2 = (edadInicioPensionConyuge !== null && edad2 >= edadInicioPensionConyuge)
-        ? pensionConyugeMensualBase * Math.pow(1 + inflacion, Math.max(0, edad2 - edadInicioPensionConyuge))
-        : 0;
-      var pensionT = pensionTitularT2 + pensionConyugeT2;
-      var remanenteAnualT = Math.max(0, gastoT - pensionT) * 12;
-      var capacidadG2 = G2 * (1 + tasaConservadora);
-      var cubiertoPorG = Math.min(remanenteAnualT, capacidadG2);
-      G2 = Math.max(0, capacidadG2 - remanenteAnualT);
-      ahorroFondeado += cubiertoPorG;
+    var pdfBlob = generarPdfCuestionario(datos);
+    enviarCorreosCuestionario(datos, pdfBlob);
+
+    if (contacto && contacto.id) {
+      marcarPdfEnviadoEnHubSpot(apiKey, contacto.id, datos.detalle);
     } else {
-      G2 = G2 * (1 + tasaConservadora);
+      Logger.log("AVISO: no se encontró el contactId de " + datos.correo + " para marcar el PDF como enviado. Revisa manualmente.");
     }
+
+    // Sincroniza el registro del Checador (Propiedades del Script) — ver Checador.gs.
+    // Si esa función no existe en este proyecto (Checador.gs no está agregado todavía),
+    // esto lanzaría un error y detendría el resto del forEach, así que lo envolvemos en try/catch.
+    try {
+      marcarPdfEnviado(datos.correo, "pdf");
+    } catch (err) {
+      Logger.log("AVISO: no se pudo marcar el correo en el registro del Checador (¿está Checador.gs en este proyecto?). Detalle: " + err);
+    }
+
+    marcarComoProcesadoCuestionario(idUnico);
+  });
+}
+
+// ==== OBTENER ENVÍOS DESDE HUBSPOT ====
+function obtenerEnviosCuestionario(apiKey) {
+  var url = "https://api.hubapi.com/form-integrations/v1/submissions/forms/" + FORM_GUID_CUESTIONARIO + "?limit=50";
+  var options = {
+    method: "get",
+    headers: { "Authorization": "Bearer " + apiKey },
+    muteHttpExceptions: true
+  };
+
+  var response = UrlFetchApp.fetch(url, options);
+  var code = response.getResponseCode();
+
+  if (code !== 200) {
+    Logger.log("Error al consultar HubSpot. Código: " + code + " — Respuesta: " + response.getContentText());
+    return [];
   }
 
-  filas.forEach(function(f) {
-    if (f.fase === 'Retiro' && f.dentroEsperanzaVida) {
-      necesidadTotal += f.montoDeseadoAnual;
-      pensionFondeada += f.pensionAnual;
-    }
+  var data = JSON.parse(response.getContentText());
+  return data.results || [];
+}
+
+// ==== EXTRAER CAMPOS DE UN ENVÍO (incluye el JSON completo del Cuestionario) ====
+function extraerCamposCuestionario(sub) {
+  var mapa = {};
+  (sub.values || []).forEach(function(campo) {
+    mapa[campo.name] = campo.value;
   });
 
-  var califSin = necesidadTotal > 0 ? Math.min(100, Math.round(100 * (pensionFondeada + ahorroFondeado) / necesidadTotal)) : 0;
-
-  var califCon = necesidadTotal > 0 ? Math.min(100, Math.round(100 * (pensionFondeada + gFondeadoEnCon + solucionFondeadaTotal) / necesidadTotal)) : 0;
+  var detalleRaw = mapa[CAMPO_DETALLE] || "{}";
+  var detalle = {};
+  try {
+    detalle = JSON.parse(detalleRaw);
+  } catch (err) {
+    Logger.log("No se pudo leer el JSON de detalle: " + err);
+  }
 
   return {
-    filas: filas,
-    califSin: califSin,
-    califCon: califCon,
-    necesidadTotal: necesidadTotal,
-    pensionFondeada: pensionFondeada,
-    ahorroFondeado: ahorroFondeado,
-    solucionFondeada: solucionFondeadaTotal,
-    pensionTitularMensual: pensionTitularMensualBase,
-    pensionConyugeMensual: pensionConyugeMensualBase,
-    esperanzaVida: esperanzaVida,
-    edadRetiro: edadRetiro,
-    edadInicioPensionTitular: edadInicioPensionTitular,
-    edadInicioPensionConyuge: edadInicioPensionConyuge,
-    plazoComprometido: plazoComprometido,
-    costoAnualAplicado: costoAnualAplicado,
-    tasaSolucionNeta: tasaSolucionNeta,
-    tasaRealNetaCosto: ((1 + tasaSolucionNeta) / (1 + inflacion) - 1)
+    nombre: mapa["firstname"] || "",
+    apellidos: mapa["lastname"] || "",
+    correo: mapa["email"] || "",
+    detalle: detalle,
+    fecha: new Date(sub.submittedAt).toLocaleString("es-MX")
   };
 }
 
+// ==== BUSCAR CONTACTO POR CORREO (para leer/actualizar el Detalle Cuestionario) ====
+function buscarContactoPorCorreo(apiKey, correo) {
+  var url = "https://api.hubapi.com/crm/v3/objects/contacts/search";
+  var payload = {
+    filterGroups: [{
+      filters: [{ propertyName: "email", operator: "EQ", value: correo }]
+    }],
+    properties: [CAMPO_DETALLE],
+    limit: 1
+  };
+  var options = {
+    method: "post",
+    contentType: "application/json",
+    headers: { "Authorization": "Bearer " + apiKey },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  };
 
-// ============================================================
-// MAXX — Generador de Gráfica SVG (sin librerías externas)
-// Recibe el resultado de maxxCorrerMotor() y dibuja las 5 líneas
-// ============================================================
+  var response = UrlFetchApp.fetch(url, options);
+  if (response.getResponseCode() !== 200) {
+    Logger.log("Error buscando contacto: " + response.getContentText());
+    return null;
+  }
 
-var MAXX_COLORES_GRAFICA = {
-  ahorro: '#042C53',
-  solucionMaxx: '#EF9F27',
-  capitalCombinado: '#639922',
-  pensionAnual: '#042C53',
-  montoDeseadoAnual: '#888780'
-};
-
-function maxxConstruirPaths(filas, campo, escalaX, escalaY) {
-  var segmentos = [];
-  var actual = [];
-  filas.forEach(function(f) {
-    var v = f[campo];
-    if (v === null || v === undefined || isNaN(v)) {
-      if (actual.length > 0) { segmentos.push(actual); actual = []; }
-    } else {
-      actual.push({ x: escalaX(f.edad), y: escalaY(v) });
-    }
-  });
-  if (actual.length > 0) segmentos.push(actual);
-  return segmentos;
+  var data = JSON.parse(response.getContentText());
+  return (data.results && data.results.length > 0) ? data.results[0] : null;
 }
 
-function maxxPathD(puntos) {
-  return puntos.map(function(p, i) {
-    return (i === 0 ? 'M ' : 'L ') + p.x.toFixed(1) + ' ' + p.y.toFixed(1);
-  }).join(' ');
+// ==== MARCAR EN HUBSPOT QUE YA SE MANDÓ EL PDF (dentro del mismo JSON de Detalle) ====
+function marcarPdfEnviadoEnHubSpot(apiKey, contactId, detalleActual) {
+  var url = "https://api.hubapi.com/crm/v3/objects/contacts/" + contactId;
+  var detalleActualizado = detalleActual || {};
+  detalleActualizado.pdfEnviadoFecha = new Date().toISOString();
+
+  var payload = { properties: {} };
+  payload.properties[CAMPO_DETALLE] = JSON.stringify(detalleActualizado);
+
+  var options = {
+    method: "patch",
+    contentType: "application/json",
+    headers: { "Authorization": "Bearer " + apiKey },
+    payload: JSON.stringify(payload),
+    muteHttpExceptions: true
+  };
+
+  var response = UrlFetchApp.fetch(url, options);
+  if (response.getResponseCode() >= 300) {
+    Logger.log("Error marcando PDF enviado: " + response.getContentText());
+  }
 }
 
-function maxxGenerarSVGGrafica(filasCompletas, opciones) {
-  opciones = opciones || {};
-  var ancho = opciones.ancho || 800;
-  var alto = opciones.alto || 380;
-  var edadMaxima = opciones.edadMaxima || 90;
-  var edadEsperanzaVida = opciones.edadEsperanzaVida || null;
-  var edadRetiroMarca = opciones.edadRetiro || null;
-  var margenIzq = 130, margenDer = 20, margenSup = 36, margenInf = 60;
-  var areaAncho = ancho - margenIzq - margenDer;
-  var areaAlto = alto - margenSup - margenInf;
+// ==== GENERAR PDF — DISEÑO FINAL DE 3 PÁGINAS (mockup aprobado) ====
+// Construye un HTML con el mismo diseño/CSS del mockup aprobado (maxx-pdf-mockup-completo.html),
+// sustituyendo los datos reales del usuario, y lo convierte a PDF. Este es el reemplazo directo
+// del PDF placeholder anterior — misma firma de función, mismo tipo de retorno (Blob de PDF).
 
-  var filas = filasCompletas.filter(function(f) { return f.edad <= edadMaxima; });
+function maxxFmtMoney(n) {
+  return "$" + Math.round(n || 0).toLocaleString("es-MX");
+}
+function maxxFmtPct(x) {
+  return ((x || 0) * 100).toFixed(2) + "%";
+}
 
-  var edadMin = filas[0].edad;
-  var edadMax = filas[filas.length - 1].edad;
+// Tabla de costo anual por plazo (misma que usa el motor del sitio) — para resaltar la fila correcta
+var MAXX_PDF_TABLA_COSTO = [
+  [1.5, 0.0480], [5, 0.0230], [10, 0.0170], [15, 0.0160], [20, 0.0150], [25, 0.0140]
+];
+// Tabla histórica S&P 500 — para resaltar la tasa más cercana a la elegida
+var MAXX_PDF_TABLA_SP = [
+  ["5 años", 0.1443, 0.0554], ["10 años", 0.1482, 0.0485], ["15 años", 0.1407, 0.0441],
+  ["20 años", 0.1100, 0.0442], ["25 años", 0.0882, 0.0444], ["30 años", 0.1040, 0.0636]
+];
+// Últimos 10 años de inflación — para resaltar la más cercana a la elegida
+var MAXX_PDF_TABLA_INFLACION = [
+  [2015, 0.0213], [2016, 0.0336], [2017, 0.0677], [2018, 0.0483], [2019, 0.0283],
+  [2020, 0.0315], [2021, 0.0736], [2022, 0.0782], [2023, 0.0466], [2024, 0.0421], [2025, 0.0369]
+];
 
-  var maxY = 0;
-  var campos = ['ahorro', 'solucionMaxx', 'capitalCombinado', 'pensionAnual', 'montoDeseadoAnual'];
-  filas.forEach(function(f) {
-    campos.forEach(function(c) {
-      if (f[c] !== null && f[c] !== undefined && f[c] > maxY) maxY = f[c];
-    });
+function maxxTablaCostoHTML(costoActual) {
+  var filas = "";
+  MAXX_PDF_TABLA_COSTO.forEach(function(row) {
+    var esActual = Math.abs(row[1] - costoActual) < 0.0006;
+    filas += '<tr' + (esActual ? ' class="fila-usada"' : '') + '><td><b>' + row[0] + ' años</b></td><td>' + maxxFmtPct(row[1]) + (esActual ? ' ◄ TU PLAZO' : '') + '</td></tr>';
   });
-  if (maxY === 0) maxY = 1;
-  maxY = maxY * 1.08;
+  return '<table class="tabla-nota"><tr><th>Plazo</th><th>Costo Anual</th></tr>' + filas + '</table>';
+}
 
-  function maxxPasoLimpio(valorAprox) {
-    var pasosLimpios = [10000, 25000, 50000, 100000, 200000, 250000, 500000, 1000000, 2000000, 2500000, 5000000, 10000000];
-    for (var i = 0; i < pasosLimpios.length; i++) {
-      if (pasosLimpios[i] >= valorAprox) return pasosLimpios[i];
-    }
-    return Math.ceil(valorAprox / 10000000) * 10000000;
-  }
-  var pasoY = maxxPasoLimpio(maxY / 7);
-  var numLineasY = Math.ceil(maxY / pasoY);
-
-  function escalaX(edad) {
-    return margenIzq + ((edad - edadMin) / (edadMax - edadMin)) * areaAncho;
-  }
-  function escalaY(valor) {
-    return margenSup + areaAlto - (valor / (pasoY * numLineasY)) * areaAlto;
-  }
-
-  var svg = '<svg viewBox="0 0 ' + ancho + ' ' + alto + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:-apple-system,sans-serif;">';
-
-  for (var i = 0; i <= numLineasY; i++) {
-    var valor = pasoY * i;
-    var y = escalaY(valor);
-    svg += '<line x1="' + margenIzq + '" y1="' + y.toFixed(1) + '" x2="' + (ancho - margenDer) + '" y2="' + y.toFixed(1) + '" stroke="#C7C4B8" stroke-width="1.5"/>';
-    svg += '<text x="' + (margenIzq - 10) + '" y="' + (y + 5).toFixed(1) + '" text-anchor="end" font-size="19" font-weight="600" fill="#3D3B36">$' + Math.round(valor).toLocaleString('es-MX') + '</text>';
-  }
-  svg += '<line x1="' + margenIzq + '" y1="' + margenSup + '" x2="' + margenIzq + '" y2="' + (alto - margenInf) + '" stroke="#8A8778" stroke-width="1.5"/>';
-  svg += '<line x1="' + margenIzq + '" y1="' + (alto - margenInf) + '" x2="' + (ancho - margenDer) + '" y2="' + (alto - margenInf) + '" stroke="#8A8778" stroke-width="1.5"/>';
-
-  if (edadRetiroMarca !== null && edadRetiroMarca >= edadMin && edadRetiroMarca <= edadMax) {
-    var xRet = escalaX(edadRetiroMarca);
-    svg += '<line x1="' + xRet.toFixed(1) + '" y1="' + margenSup + '" x2="' + xRet.toFixed(1) + '" y2="' + (alto - margenInf) + '" stroke="#042C53" stroke-width="2" stroke-dasharray="5,4" opacity="0.75"/>';
-    svg += '<text x="' + xRet.toFixed(1) + '" y="' + (alto - margenInf + 34) + '" text-anchor="middle" font-size="22" fill="#042C53" font-weight="700">Tu retiro: ' + Math.round(edadRetiroMarca) + ' años</text>';
-  }
-
-  if (edadEsperanzaVida !== null && edadEsperanzaVida >= edadMin && edadEsperanzaVida <= edadMax) {
-    var xEsp = escalaX(edadEsperanzaVida);
-    svg += '<line x1="' + xEsp.toFixed(1) + '" y1="' + margenSup + '" x2="' + xEsp.toFixed(1) + '" y2="' + (alto - margenInf) + '" stroke="#042C53" stroke-width="2" stroke-dasharray="5,4" opacity="0.75"/>';
-    svg += '<text x="' + xEsp.toFixed(1) + '" y="' + (margenSup - 8) + '" text-anchor="middle" font-size="22" fill="#042C53" font-weight="700">Esperanza de vida: ' + Math.round(edadEsperanzaVida) + ' años</text>';
-  }
-
-  filas.forEach(function(f) {
-    if (f.edad % 5 === 0) {
-      var x = escalaX(f.edad);
-      svg += '<text x="' + x.toFixed(1) + '" y="' + (alto - margenInf + 18) + '" text-anchor="middle" font-size="17" font-weight="600" fill="#3D3B36">' + f.edad + '</text>';
-    }
+function maxxTablaSPHTML(tasaActual) {
+  var filas = "";
+  MAXX_PDF_TABLA_SP.forEach(function(row) {
+    var esActual = Math.abs(row[1] - tasaActual) < 0.006;
+    filas += '<tr' + (esActual ? ' class="fila-usada"' : '') + '><td><b>' + row[0] + '</b></td><td>' + maxxFmtPct(row[1]) + '</td><td>' + maxxFmtPct((1 + row[1]) / (1 + row[2]) - 1) + (esActual ? ' ◄ TASA ACTUAL' : '') + '</td></tr>';
   });
+  return '<table class="tabla-nota"><tr><th>Periodo</th><th>Nominal</th><th>Real</th></tr>' + filas + '</table>';
+}
 
-  var ordenDibujo = [
-    { campo: 'montoDeseadoAnual', color: MAXX_COLORES_GRAFICA.montoDeseadoAnual, dash: '3,4', ancho: 3 },
-    { campo: 'pensionAnual', color: MAXX_COLORES_GRAFICA.pensionAnual, dash: '8,4', ancho: 4.5 },
-    { campo: 'ahorro', color: MAXX_COLORES_GRAFICA.ahorro, dash: null, ancho: 6 },
-    { campo: 'solucionMaxx', color: MAXX_COLORES_GRAFICA.solucionMaxx, dash: null, ancho: 6 },
-    { campo: 'capitalCombinado', color: MAXX_COLORES_GRAFICA.capitalCombinado, dash: null, ancho: 6 }
-  ];
+function maxxTablaInflacionHTML(inflacionActual) {
+  // Encabezado: se repite un par "Año | Inflación" por cada par de columnas que trae
+  // cada renglón (4 pares por renglón — antes solo traía 1 par de encabezados para 4
+  // pares de datos, dejando 6 columnas sin título; ya corregido).
+  var encabezado = '<tr>' + '<th>Año</th><th>Inflación</th>'.repeat(4) + '</tr>';
 
-  ordenDibujo.forEach(function(serie) {
-    var segmentos = maxxConstruirPaths(filas, serie.campo, escalaX, escalaY);
-    segmentos.forEach(function(seg) {
-      if (seg.length < 2) return;
-      var d = maxxPathD(seg);
-      svg += '<path d="' + d + '" fill="none" stroke="' + serie.color + '" stroke-width="' + serie.ancho + '"' +
-        (serie.dash ? ' stroke-dasharray="' + serie.dash + '"' : '') + ' stroke-linecap="round" stroke-linejoin="round"/>';
-    });
+  function construirFila(grupo) {
+    var celdas = grupo.map(function(r) {
+      var esActual = Math.abs(r[1] - inflacionActual) < 0.003;
+      return '<td class="col-año' + (esActual ? ' fila-usada' : '') + '"><b>' + r[0] + '</b></td><td' + (esActual ? ' class="fila-usada"' : '') + '>' + maxxFmtPct(r[1]) + '</td>';
+    }).join('');
+    // Completar con celdas vacías si el grupo trae menos de 4 pares, para que la
+    // columna siga alineada con el encabezado.
+    var faltantes = 4 - grupo.length;
+    for (var i = 0; i < faltantes; i++) { celdas += '<td></td><td></td>'; }
+    return '<tr>' + celdas + '</tr>';
+  }
+
+  return '<table class="tabla-nota tabla-nota-chica">' + encabezado +
+    construirFila(MAXX_PDF_TABLA_INFLACION.slice(0, 4)) +
+    construirFila(MAXX_PDF_TABLA_INFLACION.slice(4, 8)) +
+    construirFila(MAXX_PDF_TABLA_INFLACION.slice(8, 11)) +
+    '</table>';
+}
+
+// Construye una gráfica SVG aproximada (acumulación → retiro → desacumulación), usando los
+// valores resumen ya calculados (no tenemos la serie año-por-año completa en el PDF, así que
+// se interpola una curva suave con los mismos puntos clave que usa la gráfica del sitio).
+function maxxGraficaSvgPdf(det) {
+  var edadActual = det.edadActual || 0;
+  var edadRetiro = det.edadRetiro || 65;
+  var esperanzaVida = det.esperanzaVida || 18;
+  var edadEsperanza = Math.round(edadRetiro + esperanzaVida);
+  var edadMax = Math.max(edadEsperanza + 3, edadRetiro + 5);
+  var fondo = det.fondoAlRetiro || 0;
+  var califCon = det.califCon || 0;
+
+  var ancho = 500, alto = 230;
+  var mIzq = 58, mDer = 20, mSup = 20, mInf = 24;
+  function escX(edad) { return mIzq + ((edad - edadActual) / (edadMax - edadActual)) * (ancho - mIzq - mDer); }
+  var maxY = Math.max(fondo, 1) * 1.15;
+  function escY(v) { return (alto - mInf) - (v / maxY) * (alto - mInf - mSup); }
+
+  // Punto donde el capital se agota (aprox, si la calificación CON no llega a 100)
+  var edadAgota = califCon >= 100 ? edadEsperanza : Math.round(edadRetiro + esperanzaVida * Math.min(1, califCon / 100));
+
+  var xRetiro = escX(edadRetiro), yRetiro = escY(fondo);
+  var xFinal = escX(edadAgota <= edadMax ? edadAgota : edadMax);
+  var yFinal = califCon >= 100 ? escY(fondo * 0.55) : escY(0);
+
+  var pathAcum = "M " + escX(edadActual).toFixed(1) + " " + escY(0).toFixed(1) +
+    " C " + escX(edadActual + (edadRetiro - edadActual) * 0.5).toFixed(1) + " " + escY(fondo * 0.28).toFixed(1) +
+    ", " + escX(edadRetiro - (edadRetiro - edadActual) * 0.15).toFixed(1) + " " + escY(fondo * 0.78).toFixed(1) +
+    ", " + xRetiro.toFixed(1) + " " + yRetiro.toFixed(1);
+  var pathDesacum = "M " + xRetiro.toFixed(1) + " " + yRetiro.toFixed(1) +
+    " C " + escX(edadRetiro + (edadAgota - edadRetiro) * 0.4).toFixed(1) + " " + escY(fondo * 0.65).toFixed(1) +
+    ", " + escX(edadRetiro + (edadAgota - edadRetiro) * 0.75).toFixed(1) + " " + escY(fondo * 0.25).toFixed(1) +
+    ", " + xFinal.toFixed(1) + " " + yFinal.toFixed(1);
+
+  var svg = '<svg viewBox="0 0 ' + ancho + ' ' + alto + '" xmlns="http://www.w3.org/2000/svg" style="width:100%;">';
+  svg += '<line x1="' + mIzq + '" y1="' + mSup + '" x2="' + mIzq + '" y2="' + (alto - mInf) + '" stroke="#8A8778" stroke-width="1"/>';
+  svg += '<line x1="' + mIzq + '" y1="' + (alto - mInf) + '" x2="' + (ancho - mDer) + '" y2="' + (alto - mInf) + '" stroke="#8A8778" stroke-width="1"/>';
+  [0.25, 0.5, 0.75, 1].forEach(function(f) {
+    var y = escY(maxY * f * 0.87);
+    svg += '<line x1="' + mIzq + '" y1="' + y.toFixed(1) + '" x2="' + (ancho - mDer) + '" y2="' + y.toFixed(1) + '" stroke="#D8D6CC" stroke-width="1"/>';
+    svg += '<text x="' + (mIzq - 8) + '" y="' + (y + 4).toFixed(1) + '" text-anchor="end" font-size="12" font-weight="600" fill="#3D3B36">' + maxxFmtMoney(maxY * f * 0.87).replace("$", "$") + '</text>';
   });
-
+  svg += '<line x1="' + xRetiro.toFixed(1) + '" y1="' + mSup + '" x2="' + xRetiro.toFixed(1) + '" y2="' + (alto - mInf) + '" stroke="#042C53" stroke-width="1.5" stroke-dasharray="4,3"/>';
+  svg += '<text x="' + xRetiro.toFixed(1) + '" y="' + (alto - 6) + '" text-anchor="middle" font-size="13" font-weight="700" fill="#042C53">Retiro: ' + edadRetiro + '</text>';
+  if (escX(edadEsperanza) <= ancho - mDer) {
+    svg += '<line x1="' + escX(edadEsperanza).toFixed(1) + '" y1="' + mSup + '" x2="' + escX(edadEsperanza).toFixed(1) + '" y2="' + (alto - mInf) + '" stroke="#042C53" stroke-width="1.5" stroke-dasharray="4,3"/>';
+    svg += '<text x="' + escX(edadEsperanza).toFixed(1) + '" y="12" text-anchor="middle" font-size="12" font-weight="700" fill="#042C53">Esp. vida: ' + edadEsperanza + '</text>';
+  }
+  svg += '<path d="' + pathAcum + '" fill="none" stroke="#EF9F27" stroke-width="3.5" stroke-linecap="round"/>';
+  svg += '<path d="' + pathDesacum + '" fill="none" stroke="#639922" stroke-width="3.5" stroke-linecap="round"/>';
+  for (var e = edadActual; e <= edadMax; e += 5) {
+    svg += '<text x="' + escX(e).toFixed(1) + '" y="' + (alto - 6) + '" text-anchor="middle" font-size="12" font-weight="600" fill="#3D3B36">' + Math.round(e) + '</text>';
+  }
   svg += '</svg>';
   return svg;
 }
 
-function maxxGenerarLeyendaHTML() {
-  var items = [
-    { color: MAXX_COLORES_GRAFICA.ahorro, texto: 'Ahorro (acumulación)' },
-    { color: MAXX_COLORES_GRAFICA.solucionMaxx, texto: 'Solución propuesta por MAXX (acumulación)' },
-    { color: MAXX_COLORES_GRAFICA.capitalCombinado, texto: 'Capital combinado (retiro)' },
-    { color: MAXX_COLORES_GRAFICA.pensionAnual, texto: 'Pensión anual (retiro)', dash: true },
-    { color: MAXX_COLORES_GRAFICA.montoDeseadoAnual, texto: 'Monto deseado anual', dash: true }
-  ];
-  return items.map(function(it) {
-    return '<div style="display:flex;align-items:center;gap:6px;">' +
-      '<div style="width:14px;height:3px;background:' + it.color + ';' + (it.dash ? 'border-top:2px dashed ' + it.color + ';background:none;' : '') + '"></div>' +
-      '<span style="font-size:12px;color:#5F5E5A;">' + it.texto + '</span></div>';
-  }).join('');
-}
-
-  // ===== FIN MOTOR =====
-
-  // ===== CONFIG GOOGLE SHEETS (fusionado) =====
-// ============================================================
-// MAXX — Cargador de configuración externa (Google Sheets publicado como CSV)
-// Si la hoja no responde o falla, usa estos valores de reserva
-// para que la herramienta NUNCA se rompa.
-// ============================================================
-
-var MAXX_CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3ISAY_C5IHfWHk0hALRhGbISy63ix6NJGbW7AF8iEPdw8baD8lx_DudKVq7_x1c10WWDwv-pJ2pw5/pub?output=csv';
-
-var MAXX_CONFIG_RESERVA = {
-  parametros: {
-    uma_diaria: 113.14,
-    salario_minimo_diario: 278.80,
-    pmg_ley73: 10636.53,
-    pmg_ley97: 6600,
-    descuento_salarial_bloque: 0.0667,
-    semanas_min_ley97_2026: 875
-  },
-  inflacion: {
-    1996:0.2770,1997:0.1572,1998:0.1861,1999:0.1232,2000:0.0896,
-    2001:0.0440,2002:0.0570,2003:0.0398,2004:0.0519,2005:0.0333,
-    2006:0.0405,2007:0.0376,2008:0.0653,2009:0.0357,2010:0.0440,
-    2011:0.0382,2012:0.0357,2013:0.0397,2014:0.0408,2015:0.0213,
-    2016:0.0336,2017:0.0677,2018:0.0483,2019:0.0283,2020:0.0315,
-    2021:0.0736,2022:0.0782,2023:0.0466,2024:0.0421,2025:0.0369
-  },
-  sp500: {
-    '5anios_nominal':0.1443, '5anios_inflacion':0.0554,
-    '10anios_nominal':0.1482, '10anios_inflacion':0.0485,
-    '15anios_nominal':0.1407, '15anios_inflacion':0.0441,
-    '20anios_nominal':0.1100, '20anios_inflacion':0.0442,
-    '25anios_nominal':0.0882, '25anios_inflacion':0.0444,
-    '30anios_nominal':0.1040, '30anios_inflacion':0.0636
-  }
-};
-
-function maxxParsearCSVConfig(texto) {
-  var config = { parametros: {}, inflacion: {}, sp500: {} };
-  var lineas = texto.trim().split('\n');
-  for (var i = 1; i < lineas.length; i++) {
-    var partes = lineas[i].split(',');
-    if (partes.length < 3) continue;
-    var tipo = partes[0].trim();
-    var clave = partes[1].trim();
-    var valor = parseFloat(partes[2].trim());
-    if (isNaN(valor)) continue;
-
-    if (tipo === 'parametro') {
-      if (clave.slice(-4) === '_pct') {
-        config.parametros[clave.slice(0, -4)] = valor / 100;
-      } else {
-        config.parametros[clave] = valor;
-      }
-    }
-    else if (tipo === 'inflacion') config.inflacion[clave] = valor;
-    else if (tipo === 'inflacion_pct') config.inflacion[clave] = valor / 100;
-    else if (tipo === 'sp500') config.sp500[clave] = valor;
-    else if (tipo === 'sp500_pct') config.sp500[clave] = valor / 100;
-  }
-  return config;
-}
-
-function maxxFusionarConfig(reserva, remoto) {
-  var resultado = JSON.parse(JSON.stringify(reserva));
-  if (!remoto) return resultado;
-  Object.assign(resultado.parametros, remoto.parametros || {});
-  Object.assign(resultado.inflacion, remoto.inflacion || {});
-  Object.assign(resultado.sp500, remoto.sp500 || {});
-  return resultado;
-}
-
-function maxxCargarConfig(url, timeoutMs) {
-  timeoutMs = timeoutMs || 5000;
-  if (!url) {
-    return Promise.resolve({ config: MAXX_CONFIG_RESERVA, fuente: 'reserva (sin URL configurada)' });
-  }
-  var timeoutPromise = new Promise(function(resolve) {
-    setTimeout(function() { resolve(null); }, timeoutMs);
-  });
-  var fetchPromise = (typeof fetch !== 'undefined' ? fetch(url) : Promise.reject('sin fetch'))
-    .then(function(resp) { return resp.text(); })
-    .then(function(texto) { return maxxParsearCSVConfig(texto); })
-    .catch(function() { return null; });
-
-  return Promise.race([fetchPromise, timeoutPromise]).then(function(remoto) {
-    if (remoto && Object.keys(remoto.parametros).length > 0) {
-      return { config: maxxFusionarConfig(MAXX_CONFIG_RESERVA, remoto), fuente: 'Google Sheets (en vivo)' };
-    }
-    return { config: MAXX_CONFIG_RESERVA, fuente: 'reserva (no se pudo leer la hoja)' };
-  });
-}
-
-  // ===== FIN CONFIG =====
-
-  window.maxxData = window.maxxData || {};
-
-  var MAXX_SABIAS_QUE = {
-    esperanza: '',
-    inflacion: 'En México ha habido años con más de 15% de inflación (1996-1998). Por eso es mejor ser conservador al proyectar — nunca asumir menos de 4% anual.',
-    sp500: 'El S&P 500 es una excelente opción para hacer crecer tu dinero: incluso después de descontar la inflación, sigue dando rendimientos reales atractivos, año tras año. Por eso, la solución que MAXX te presentará en tu Cita usa esa misma estrategia de inversión — para que tu dinero realmente crezca, no solo en papel.',
-    salario: 'En México, los sueldos casi no suben más rápido que la inflación — casi no te queda más dinero real cada año, aunque te suban el sueldo. Por eso, "ya ganaré más después" no es, por sí solo, un plan de retiro.',
-    semanas: 'Si no completas las semanas mínimas que pide el IMSS (875 en 2026), podrías quedarte SIN el respaldo de la Pensión Garantizada. Existen formas legales de seguir sumando semanas, como la Continuación Voluntaria del IMSS. Lo revisamos en tu cita.',
-    costo: 'Entre más largo el plazo que eliges para tu plan, más baja tu tasa de costo anual promedio — porque los cargos fijos y trimestrales pesan menos, proporcionalmente, entre más tiempo y más crece tu saldo.',
-    transparencia: '<strong>MAXX SIEMPRE te muestra la verdad completa.</strong><br><br>Este cálculo ya incluye:<br>a) el <strong>costo real</strong> de tu plan,<br>b) tu <strong>pensión IMSS/AFORE</strong> (cuando aplica).<br><br>Otras cotizaciones NO restan costos, y muchas ni siquiera calculan tu pensión.<br><br><strong>Por eso, si comparas cifras, MAXX puede verse con un monto menor</strong> — pero es el único número en el que puedes confiar de verdad.'
-  };
-
-  function maxxTextoEsperanza() {
-    var genero = window.maxxData.genero || 'H';
-    var retiro = window.maxxData.edadRetiro || 65;
-    var baseAnios = genero === 'H' ? 15.7 : 20.2;
-    var incremento = (65 - retiro) * 0.95;
-    var aniosRestantes = Math.max(1, Math.round((baseAnios + incremento) * 10) / 10);
-    var edadFinal = Math.round(retiro + aniosRestantes);
-    var generoTexto = genero === 'H' ? 'hombre' : 'mujer';
-
-    return 'Si eres ' + generoTexto + ' y te retiras a los ' + retiro + ' años, tu esperanza de vida remanente es de aproximadamente ' + aniosRestantes + ' años más — es decir, tu dinero necesita alcanzarte hasta cerca de los <strong>' + edadFinal + ' años</strong>.<br><br>' +
-      'En México, un hombre de 65 años vive en promedio 15.7 años más (hasta los ~81), y una mujer 20.2 años más (hasta los ~85). Y la gente cada vez vive más años — así que mejor planea con margen de sobra, no al límite.';
-  }
-
-  function maxxActualizarSabiasQueEsperanza() {
-    var body = document.getElementById('maxx-sq-body-esperanza');
-    if (body) body.innerHTML = maxxTextoEsperanza();
-  }
-
-  function maxxSabiasQueHTML(id, resumen, marginTop) {
-    return '<div id="maxx-sq-zona-' + id + '" style="margin-top:' + (marginTop || 10) + 'px;">' +
-      '<button type="button" id="maxx-sq-toggle-' + id + '" style="border:none;background:#FAEEDA;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">💡 ¿Sabías que...? ' + resumen + '</button>' +
-      '<div id="maxx-sq-body-' + id + '" style="display:none;background:#FCEBD9;border-radius:8px;padding:8px 10px;font-size:12px;color:#042C53;line-height:1.4;margin-top:4px;">' + (id === 'esperanza' ? maxxTextoEsperanza() : MAXX_SABIAS_QUE[id]) + '</div>' +
-      '</div>';
-  }
-
-  function maxxWireSabiasQue(id) {
-    var toggle = document.getElementById('maxx-sq-toggle-' + id);
-    var zona = document.getElementById('maxx-sq-zona-' + id);
-    var body = document.getElementById('maxx-sq-body-' + id);
-    if (!toggle || !zona || !body) return;
-    toggle.addEventListener('click', function() {
-      body.style.display = body.style.display === 'none' ? 'block' : 'none';
-    });
-    zona.addEventListener('mouseleave', function() {
-      body.style.display = 'none';
-    });
-  }
-
-  function paint(panelId, unlocked) {
-    var el = document.getElementById(panelId);
-    el.className = 'maxx-panel ' + (unlocked ? 'maxx-unlocked' : 'maxx-locked');
-  }
-
-  // ---------- PANEL 1: Seccion I ----------
-  function renderPanel1() {
-    var el = document.getElementById('maxx-panel-1');
-    el.innerHTML =
-      '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">SECCIÓN I · TU LIBERTAD ECONÓMICA</div>' +
-      '<div style="display:flex;gap:8px;margin-bottom:8px;">' +
-        '<div style="flex:1;"><div class="maxx-field-label" style="color:#042C53;">Edad actual</div>' +
-          '<input class="maxx-input" type="number" id="maxx-edad" placeholder="Ej. 45" min="18" max="80"></div>' +
-        '<div style="flex:1;"><div class="maxx-field-label" style="color:#042C53;">Género</div>' +
-          '<div style="display:flex;gap:5px;">' +
-            '<button type="button" id="maxx-genero-h" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #042C53;background:#042C53;color:#fff;font-size:12px;cursor:pointer;">H</button>' +
-            '<button type="button" id="maxx-genero-m" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid #D3D1C7;background:#fff;color:#5F5E5A;font-size:12px;cursor:pointer;">M</button>' +
-          '</div></div>' +
-      '</div>' +
-      '<div style="margin-bottom:8px;">' +
-        '<div class="maxx-field-label" style="color:#042C53;">¿A qué edad te retiras? <span id="maxx-retiro-out" style="color:#378ADD;font-size:17px;font-weight:800;">65 años</span></div>' +
-        '<input type="range" id="maxx-retiro" min="60" max="75" value="65" step="1" style="width:100%;accent-color:#EF9F27;">' +
-        '<div id="maxx-anios-restantes-out" style="font-size:12px;color:#042C53;font-weight:600;margin-top:4px;"></div>' +
-        '<div id="maxx-retiro-warn" style="font-size:12px;color:#042C53;margin-top:3px;display:none;"></div>' +
-      '</div>' +
-      '<div style="margin-bottom:7px;">' +
-        '<div class="maxx-field-label" style="color:#042C53;">Monto mensual que deseas para tranquilidad en TU Retiro</div>' +
-        '<input class="maxx-input" type="text" id="maxx-monto-deseado" placeholder="$ 30,000">' +
-      '</div>';
-
-    document.getElementById('maxx-genero-h').onclick = function() { maxxSetGenero('H'); };
-    document.getElementById('maxx-genero-m').onclick = function() { maxxSetGenero('M'); };
-    document.getElementById('maxx-edad').addEventListener('input', function() {
-      window.maxxData.edadActual = parseInt(this.value, 10) || 0;
-      maxxCheckSeccion1();
-    });
-    var slider = document.getElementById('maxx-retiro');
-    slider.addEventListener('input', function() {
-      document.getElementById('maxx-retiro-out').textContent = this.value + ' años';
-      window.maxxData.edadRetiro = parseInt(this.value, 10);
-      maxxCheckSeccion1();
-      maxxActualizarSabiasQueEsperanza();
-    });
-    window.maxxData.edadRetiro = window.maxxData.edadRetiro || 65;
-    document.getElementById('maxx-monto-deseado').addEventListener('input', function() {
-      var raw = this.value.replace(/[^0-9]/g, '');
-      var num = parseInt(raw, 10) || 0;
-      window.maxxData.montoDeseado = num;
-      this.value = num ? ('$' + num.toLocaleString('es-MX')) : '';
-      maxxCheckSeccion1();
-    });
-    window.maxxData.genero = window.maxxData.genero || 'H';
-  }
-
-  window.maxxSetGenero = function(g) {
-    window.maxxData.genero = g;
-    var h = document.getElementById('maxx-genero-h');
-    var m = document.getElementById('maxx-genero-m');
-    if (g === 'H') {
-      h.style.background = '#042C53'; h.style.color = '#fff'; h.style.borderColor = '#042C53';
-      m.style.background = '#fff'; m.style.color = '#5F5E5A'; m.style.borderColor = '#D3D1C7';
-    } else {
-      m.style.background = '#042C53'; m.style.color = '#fff'; m.style.borderColor = '#042C53';
-      h.style.background = '#fff'; h.style.color = '#5F5E5A'; h.style.borderColor = '#D3D1C7';
-    }
-    maxxActualizarSabiasQueEsperanza();
-    if (window.maxxData.seccion3Valida) { maxxRenderizarResultados(); }
-  };
-
-  window.maxxCheckSeccion1 = function() {
-    var edad = window.maxxData.edadActual;
-    var retiro = window.maxxData.edadRetiro;
-    var monto = window.maxxData.montoDeseado;
-    var warn = document.getElementById('maxx-retiro-warn');
-    var aniosOut = document.getElementById('maxx-anios-restantes-out');
-    var valido = true;
-    var msg = '';
-
-    if (retiro - (edad || 0) < 10 && edad) {
-      msg = '⚠ Mínimo 10 años de plazo — ajusta tu edad de retiro.';
-      valido = false;
-    } else if (edad >= 60 && (retiro - edad) > 10) {
-      msg = '⚠ Para 60+ años, el plazo máximo es 10 años.';
-      valido = false;
-    }
-    if (warn) {
-      warn.style.display = msg ? 'block' : 'none';
-      warn.textContent = msg;
-    }
-    if (aniosOut) {
-      if (edad > 0 && retiro > edad) {
-        aniosOut.textContent = '📅 Te quedan ' + (retiro - edad) + ' años para ahorrar, a partir de este año.';
-      } else {
-        aniosOut.textContent = '';
-      }
-    }
-
-    var completo = edad >= 18 && valido && monto > 0;
-    window.maxxData.seccion1Valida = completo;
-    paint('maxx-panel-2', completo);
-    renderPanelEsencial(completo);
-    if (window.maxxData.seccion3Valida) { maxxRenderizarResultados(); }
-  };
-
-  // ---------- PANEL 2: Seccion II (Indicadores) ----------
-  var MAXX_INFLACION_MIN = 0.04;
-  var MAXX_TASA_MIN = 0.0882;
-  window.maxxData.inflacion = window.maxxData.inflacion || 0.0485;
-  window.maxxData.tasaSolucion = window.maxxData.tasaSolucion || 0.1482;
-
-  function renderPanelIndicadores(unlocked) {
-    var el = document.getElementById('maxx-panel-indicadores');
-    var lockIcon = unlocked ? '' : '🔒 ';
-    var titleColor = unlocked ? '#042C53' : '#5F5E5A';
-
-    if (!unlocked) {
-      el.innerHTML =
-        '<div style="font-size:15px;color:' + titleColor + ';font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">' + lockIcon + 'Indicadores Financieros</div>' +
-        '<div style="font-size:12px;color:#a8a69d;">Inflación, Tasa de la Solución propuesta por MAXX y Tasa Real</div>';
-      return;
-    }
-
-    var real = ((1 + window.maxxData.tasaSolucion) / (1 + window.maxxData.inflacion) - 1);
-    var plazoIndicadores = Math.max(0, (window.maxxData.edadRetiro || 65) - (window.maxxData.edadActual || 0));
-    var costoIndicadores = maxxCostoAnualPorPlazo(plazoIndicadores);
-    var tasaNetaCostoIndicadores = window.maxxData.tasaSolucion - costoIndicadores;
-    var realNetaCostoIndicadores = ((1 + tasaNetaCostoIndicadores) / (1 + window.maxxData.inflacion) - 1);
-
-    el.innerHTML =
-      '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">Indicadores Financieros</div>' +
-      '<div style="font-size:12px;color:#5F5E5A;margin-bottom:8px;line-height:1.4;">Estas tasas vienen de datos históricos públicos (INEGI, S&P 500). Puedes ajustarlas, con un piso conservador.</div>' +
-
-      '<div style="margin-bottom:9px;">' +
-        '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">Inflación anual <span id="maxx-inflacion-out" style="color:#378ADD;font-size:17px;font-weight:800;">' + (window.maxxData.inflacion*100).toFixed(2) + '%</span></div>' +
-        '<input type="range" id="maxx-inflacion" min="4" max="12" step="0.05" value="' + (window.maxxData.inflacion*100) + '" style="width:100%;accent-color:#EF9F27;">' +
-        '<div style="font-size:12px;color:#5F5E5A;margin-top:3px;">Piso: 4% (no se puede bajar más)</div>' +
-        '<div id="maxx-zona-inflacion">' +
-        '<button type="button" id="maxx-toggle-tabla-inflacion" style="border:none;background:transparent;color:#0563C1;font-size:12px;font-weight:600;cursor:pointer;padding:4px 0;text-decoration:underline;">Ver tabla histórica de inflación (1996-2025) →</button>' +
-        '<div id="maxx-tabla-inflacion" style="display:none;max-height:180px;overflow-y:auto;background:#fff;border-radius:8px;padding:8px;margin-top:4px;font-size:12px;"></div>' +
-        '</div>' +
-        maxxSabiasQueHTML('inflacion', '¿Qué tan alta ha sido la inflación en México?', 8) +
-      '</div>' +
-
-      '<div style="margin-bottom:9px;">' +
-        '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">Rendimiento — Solución propuesta por MAXX <span id="maxx-tasa-out" style="color:#378ADD;font-size:17px;font-weight:800;">' + (window.maxxData.tasaSolucion*100).toFixed(2) + '%</span></div>' +
-        '<input type="range" id="maxx-tasa" min="8.82" max="20" step="0.05" value="' + (window.maxxData.tasaSolucion*100) + '" style="width:100%;accent-color:#EF9F27;">' +
-        '<div style="font-size:12px;color:#5F5E5A;margin-top:3px;">Piso: 8.82% (mínimo histórico, 25 años)</div>' +
-        '<div id="maxx-zona-sp">' +
-        '<button type="button" id="maxx-toggle-tabla-sp" style="border:none;background:transparent;color:#0563C1;font-size:12px;font-weight:600;cursor:pointer;padding:4px 0;text-decoration:underline;">Ver tabla histórica S&P 500 (5-30 años) →</button>' +
-        '<div id="maxx-tabla-sp" style="display:none;background:#fff;border-radius:8px;padding:8px;margin-top:4px;font-size:12px;"></div>' +
-        '</div>' +
-        maxxSabiasQueHTML('sp500', '¿El S&P 500 rinde lo que ves en la tabla?', 8) +
-      '</div>' +
-
-      '<div style="background:#fff;border-radius:8px;padding:12px;">' +
-        '<div style="font-size:11px;color:#5F5E5A;font-weight:600;margin-bottom:8px;">De la tasa bruta a tu tasa 100% real:</div>' +
-        '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;">' +
-          '<div style="text-align:center;flex:1;min-width:70px;">' +
-            '<div style="font-size:10px;color:#5F5E5A;">Bruta</div>' +
-            '<div id="maxx-bruta-out" style="font-size:15px;font-weight:800;color:#3D3B36;">' + (window.maxxData.tasaSolucion*100).toFixed(2) + '%</div>' +
-          '</div>' +
-          '<div style="color:#a8a69d;font-size:14px;">−</div>' +
-          '<div style="text-align:center;flex:1;min-width:70px;">' +
-            '<div style="font-size:10px;color:#5F5E5A;">Costo</div>' +
-            '<div style="font-size:15px;font-weight:800;color:#C0392B;">' + (costoIndicadores*100).toFixed(2) + '%</div>' +
-          '</div>' +
-          '<div style="color:#a8a69d;font-size:14px;">=</div>' +
-          '<div style="text-align:center;flex:1;min-width:80px;">' +
-            '<div style="font-size:10px;color:#5F5E5A;">Nominal neta</div>' +
-            '<div id="maxx-nominalneta-out" style="font-size:15px;font-weight:800;color:#3D3B36;">' + (tasaNetaCostoIndicadores*100).toFixed(2) + '%</div>' +
-          '</div>' +
-          '<div style="color:#a8a69d;font-size:14px;">−</div>' +
-          '<div style="text-align:center;flex:1;min-width:80px;">' +
-            '<div style="font-size:10px;color:#5F5E5A;">Inflación</div>' +
-            '<div id="maxx-inflacioncascada-out" style="font-size:15px;font-weight:800;color:#C0392B;">' + (window.maxxData.inflacion*100).toFixed(2) + '%</div>' +
-          '</div>' +
-          '<div style="color:#a8a69d;font-size:14px;">=</div>' +
-          '<div style="text-align:center;flex:1;min-width:90px;">' +
-            '<div style="font-size:10px;color:#042C53;font-weight:700;">Tasa Real Neta</div>' +
-            '<div id="maxx-realneto-out" style="font-size:19px;font-weight:800;color:#3B6D11;">' + (realNetaCostoIndicadores*100).toFixed(2) + '%</div>' +
-          '</div>' +
-        '</div>' +
-        '<div style="font-size:10.5px;color:#5F5E5A;margin-top:8px;line-height:1.3;">Esta última es la cifra 100% transparente: ya sin costo, ya sin inflación — lo que TU dinero realmente crece en poder de compra.</div>' +
-      '</div>';
-
-    document.getElementById('maxx-inflacion').addEventListener('input', function() {
-      window.maxxData.inflacion = parseFloat(this.value) / 100;
-      document.getElementById('maxx-inflacion-out').textContent = parseFloat(this.value).toFixed(2) + '%';
-      maxxActualizarTasaReal();
-      if (document.getElementById('maxx-tabla-inflacion').style.display !== 'none') maxxPintarTablaInflacion();
-      if (window.maxxData.seccion3Valida) { maxxRenderizarResultados(); }
-    });
-    document.getElementById('maxx-tasa').addEventListener('input', function() {
-      window.maxxData.tasaSolucion = parseFloat(this.value) / 100;
-      document.getElementById('maxx-tasa-out').textContent = parseFloat(this.value).toFixed(2) + '%';
-      maxxActualizarTasaReal();
-      if (document.getElementById('maxx-tabla-sp').style.display !== 'none') maxxPintarTablaSP();
-      if (window.maxxData.seccion3Valida) { maxxRenderizarResultados(); }
-    });
-
-    document.getElementById('maxx-toggle-tabla-inflacion').addEventListener('click', function() {
-      var div = document.getElementById('maxx-tabla-inflacion');
-      var abrir = div.style.display === 'none';
-      div.style.display = abrir ? 'block' : 'none';
-      this.textContent = abrir ? 'Ocultar tabla de inflación ↑' : 'Ver tabla histórica de inflación (1996-2025) →';
-      if (abrir) maxxPintarTablaInflacion();
-    });
-    document.getElementById('maxx-toggle-tabla-sp').addEventListener('click', function() {
-      var div = document.getElementById('maxx-tabla-sp');
-      var abrir = div.style.display === 'none';
-      div.style.display = abrir ? 'block' : 'none';
-      this.textContent = abrir ? 'Ocultar tabla S&P 500 ↑' : 'Ver tabla histórica S&P 500 (5-30 años) →';
-      if (abrir) maxxPintarTablaSP();
-    });
-
-    document.getElementById('maxx-zona-inflacion').addEventListener('mouseleave', function() {
-      var div = document.getElementById('maxx-tabla-inflacion');
-      div.style.display = 'none';
-      document.getElementById('maxx-toggle-tabla-inflacion').textContent = 'Ver tabla histórica de inflación (1996-2025) →';
-    });
-    document.getElementById('maxx-zona-sp').addEventListener('mouseleave', function() {
-      var div = document.getElementById('maxx-tabla-sp');
-      div.style.display = 'none';
-      document.getElementById('maxx-toggle-tabla-sp').textContent = 'Ver tabla histórica S&P 500 (5-30 años) →';
-    });
-
-    maxxWireSabiasQue('inflacion');
-    maxxWireSabiasQue('sp500');
-  }
-
-  var MAXX_TABLA_INFLACION = [
-    [1996,0.2770],[1997,0.1572],[1998,0.1861],[1999,0.1232],[2000,0.0896],
-    [2001,0.0440],[2002,0.0570],[2003,0.0398],[2004,0.0519],[2005,0.0333],
-    [2006,0.0405],[2007,0.0376],[2008,0.0653],[2009,0.0357],[2010,0.0440],
-    [2011,0.0382],[2012,0.0357],[2013,0.0397],[2014,0.0408],[2015,0.0213],
-    [2016,0.0336],[2017,0.0677],[2018,0.0483],[2019,0.0283],[2020,0.0315],
-    [2021,0.0736],[2022,0.0782],[2023,0.0466],[2024,0.0421],[2025,0.0369]
-  ];
-
-  window.maxxPintarTablaInflacion = function() {
-    var actual = window.maxxData.inflacion;
-    var html = '<table style="width:100%;border-collapse:collapse;">' +
-      '<tr style="font-weight:700;color:#042C53;"><td>Año</td><td style="text-align:right;">Inflación</td></tr>';
-    MAXX_TABLA_INFLACION.forEach(function(row) {
-      var esCercano = Math.abs(row[1] - actual) < 0.003;
-      html += '<tr style="' + (esCercano ? 'background:#EAF3DE;font-weight:700;color:#3B6D11;' : 'color:#5F5E5A;') + '">' +
-        '<td>' + row[0] + '</td><td style="text-align:right;">' + (row[1]*100).toFixed(2) + '%' + (esCercano ? ' ◄ cerca de tu valor' : '') + '</td></tr>';
-    });
-    html += '</table>' +
-      '<div style="font-size:12px;color:#888780;margin-top:6px;">Fuente: INEGI/Banxico, boletines oficiales de INPC.</div>';
-    document.getElementById('maxx-tabla-inflacion').innerHTML = html;
-  };
-
-  var MAXX_TABLA_SP = [
-    ['5 años', 0.1443, 0.0554], ['10 años', 0.1482, 0.0485], ['15 años', 0.1407, 0.0441],
-    ['20 años', 0.1100, 0.0442], ['25 años', 0.0882, 0.0444], ['30 años', 0.1040, 0.0636]
-  ];
-
-  window.maxxPintarTablaSP = function() {
-    var actual = window.maxxData.tasaSolucion;
-    var html = '<table style="width:100%;border-collapse:collapse;">' +
-      '<tr style="font-weight:700;color:#042C53;"><td>Periodo</td><td style="text-align:right;">Nominal</td><td style="text-align:right;">Real</td></tr>';
-    MAXX_TABLA_SP.forEach(function(row) {
-      var nominal = row[1], inflacionPeriodo = row[2];
-      var real = ((1+nominal)/(1+inflacionPeriodo)-1);
-      var esActual = Math.abs(nominal - actual) < 0.003;
-      html += '<tr style="' + (esActual ? 'background:#EAF3DE;font-weight:700;color:#3B6D11;' : 'color:#5F5E5A;') + '">' +
-        '<td>' + row[0] + '</td><td style="text-align:right;">' + (nominal*100).toFixed(2) + '%</td>' +
-        '<td style="text-align:right;">' + (real*100).toFixed(2) + '%' + (esActual ? ' ◄ TASA ACTUAL' : '') + '</td></tr>';
-    });
-    html += '</table>' +
-      '<div style="font-size:12px;color:#888780;margin-top:6px;">Fuente: Wikipedia S&P 500 (Annualized Return) + Fidelity. Cada renglón es lo que ganó alguien que invirtió HACE ese número de años — no es una proyección.</div>';
-    document.getElementById('maxx-tabla-sp').innerHTML = html;
-  };
-
-  window.maxxActualizarTasaReal = function() {
-    var plazoIndicadores = Math.max(0, (window.maxxData.edadRetiro || 65) - (window.maxxData.edadActual || 0));
-    var costoIndicadores = maxxCostoAnualPorPlazo(plazoIndicadores);
-    var tasaNetaCostoIndicadores = window.maxxData.tasaSolucion - costoIndicadores;
-    var realNetaCostoIndicadores = ((1 + tasaNetaCostoIndicadores) / (1 + window.maxxData.inflacion) - 1);
-
-    var elBruta = document.getElementById('maxx-bruta-out');
-    if (elBruta) elBruta.textContent = (window.maxxData.tasaSolucion*100).toFixed(2) + '%';
-    var elNominalNeta = document.getElementById('maxx-nominalneta-out');
-    if (elNominalNeta) elNominalNeta.textContent = (tasaNetaCostoIndicadores*100).toFixed(2) + '%';
-    var elInflacionCascada = document.getElementById('maxx-inflacioncascada-out');
-    if (elInflacionCascada) elInflacionCascada.textContent = (window.maxxData.inflacion*100).toFixed(2) + '%';
-    var outNeto = document.getElementById('maxx-realneto-out');
-    if (outNeto) outNeto.textContent = (realNetaCostoIndicadores*100).toFixed(2) + '%';
-  };
-
-  // ---------- PANEL 3: Seccion III (Con que Cuentas) ----------
-  window.maxxData.capacidadAhorro = window.maxxData.capacidadAhorro || 0;
-  window.maxxData.tieneAfore = window.maxxData.tieneAfore || null;
-  window.maxxData.ley73 = window.maxxData.ley73 || null;
-  window.maxxData.aniosCotizando = window.maxxData.aniosCotizando || 0;
-  window.maxxData.sueldoBruto = window.maxxData.sueldoBruto || 0;
-  window.maxxData.ingresoActual = window.maxxData.ingresoActual || 0;
-  window.maxxData.conyugeApoya = window.maxxData.conyugeApoya || null;
-  window.maxxData.conyugeAfore = window.maxxData.conyugeAfore || null;
-  window.maxxData.conyugeLey73 = window.maxxData.conyugeLey73 || null;
-  window.maxxData.conyugeAnios = window.maxxData.conyugeAnios || 0;
-  window.maxxData.conyugeSueldo = window.maxxData.conyugeSueldo || 0;
-  window.maxxData.conyugeIngreso = window.maxxData.conyugeIngreso || 0;
-  window.maxxData.tieneAhorros = window.maxxData.tieneAhorros || null;
-  window.maxxData.montoAhorros = window.maxxData.montoAhorros || 0;
-  window.maxxData.casaPropia = window.maxxData.casaPropia || null;
-  window.maxxData.valorCasa = window.maxxData.valorCasa || 0;
-  window.maxxData.otraFuente = window.maxxData.otraFuente || null;
-  window.maxxData.montoOtraFuente = window.maxxData.montoOtraFuente || 0;
-
-  function maxxPill(name, value, current, label) {
-    var activo = current === value;
-    return '<button type="button" data-pill="' + name + '" data-val="' + value + '" style="flex:1;padding:8px;border-radius:8px;border:1.5px solid ' + (activo ? '#042C53' : '#D3D1C7') + ';background:' + (activo ? '#042C53' : '#fff') + ';color:' + (activo ? '#fff' : '#5F5E5A') + ';font-size:12px;font-weight:600;cursor:pointer;">' + label + '</button>';
-  }
-
-  function maxxSorpresaHTML(d) {
-    var aniosSorpresa = [5, 10, 15, 20, 25, 30];
-    var filasSorpresa = aniosSorpresa.map(function(a) {
-      var valorHoy = d.capacidadAhorro / Math.pow(1 + d.inflacion, a);
-      return '<tr><td style="padding:5px 6px;color:#5F5E5A;font-size:13px;border-top:1px solid #E6E4DA;">' + a + '</td>' +
-        '<td style="padding:5px 6px;text-align:center;color:#5F5E5A;font-size:13px;border-top:1px solid #E6E4DA;">$' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '</td>' +
-        '<td style="padding:5px 6px;text-align:right;font-weight:800;color:#042C53;font-size:13px;border-top:1px solid #E6E4DA;">$' + Math.round(valorHoy).toLocaleString('es-MX') + '</td></tr>';
-    }).join('');
-    return '<div id="maxx-zona-sorpresa" style="margin-top:10px;">' +
-      '<button type="button" id="maxx-toggle-sorpresa" style="border:none;background:#E8EEF4;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">🔷 Tengo una <u>sorpresa</u> que te va a encantar... →</button>' +
-      '<div id="maxx-cuerpo-sorpresa" style="display:none;background:#fff;border-radius:8px;padding:12px;margin-top:6px;">' +
-        '<div style="font-size:12px;color:#3D3B36;line-height:1.4;margin-bottom:8px;">Tu aportación de <strong>$' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes se queda FIJA</strong> — nunca la subes. Como tu sueldo normalmente sí sube con la inflación, con el tiempo te va a doler cada vez menos pagarla:</div>' +
-        '<table style="width:100%;border-collapse:collapse;">' +
-          '<tr><th style="padding:4px 6px;text-align:left;font-size:12px;color:#5F5E5A;">Año</th><th style="padding:4px 6px;text-align:center;font-size:12px;color:#5F5E5A;">Seguirás pagando</th><th style="padding:4px 6px;text-align:right;font-size:12px;color:#5F5E5A;">Pesará como (hoy)</th></tr>' +
-          filasSorpresa +
-        '</table>' +
-      '</div>' +
+function maxxEncabezadoHTML(compacto) {
+  var alto = compacto ? "36px" : "46px";
+  return '<div class="encabezado' + (compacto ? ' encabezado-compacto' : '') + '">' +
+    '<div class="titulo-doc' + (compacto ? '-chico' : '') + '">Calificación Financiera Personal</div>' +
+    '<div style="font-family:Roboto,Arial,sans-serif;font-weight:800;color:#fff;font-size:' + alto + ';letter-spacing:0.5px;">MAXX<span style="color:#8FD14F;">.</span></div>' +
     '</div>';
+}
+
+function maxxPieHTML(pagina) {
+  return '<div class="pie"><div>Confidencial</div><div class="centro">MAXX — Calificación Financiera Personal</div><div>Página ' + pagina + '/3</div></div>';
+}
+
+// Genera un código QR como imagen embebida (data URI) para una URL dada.
+// Usa un servicio público de generación de QR + UrlFetchApp (sí tiene acceso a red,
+// a diferencia del conversor de HTML a PDF). Si falla por cualquier razón (sin cuota,
+// servicio caído, etc.), regresa "" — el HTML sigue mostrando el link visible como respaldo.
+function maxxQrDataUri(url, sizePx) {
+  try {
+    var qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=" + sizePx + "x" + sizePx + "&data=" + encodeURIComponent(url);
+    var resp = UrlFetchApp.fetch(qrUrl, { muteHttpExceptions: true });
+    if (resp.getResponseCode() !== 200) return "";
+    var b64 = Utilities.base64Encode(resp.getBlob().getBytes());
+    return "data:image/png;base64," + b64;
+  } catch (err) {
+    return "";
   }
+}
 
-  function maxxWireSorpresa() {
-    var toggleSorpresa = document.getElementById('maxx-toggle-sorpresa');
-    var zonaSorpresa = document.getElementById('maxx-zona-sorpresa');
-    if (toggleSorpresa) {
-      toggleSorpresa.addEventListener('click', function() {
-        var cuerpo = document.getElementById('maxx-cuerpo-sorpresa');
-        cuerpo.style.display = cuerpo.style.display === 'none' ? 'block' : 'none';
-      });
-      zonaSorpresa.addEventListener('mouseleave', function() {
-        document.getElementById('maxx-cuerpo-sorpresa').style.display = 'none';
-      });
-    }
-  }
+function maxxImagenPlaceholderHTML(alturaMin) {
+  return '<div style="border:1.5px dashed #C7C4B8;border-radius:10px;padding:14px;text-align:center;color:#8A8778;font-size:11.5px;font-weight:600;min-height:' + alturaMin + 'px;display:flex;align-items:center;justify-content:center;">IMAGEN<br>(se arma en Canva)</div>';
+}
 
-  function renderPanelEsencial(unlocked) {
-    var el = document.getElementById('maxx-panel-2');
-    var lockIcon = unlocked ? '' : '🔒 ';
-    var titleColor = unlocked ? '#042C53' : '#5F5E5A';
-
-    if (!unlocked) {
-      el.innerHTML = '<div style="font-size:15px;color:' + titleColor + ';font-weight:700;letter-spacing:0.5px;">' + lockIcon + 'SECCIÓN II · CON QUÉ CUENTAS</div>';
-      return;
-    }
-
-    var d = window.maxxData;
-
-    var html = '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:4px;letter-spacing:0.5px;">SECCIÓN II · CON QUÉ CUENTAS</div>' +
-      '<div style="font-size:13px;font-weight:500;color:#3B6D11;margin-bottom:8px;line-height:1.4;">Solo cuenta lo que ya tienes hoy — nada de ingresos futuros inciertos.</div>';
-
-    var plazo = (d.edadRetiro || 65) - (d.edadActual || 0);
-    var minimoAportacion = plazo <= 10 ? 3000 : 2000;
-    html += '<div style="margin-bottom:7px;">' +
-      '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">Capacidad de ahorro mensual</div>' +
-      '<input type="text" id="maxx-capacidad" placeholder="$ 5,000" value="' + (d.capacidadAhorro ? '$'+d.capacidadAhorro.toLocaleString('es-MX') : '') + '" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid #D3D1C7;font-size:13px;box-sizing:border-box;">' +
-      '<div id="maxx-capacidad-warn" style="font-size:12px;color:#042C53;margin-top:4px;display:none;"></div>' +
-      '<div style="font-size:12px;color:#5F5E5A;margin-top:4px;">Mínimo $' + minimoAportacion.toLocaleString('es-MX') + '/mes para tu plazo de ' + plazo + ' años.</div>' +
-      '</div>';
-    var paso1Completo = d.capacidadAhorro >= minimoAportacion;
-
-    if (paso1Completo) {
-      html += '<div style="margin-bottom:9px;">' +
-        '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes AFORE?</div>' +
-        '<div style="display:flex;gap:8px;">' + maxxPill('tieneAfore','S',d.tieneAfore,'Sí') + maxxPill('tieneAfore','N',d.tieneAfore,'No') + '</div>';
-      if (d.tieneAfore === 'S') {
-        html += '<div style="margin-top:6px;display:flex;gap:8px;">' +
-          '<div style="flex:1;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Años cotizando</div>' +
-          '<input type="number" id="maxx-anios-cot" min="0" placeholder="Ej. 12" value="' + (d.aniosCotizando || '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>' +
-          '<div style="flex:1;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Sueldo BRUTO mensual</div>' +
-          '<input type="text" id="maxx-sueldo-bruto" placeholder="$ 20,000" value="' + (d.sueldoBruto ? '$'+d.sueldoBruto.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>' +
-          '</div>' +
-          '<div style="margin-top:6px;">' +
-          '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Cotizaste por primera vez antes de julio 1997?</div>' +
-          '<div style="display:flex;gap:8px;">' + maxxPill('ley73','S',d.ley73,'Sí (Ley 73)') + maxxPill('ley73','N',d.ley73,'No (Ley 97)') + '</div>' +
-          '</div>';
-      } else if (d.tieneAfore === 'N') {
-        html += '<div style="margin-top:6px;">' +
-          '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Ingreso actual libre de impuestos</div>' +
-          '<input type="text" id="maxx-ingreso-actual" placeholder="$ 15,000" value="' + (d.ingresoActual ? '$'+d.ingresoActual.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
-      }
-      html += '</div>';
-    }
-
-    el.innerHTML = html;
-    maxxWireEsencial();
-  }
-
-  var maxxDebounceTimerEsencial = null;
-  function maxxDebounceRevelarEsencial() {
-    if (maxxDebounceTimerEsencial) clearTimeout(maxxDebounceTimerEsencial);
-    maxxDebounceTimerEsencial = setTimeout(function() { renderPanelEsencial(true); }, 700);
-  }
-
-  function maxxMoneyFieldEsencial(id, dataKey) {
-    var input = document.getElementById(id);
-    if (!input) return;
-    input.addEventListener('input', function() {
-      var digits = this.value.replace(/[^0-9]/g, '');
-      var num = parseInt(digits, 10) || 0;
-      window.maxxData[dataKey] = num;
-      this.value = num ? ('$' + num.toLocaleString('es-MX')) : '';
-      maxxCheckEsencial();
-      maxxDebounceRevelarEsencial();
-    });
-    input.addEventListener('blur', function() { renderPanelEsencial(true); });
-  }
-
-  function maxxWireEsencial() {
-    var el = document.getElementById('maxx-panel-2');
-
-    var capacidad = document.getElementById('maxx-capacidad');
-    if (capacidad) capacidad.addEventListener('input', function() {
-      var digits = this.value.replace(/[^0-9]/g, '');
-      var num = parseInt(digits, 10) || 0;
-      window.maxxData.capacidadAhorro = num;
-      this.value = num ? ('$' + num.toLocaleString('es-MX')) : '';
-      var plazo = (window.maxxData.edadRetiro || 65) - (window.maxxData.edadActual || 0);
-      var minimo = plazo <= 10 ? 3000 : 2000;
-      var warnEl = document.getElementById('maxx-capacidad-warn');
-      if (num > 0 && num < minimo) {
-        warnEl.style.display = 'block';
-        warnEl.textContent = '⚠ El mínimo para un plazo de ' + plazo + ' años es $' + minimo.toLocaleString('es-MX') + '/mes.';
-      } else {
-        warnEl.style.display = 'none';
-      }
-      maxxCheckEsencial();
-      maxxDebounceRevelarEsencial();
-    });
-    if (capacidad) capacidad.addEventListener('blur', function() { renderPanelEsencial(true); });
-
-    el.querySelectorAll('[data-pill]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var name = this.getAttribute('data-pill');
-        var val = this.getAttribute('data-val');
-        window.maxxData[name] = val;
-        renderPanelEsencial(true);
-      });
-    });
-
-    var anios = document.getElementById('maxx-anios-cot');
-    if (anios) anios.addEventListener('input', function() {
-      window.maxxData.aniosCotizando = parseInt(this.value, 10) || 0;
-      maxxCheckEsencial();
-      maxxDebounceRevelarEsencial();
-    });
-    if (anios) anios.addEventListener('blur', function() { renderPanelEsencial(true); });
-
-    maxxMoneyFieldEsencial('maxx-sueldo-bruto', 'sueldoBruto');
-    maxxMoneyFieldEsencial('maxx-ingreso-actual', 'ingresoActual');
-
-    maxxCheckEsencial();
-  }
-
-  window.maxxCheckEsencial = function() {
-    var d = window.maxxData;
-    var plazo = (d.edadRetiro || 65) - (d.edadActual || 0);
-    var minimoAportacion = plazo <= 10 ? 3000 : 2000;
-    var completo = d.capacidadAhorro >= minimoAportacion && d.tieneAfore &&
-      (d.tieneAfore === 'N' ? d.ingresoActual > 0 : (d.aniosCotizando > 0 && d.sueldoBruto > 0 && d.ley73));
-
-    if (completo) {
-      if (!d.conyugeApoya) d.conyugeApoya = 'N';
-      if (!d.tieneAhorros) d.tieneAhorros = 'N';
-      if (d.casaPropia === null || d.casaPropia === undefined) d.casaPropia = 'N';
-      if (d.otraFuente === null || d.otraFuente === undefined) d.otraFuente = 'N';
-    }
-
-    window.maxxData.seccion3Valida = completo;
-    paint('maxx-panel-grafica', completo);
-    paint('maxx-panel-5', completo);
-    paint('maxx-panel-califn1', completo);
-    paint('maxx-panel-califn2', completo);
-    paint('maxx-panel-cta', completo);
-    paint('maxx-panel-indicadores', completo);
-    paint('maxx-panel-apoyo', completo);
-    var seccion4Wrapper = document.getElementById('maxx-seccion4-wrapper');
-    if (seccion4Wrapper) seccion4Wrapper.style.display = completo ? 'block' : 'none';
-    if (completo) {
-      maxxRenderizarResultados();
-      renderPanelIndicadores(true);
-      renderPanelApoyo(true);
-    } else {
-      renderPlaceholder('maxx-panel-grafica', 'GRÁFICA · ACUMULACIÓN Y DESACUMULACIÓN');
-      renderPlaceholder('maxx-panel-5', 'SECCIÓN III · RESULTADOS');
-      renderPlaceholder('maxx-panel-califn1', 'SIN TU Propuesta de Aportaciones');
-      renderPlaceholder('maxx-panel-califn2', 'CON TU Propuesta de Aportaciones');
-      renderPlaceholder('maxx-panel-cta', 'AGENDA TU CITA');
-      renderPlaceholder('maxx-panel-indicadores', 'Indicadores Financieros');
-      renderPlaceholder('maxx-panel-apoyo', 'Apoyo o Ahorro complementario');
-    }
-  };
-
-  // ---------- PANEL APOYO: Datos Relevantes (parte 2) — cónyuge, ahorros, casa, otra fuente ----------
-  function renderPanelApoyo(unlocked) {
-    var el = document.getElementById('maxx-panel-apoyo');
-    var lockIcon = unlocked ? '' : '🔒 ';
-    var titleColor = unlocked ? '#042C53' : '#5F5E5A';
-
-    if (!unlocked) {
-      el.innerHTML = '<div style="font-size:15px;color:' + titleColor + ';font-weight:700;letter-spacing:0.5px;">' + lockIcon + 'Apoyo o Ahorro complementario</div>';
-      return;
-    }
-
-    var d = window.maxxData;
-    var html = '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:8px;letter-spacing:0.5px;">Apoyo o Ahorro complementario</div>';
-
-    html += '<div style="margin-bottom:9px;">' +
-      '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tu cónyuge apoya a cubrir el retiro?</div>' +
-      '<div style="display:flex;gap:8px;">' + maxxPill('conyugeApoya','S',d.conyugeApoya,'Sí') + maxxPill('conyugeApoya','N',d.conyugeApoya,'No') + '</div>';
-    if (d.conyugeApoya === 'S') {
-      html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Edad actual del cónyuge</div>' +
-        '<input type="number" id="maxx-conyuge-edad" min="18" max="90" placeholder="Ej. 43" value="' + (d.conyugeEdadActual || '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
-      if (d.conyugeEdadActual > 0) {
-        html += '<div style="margin-top:6px;">' +
-          '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tu cónyuge tiene AFORE?</div>' +
-          '<div style="display:flex;gap:8px;">' + maxxPill('conyugeAfore','S',d.conyugeAfore,'Sí') + maxxPill('conyugeAfore','N',d.conyugeAfore,'No') + '</div></div>';
-        if (d.conyugeAfore === 'S') {
-          html += '<div style="margin-top:6px;display:flex;gap:8px;">' +
-            '<div style="flex:1;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Años cotizando (cónyuge)</div>' +
-            '<input type="number" id="maxx-conyuge-anios" min="0" placeholder="Ej. 10" value="' + (d.conyugeAnios || '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>' +
-            '<div style="flex:1;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Sueldo BRUTO (cónyuge)</div>' +
-            '<input type="text" id="maxx-conyuge-sueldo" placeholder="$ 18,000" value="' + (d.conyugeSueldo ? '$'+d.conyugeSueldo.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>' +
-            '</div>' +
-            '<div style="margin-top:6px;">' +
-            '<div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Cotizó antes de julio 1997?</div>' +
-            '<div style="display:flex;gap:8px;">' + maxxPill('conyugeLey73','S',d.conyugeLey73,'Sí (Ley 73)') + maxxPill('conyugeLey73','N',d.conyugeLey73,'No (Ley 97)') + '</div></div>';
-        } else if (d.conyugeAfore === 'N') {
-          html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Ingreso actual del cónyuge</div>' +
-            '<input type="text" id="maxx-conyuge-ingreso" placeholder="$ 12,000" value="' + (d.conyugeIngreso ? '$'+d.conyugeIngreso.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
-        }
-      }
-    }
-    html += '</div>';
-
-    html += '<div style="margin-bottom:9px;">' +
-      '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes ahorros que planeas MANTENER hasta tu retiro?</div>' +
-      '<div style="display:flex;gap:8px;">' + maxxPill('tieneAhorros','S',d.tieneAhorros,'Sí') + maxxPill('tieneAhorros','N',d.tieneAhorros,'No') + '</div>';
-    if (d.tieneAhorros === 'S') {
-      html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Monto actual</div>' +
-        '<input type="text" id="maxx-monto-ahorros" placeholder="$ 100,000" value="' + (d.montoAhorros ? '$'+d.montoAhorros.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
-    }
-    html += '</div>';
-
-    html += '<div style="margin-bottom:9px;">' +
-      '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes casa propia? <span style="font-weight:400;color:#a8a69d;">(informativo)</span></div>' +
-      '<div style="display:flex;gap:8px;">' + maxxPill('casaPropia','S',d.casaPropia,'Sí') + maxxPill('casaPropia','N',d.casaPropia,'No') + '</div>';
-    if (d.casaPropia === 'S') {
-      html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Valor estimado</div>' +
-        '<input type="text" id="maxx-valor-casa" placeholder="$ 2,000,000" value="' + (d.valorCasa ? '$'+d.valorCasa.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
-    }
-    html += '</div>';
-
-    html += '<div style="margin-bottom:12px;">' +
-      '<div style="font-size:12px;color:#042C53;font-weight:600;margin-bottom:4px;">¿Tienes otra fuente de ingreso? <span style="font-weight:400;color:#a8a69d;">(informativo)</span></div>' +
-      '<div style="display:flex;gap:8px;">' + maxxPill('otraFuente','S',d.otraFuente,'Sí') + maxxPill('otraFuente','N',d.otraFuente,'No') + '</div>';
-    if (d.otraFuente === 'S') {
-      html += '<div style="margin-top:6px;"><div style="font-size:13px;color:#042C53;font-weight:600;margin-bottom:4px;">Monto mensual equivalente</div>' +
-        '<input type="text" id="maxx-monto-otra" placeholder="$ 3,000" value="' + (d.montoOtraFuente ? '$'+d.montoOtraFuente.toLocaleString('es-MX') : '') + '" style="width:100%;padding:7px;border-radius:6px;border:1px solid #D3D1C7;font-size:12px;box-sizing:border-box;"></div>';
-    }
-    html += '</div>';
-
-    html += maxxSabiasQueHTML('salario', '¿Cuánto ha crecido el salario real en México?', 0);
-
-    if (d.tieneAfore === 'S' && d.aniosCotizando > 0 && (d.aniosCotizando * 54) < 875) {
-      html += maxxSabiasQueHTML('semanas', '¿Qué pasa si no completas tus semanas del IMSS?', 6);
-    }
-
-    el.innerHTML = html;
-    maxxWireApoyo();
-    maxxWireSabiasQue('salario');
-    if (d.tieneAfore === 'S' && d.aniosCotizando > 0 && (d.aniosCotizando * 54) < 875) {
-      maxxWireSabiasQue('semanas');
-    }
-  }
-
-  var maxxDebounceTimerApoyo = null;
-  function maxxDebounceRevelarApoyo() {
-    if (maxxDebounceTimerApoyo) clearTimeout(maxxDebounceTimerApoyo);
-    maxxDebounceTimerApoyo = setTimeout(function() { renderPanelApoyo(true); }, 700);
-  }
-
-  function maxxMoneyFieldApoyo(id, dataKey) {
-    var input = document.getElementById(id);
-    if (!input) return;
-    input.addEventListener('input', function() {
-      var digits = this.value.replace(/[^0-9]/g, '');
-      var num = parseInt(digits, 10) || 0;
-      window.maxxData[dataKey] = num;
-      this.value = num ? ('$' + num.toLocaleString('es-MX')) : '';
-      if (window.maxxData.seccion3Valida) { maxxRenderizarResultados(); }
-      maxxDebounceRevelarApoyo();
-    });
-    input.addEventListener('blur', function() { renderPanelApoyo(true); });
-  }
-
-  function maxxWireApoyo() {
-    var el = document.getElementById('maxx-panel-apoyo');
-
-    el.querySelectorAll('[data-pill]').forEach(function(btn) {
-      btn.addEventListener('click', function() {
-        var name = this.getAttribute('data-pill');
-        var val = this.getAttribute('data-val');
-        window.maxxData[name] = val;
-        renderPanelApoyo(true);
-        if (window.maxxData.seccion3Valida) { maxxRenderizarResultados(); }
-      });
-    });
-
-    var conyugeAnios = document.getElementById('maxx-conyuge-anios');
-    if (conyugeAnios) conyugeAnios.addEventListener('input', function() {
-      window.maxxData.conyugeAnios = parseInt(this.value, 10) || 0;
-      if (window.maxxData.seccion3Valida) { maxxRenderizarResultados(); }
-      maxxDebounceRevelarApoyo();
-    });
-    if (conyugeAnios) conyugeAnios.addEventListener('blur', function() { renderPanelApoyo(true); });
-    var conyugeEdad = document.getElementById('maxx-conyuge-edad');
-    if (conyugeEdad) conyugeEdad.addEventListener('input', function() {
-      window.maxxData.conyugeEdadActual = parseInt(this.value, 10) || 0;
-      if (window.maxxData.seccion3Valida) { maxxRenderizarResultados(); }
-      maxxDebounceRevelarApoyo();
-    });
-    if (conyugeEdad) conyugeEdad.addEventListener('blur', function() { renderPanelApoyo(true); });
-
-    maxxMoneyFieldApoyo('maxx-conyuge-sueldo', 'conyugeSueldo');
-    maxxMoneyFieldApoyo('maxx-conyuge-ingreso', 'conyugeIngreso');
-    maxxMoneyFieldApoyo('maxx-monto-ahorros', 'montoAhorros');
-    maxxMoneyFieldApoyo('maxx-valor-casa', 'valorCasa');
-    maxxMoneyFieldApoyo('maxx-monto-otra', 'montoOtraFuente');
-  }
-
-  function maxxRenderizarResultados() {
-    var d = window.maxxData;
-    var r = maxxCorrerMotor(d, {});
-    window.maxxUltimoResultado = r;
-
-    var fondoAlRetiro = 0;
-    var pensionMensualAlRetiro = 0;
-    r.filas.forEach(function(f) {
-      if (f.fase === 'Retiro' && f.capitalCombinado !== null && fondoAlRetiro === 0) {
-        fondoAlRetiro = f.capitalCombinado;
-        pensionMensualAlRetiro = f.pensionMensual || 0;
-      }
-    });
-    window.maxxData.fondoAlRetiro = fondoAlRetiro;
-    window.maxxData.pensionMensualAlRetiro = pensionMensualAlRetiro;
-
-    var edadEsperanzaVida = r.edadRetiro + r.esperanzaVida;
-    var svg = maxxGenerarSVGGrafica(r.filas, {
-      ancho: 1000, alto: 460, edadMaxima: 90,
-      edadEsperanzaVida: edadEsperanzaVida, edadRetiro: r.edadRetiro,
-      calloutRetiro: {
-        acumulado: fondoAlRetiro,
-        pension: pensionMensualAlRetiro,
-        deseado: d.montoDeseado * Math.pow(1 + d.inflacion, r.edadRetiro - d.edadActual)
-      }
-    });
-    document.getElementById('maxx-panel-grafica').innerHTML =
-      '<div style="font-size:13px;color:#042C53;font-weight:700;margin-bottom:4px;letter-spacing:0.5px;">GRÁFICA · ACUMULACIÓN Y DESACUMULACIÓN</div>' +
-      '<div class="maxx-gira-pantalla" style="background:#FCEBD9;border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:12px;color:#042C53;text-align:center;">📱↻ Gira tu pantalla para ver la gráfica más grande</div>' +
-      svg +
-      '<div style="font-size:13px;font-weight:600;color:#042C53;text-align:center;margin-top:-4px;">Montos a tus ' + r.edadRetiro + ' años de edad <span style="font-weight:400;color:#5F5E5A;">(pesos del momento de tu retiro, no de hoy)</span>:</div>' +
-      '<div style="display:flex;flex-wrap:wrap;justify-content:center;column-gap:22px;row-gap:6px;margin-top:6px;">' +
-        '<div style="display:flex;align-items:center;gap:6px;"><div style="width:11px;height:11px;border-radius:50%;background:#639922;"></div><span style="font-size:13px;font-weight:700;color:#3D3B36;">Acumulado: $' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</span></div>' +
-        '<div style="display:flex;align-items:center;gap:6px;"><div style="width:11px;height:11px;border-radius:50%;background:#888780;"></div><span style="font-size:13px;font-weight:700;color:#3D3B36;">Deseado: $' + Math.round(d.montoDeseado * Math.pow(1 + d.inflacion, r.edadRetiro - d.edadActual)).toLocaleString('es-MX') + '/mes</span></div>' +
-        '<div style="display:flex;align-items:center;gap:6px;"><div style="width:11px;height:11px;border-radius:50%;background:#042C53;"></div><span style="font-size:13px;font-weight:700;color:#3D3B36;">Pensión: $' + Math.round(pensionMensualAlRetiro).toLocaleString('es-MX') + '/mes</span></div>' +
-      '</div>' +
-      '<div style="display:flex;flex-wrap:wrap;justify-content:center;column-gap:22px;row-gap:4px;margin-top:10px;padding-top:8px;border-top:1px solid #E6E4DA;">' + maxxGenerarLeyendaHTML() + '</div>' +
-      '<div style="display:flex;gap:8px;margin-top:10px;">' +
-        '<div id="maxx-zona-comoleer" style="flex:1;">' +
-          '<button type="button" id="maxx-toggle-comoleer" style="border:none;background:#E8EEF4;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">📊 ¿Cómo leer TU gráfica? →</button>' +
-          '<div id="maxx-cuerpo-comoleer" style="display:none;background:#fff;border-radius:8px;padding:10px;margin-top:6px;font-size:13px;color:#3D3B36;line-height:1.4;">' +
-            '<strong style="color:#042C53;">①</strong> <strong style="color:#042C53;">Azul</strong> y <strong style="color:#EF9F27;">naranja</strong>: tu dinero creciendo mes a mes, hasta tu retiro.<br>' +
-            '<strong style="color:#042C53;">②</strong> Al llegar a tu retiro, se SUMAN y nace la línea <strong style="color:#639922;">verde</strong>.<br>' +
-            '<strong style="color:#042C53;">③</strong> La <strong style="color:#639922;">verde</strong> solo BAJA — cada mes se usa un poco para completar lo que tu pensión no alcanza.<br>' +
-            '<strong style="color:#042C53;">④</strong> La línea vertical <strong style="color:#042C53;">roja</strong> marca tu esperanza de vida; la <strong style="color:#042C53;">azul marino</strong>, tu edad de retiro.<br>' +
-            '<strong style="color:#042C53;">⑤</strong> Si la <strong style="color:#639922;">verde</strong> llega a $0 antes de tu esperanza de vida, tu capital se agotó — de ahí en adelante vives solo de tu pensión (o sin ingreso, si no tienes).' +
-          '</div>' +
-        '</div>' +
-        '<div id="maxx-zona-notatransparencia" style="flex:1;">' +
-          '<button type="button" id="maxx-toggle-notatransparencia" style="border:none;background:#FCEBD9;border-radius:8px;padding:8px 10px;width:100%;text-align:left;color:#042C53;font-size:12px;font-weight:600;cursor:pointer;">⚠️ Nota de Transparencia MAXX →</button>' +
-          '<div id="maxx-cuerpo-notatransparencia" style="display:none;background:#fff;border-radius:8px;padding:10px;margin-top:6px;font-size:12px;color:#3D3B36;line-height:1.4;">' +
-            '<strong>OJO al comparar cotizaciones.</strong> Otros cotizadores <strong>NO restan costos</strong>, y muchos <strong>ni siquiera calculan tu pensión</strong>.<br>' +
-            'Este cálculo YA incluye: a) el <strong>costo real</strong> de tu plan, b) tu <strong>pensión IMSS/AFORE</strong>.<br>' +
-            'Por eso, si comparas cifras, <strong>MAXX puede verse con un monto menor</strong>.<br>' +
-            '<strong>Tu futuro merece números reales — así te los entrega MAXX.</strong>' +
-          '</div>' +
-        '</div>' +
-      '</div>';
-
-    var toggleComoLeer = document.getElementById('maxx-toggle-comoleer');
-    var zonaComoLeer = document.getElementById('maxx-zona-comoleer');
-    if (toggleComoLeer) {
-      toggleComoLeer.addEventListener('click', function() {
-        var cuerpo = document.getElementById('maxx-cuerpo-comoleer');
-        var abrir = cuerpo.style.display === 'none';
-        cuerpo.style.display = abrir ? 'block' : 'none';
-      });
-      zonaComoLeer.addEventListener('mouseleave', function() {
-        document.getElementById('maxx-cuerpo-comoleer').style.display = 'none';
-      });
-    }
-    var toggleNotaTransparencia = document.getElementById('maxx-toggle-notatransparencia');
-    var zonaNotaTransparencia = document.getElementById('maxx-zona-notatransparencia');
-    if (toggleNotaTransparencia) {
-      toggleNotaTransparencia.addEventListener('click', function() {
-        var cuerpo = document.getElementById('maxx-cuerpo-notatransparencia');
-        var abrir = cuerpo.style.display === 'none';
-        cuerpo.style.display = abrir ? 'block' : 'none';
-      });
-      zonaNotaTransparencia.addEventListener('mouseleave', function() {
-        document.getElementById('maxx-cuerpo-notatransparencia').style.display = 'none';
-      });
-    }
-
-    var mensajeSin = 'Este es tu punto de partida. Vamos a mejorarlo.';
-    document.getElementById('maxx-panel-califn1').innerHTML =
-      '<div style="text-align:center;">' +
-        '<div style="font-size:15px;color:#042C53;font-weight:700;letter-spacing:0.5px;margin-bottom:14px;">TUS CALIFICACIONES</div>' +
-        '<div style="font-size:15px;color:#5F5E5A;font-weight:700;margin-bottom:8px;">SIN TU Propuesta de Aportaciones</div>' +
-        '<div style="font-size:52px;font-weight:800;color:#042C53;line-height:1;">' + r.califSin + '<span style="font-size:20px;">/100</span></div>' +
-        '<div style="font-size:15px;color:#042C53;font-weight:700;margin-top:5px;">Tu GAP: ' + (100 - r.califSin) + '%</div>' +
-        '<div style="font-size:13px;color:#042C53;font-weight:600;margin-top:6px;line-height:1.4;">' + mensajeSin + '</div>' +
-      '</div>';
-
-    var mensajeCon = r.califCon >= 100
-      ? 'Con TUS Aportaciones podrás cerrar la brecha — en tu Cita, MAXX te dirá cómo contratar TU Plan y aprovechar todos sus beneficios.'
-      : 'Con TUS Aportaciones cierras una parte de la brecha — en tu Cita MAXX te ayudará a cerrar el resto.';
-    document.getElementById('maxx-panel-califn2').innerHTML =
-      '<div style="text-align:center;">' +
-        '<div style="font-size:15px;color:#5F5E5A;font-weight:700;margin-bottom:8px;">CON TU Propuesta de Aportaciones</div>' +
-        '<div style="font-size:52px;font-weight:800;color:#3B6D11;line-height:1;">' + r.califCon + '<span style="font-size:20px;">/100</span></div>' +
-        '<div style="font-size:15px;color:#042C53;font-weight:700;margin-top:5px;">Tu GAP: ' + (100 - r.califCon) + '%</div>' +
-        '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-top:6px;line-height:1.4;">' + mensajeCon + '</div>' +
-      '</div>';
-
-    var tasaNominalBrutaPct = d.tasaSolucion * 100;
-    var tasaNominalNetaPct = r.tasaSolucionNeta * 100;
-    var edadCapitalAgotado = null;
-    r.filas.forEach(function(f) {
-      if (f.fase === 'Retiro' && f.capitalCombinado !== null) edadCapitalAgotado = f.edad;
-    });
-    var textoCobertura = edadCapitalAgotado !== null
-      ? 'hasta los ' + edadCapitalAgotado + ' años de edad'
-      : 'durante toda tu esperanza de vida';
-
-    var costoPct = (r.costoAnualAplicado * 100).toFixed(2);
-    var filasCostoTabla = MAXX_TABLA_COSTO_PLAZO.map(function(row) {
-      var esActual = row[1] === r.costoAnualAplicado;
-      return '<tr style="' + (esActual ? 'background:#EAF3DE;font-weight:700;color:#3B6D11;' : 'color:#5F5E5A;') + '">' +
-        '<td style="padding:4px 6px;">' + row[0] + ' años</td>' +
-        '<td style="padding:4px 6px;text-align:right;">' + (row[1]*100).toFixed(2) + '%' + (esActual ? ' ◄ TU PLAZO' : '') + '</td></tr>';
-    }).join('');
-    var bloqueCosto =
-      '<div style="display:flex;justify-content:space-between;margin-bottom:6px;">' +
-        '<span style="font-size:13px;color:#5F5E5A;">Costo anual de tu plan <span style="font-weight:400;">(según tu plazo de ' + r.plazoComprometido + ' años)</span></span>' +
-        '<span style="font-size:13px;font-weight:700;color:#042C53;">' + costoPct + '%</span>' +
-      '</div>' +
-      maxxSabiasQueHTML('costo', 'Entre más largo tu plazo, más bajo tu costo', 4).replace('margin-top:4px;', 'margin-top:4px;margin-bottom:6px;') +
-      maxxSabiasQueHTML('esperanza', '¿Cuánto ha crecido la esperanza de vida en México?', 0);
-
-    document.getElementById('maxx-panel-5').innerHTML =
-      '<div style="font-size:15px;color:#042C53;font-weight:700;margin-bottom:9px;letter-spacing:0.5px;">SECCIÓN III · RESULTADOS</div>' +
-      '<div style="background:#EAF3DE;border-radius:10px;padding:14px;text-align:center;margin-bottom:10px;">' +
-        '<div style="font-size:15px;color:#3B6D11;font-weight:700;margin-bottom:7px;line-height:1.4;">🎉 Esto es lo que se estima que tus aportaciones acumularán para tu retiro a los ' + r.edadRetiro + ' años de edad</div>' +
-        '<div style="font-size:38px;font-weight:800;color:#3B6D11;line-height:1.1;">$' + Math.round(fondoAlRetiro).toLocaleString('es-MX') + '</div>' +
-        '<div style="font-size:13px;font-weight:400;color:#5F8A3A;margin-top:3px;">(incluye inflación)</div>' +
-        '<div style="font-size:15px;color:#3B6D11;font-weight:700;margin-top:11px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br><strong>Agenda TU Cita.</strong></div>' +
-      '</div>' +
-      '<div style="font-size:12px;color:#042C53;font-weight:600;line-height:1.4;margin-bottom:10px;"><strong>Lo logras aportando tan solo $' + Math.round(d.capacidadAhorro).toLocaleString('es-MX') + '/mes.</strong><br>Al seguir invirtiendo tu saldo, te alcanzará para tener el equivalente a $' + Math.round(d.montoDeseado).toLocaleString('es-MX') + '/mes de hoy, ' + textoCobertura + '.</div>' +
-      '<div style="font-size:13px;color:#042C53;font-weight:800;margin-bottom:6px;">En MAXX preferimos la transparencia</div>' +
-      '<div style="font-size:12px;color:#5F5E5A;font-weight:500;line-height:1.4;margin-bottom:10px;">Tus aportaciones se invertirán a una <strong>tasa nominal de ' + tasaNominalBrutaPct.toFixed(2) + '% anual</strong> (estimado con S&P500).<br>Esta proyección ya <strong>descuenta el costo de tu plan</strong> (' + costoPct + '% anual, según tu plazo) — por eso creció con una <strong>tasa nominal neta de ' + tasaNominalNetaPct.toFixed(2) + '% anual</strong> (en pesos de cada año).<br>En poder de compra real — descontando la inflación — esto equivale a la <strong>Tasa Real Neta de ' + (r.tasaRealNetaCosto*100).toFixed(2) + '%</strong> que ves en la sección de Indicadores Financieros.</div>' +
-      '<div style="font-size:12px;color:#5F5E5A;font-weight:700;margin-bottom:6px;">Así se compone tu resultado:</div>' +
-      '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Necesidad total</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.necesidadTotal).toLocaleString('es-MX') + '</span></div>' +
-      '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Tu pensión IMSS/AFORE cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.pensionFondeada).toLocaleString('es-MX') + '</span></div>' +
-      '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="font-size:13px;color:#5F5E5A;">Tu pensión vía AFORE, al retiro <span style="font-weight:400;">(mensual, pesos de ese momento)</span></span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(pensionMensualAlRetiro).toLocaleString('es-MX') + '</span></div>' +
-      '<div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="font-size:13px;color:#5F5E5A;">Tu ahorro actual cubre</span><span style="font-size:13px;font-weight:700;color:#042C53;">$' + Math.round(r.ahorroFondeado).toLocaleString('es-MX') + '</span></div>' +
-      bloqueCosto +
-      maxxSorpresaHTML(d);
-
-    maxxWireSabiasQue('costo');
-    maxxWireSabiasQue('esperanza');
-    maxxWireSorpresa();
-
-    var bodyCosto = document.getElementById('maxx-sq-body-costo');
-    if (bodyCosto) {
-      bodyCosto.innerHTML = MAXX_SABIAS_QUE.costo +
-        '<table style="width:100%;border-collapse:collapse;margin-top:6px;">' +
-        '<tr style="font-weight:700;color:#042C53;"><td style="padding:4px 6px;">Plazo</td><td style="padding:4px 6px;text-align:right;">Costo Anual Promedio</td></tr>' +
-        filasCostoTabla +
-        '</table>';
-    }
-    maxxWireSabiasQue('costo');
-
-    document.getElementById('maxx-panel-cta').innerHTML =
-      '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=cuestionario&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:14px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1.5;text-align:center;text-decoration:none;box-sizing:border-box;">¿Quieres conocer la Solución Ideal para TI?<br><span style="font-size:19px;">Agenda TU Cita. ¡Hazlo YA! →</span><br><span style="font-size:13px;font-weight:600;">30 minutos. Gratuito. Sin Compromisos.</span></a>' +
-      '<button type="button" id="maxx-btn-pdf" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;border-radius:10px;border:1.5px solid #042C53;background:#fff;color:#042C53;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;box-sizing:border-box;">🖨️ Recibe TU Calificación en PDF</button>';
-
-    var btnPdf = document.getElementById('maxx-btn-pdf');
-    if (btnPdf) btnPdf.addEventListener('click', function() { maxxAbrirModalPDF(); });
-  }
-
-  // ---------- MODAL: Solicitud de PDF (contacto + toda la data del Cuestionario) ----------
-  // IMPORTANTE (Javier): antes de que esto funcione en vivo, necesitas crear en HubSpot:
-  // 1) Un formulario NUEVO (Marketing > Forms > Create) con SOLO estos campos: Nombre, Apellidos,
-  //    Teléfono, Correo (los 4 ya existen como propiedades estándar de contacto, no hay que crearlos).
-  // 2) Una propiedad de contacto NUEVA, tipo "Texto de varias líneas" (multi-line text),
-  //    con el label exacto: "Detalle Cuestionario MAXX" (así el internal name sale limpio:
-  //    detalle_cuestionario_maxx — evita el bug de nombres corruptos que ya vivimos antes).
-  //    Agrégala a este mismo formulario nuevo (puede ser un campo oculto/hidden si quieres).
-  // 3) Copia el Form GUID del formulario nuevo y pégalo abajo en MAXX_PDF_FORM_GUID.
-  var MAXX_PDF_PORTAL_ID = '51441967';
-  var MAXX_PDF_FORM_GUID = '56befb9b-6412-4b29-a1d2-51818a0f8697'; // conectado 28-jul-2026
-
-  // ---------- Checador: consulta al Apps Script (Checador.gs) ANTES de enviar, para saber si
-  // este correo ya recibió su PDF de "Solicitud de PDF" antes. Sustituye la protección débil
-  // de localStorage (que cualquiera puede evadir borrando su navegador o usando otro dispositivo).
-  // IMPORTANTE (Javier): pega aquí la URL de tu Checador publicado como Web App (termina en /exec).
-  // La consigues en Apps Script: Implementar → Nueva implementación → tipo "Aplicación web".
-  var MAXX_CHECADOR_URL = 'https://script.google.com/macros/s/AKfycbyvfnISVdcSjgfidTMCY0LiDyyBeqZnRKjSzLmedCkqJwaxyB_r465MTxMZQ1cT0FcI4A/exec';
-
-  function maxxConsultarChecador(correo, tipo) {
-    // Devuelve una Promise que SIEMPRE resuelve con { yaEnviado: true|false, error: true|false }.
-    // Si el checador falla o no está configurado, resuelve con yaEnviado:false (falla "abierto"
-    // — no bloquea al usuario por un problema técnico del checador; el pipeline en Apps Script
-    // sigue siendo la última línea de defensa real contra duplicados, vía pdfEnviadoFecha).
-    if (!MAXX_CHECADOR_URL || MAXX_CHECADOR_URL.indexOf('PENDIENTE') === 0) {
-      return Promise.resolve({ yaEnviado: false, error: true });
-    }
-    var url = MAXX_CHECADOR_URL + '?correo=' + encodeURIComponent(correo) + '&tipo=' + encodeURIComponent(tipo);
-    return fetch(url)
-      .then(function(resp) { return resp.json(); })
-      .then(function(data) { return { yaEnviado: !!data.yaEnviado, error: false }; })
-      .catch(function() { return { yaEnviado: false, error: true }; });
-  }
-
-  function maxxMarcarChecador(correo, tipo) {
-    // Avisa al checador AL INSTANTE que este correo ya recibió su PDF — no espera a que el
-    // pipeline de fondo (que corre cada 15 min, o manual) lo detecte y lo marque después.
-    // Es "fire and forget": no bloquea la UI ni afecta el flujo si falla (el pipeline de
-    // fondo sigue siendo el respaldo que sí marca esto tarde o temprano de todas formas).
-    if (!MAXX_CHECADOR_URL || MAXX_CHECADOR_URL.indexOf('PENDIENTE') === 0) return;
-    var url = MAXX_CHECADOR_URL + '?correo=' + encodeURIComponent(correo) + '&tipo=' + encodeURIComponent(tipo) + '&accion=marcar';
-    fetch(url).catch(function() { /* silencioso: el pipeline de fondo respalda esto */ });
-  }
-
-  function maxxConstruirDetalleJSON() {
-    var d = window.maxxData;
-    var r = window.maxxUltimoResultado || {};
-    var detalle = {
-      edadActual: d.edadActual, genero: d.genero, edadRetiro: d.edadRetiro,
-      montoDeseado: d.montoDeseado, capacidadAhorro: d.capacidadAhorro,
-      tieneAfore: d.tieneAfore, aniosCotizando: d.aniosCotizando, sueldoBruto: d.sueldoBruto,
-      ingresoActual: d.ingresoActual, ley73: d.ley73,
-      conyugeApoya: d.conyugeApoya, conyugeEdadActual: d.conyugeEdadActual, conyugeAfore: d.conyugeAfore,
-      conyugeAnios: d.conyugeAnios, conyugeSueldo: d.conyugeSueldo, conyugeIngreso: d.conyugeIngreso, conyugeLey73: d.conyugeLey73,
-      tieneAhorros: d.tieneAhorros, montoAhorros: d.montoAhorros,
-      casaPropia: d.casaPropia, valorCasa: d.valorCasa,
-      otraFuente: d.otraFuente, montoOtraFuente: d.montoOtraFuente,
-      inflacion: d.inflacion, tasaSolucion: d.tasaSolucion,
-      fondoAlRetiro: d.fondoAlRetiro, pensionMensualAlRetiro: d.pensionMensualAlRetiro,
-      califSin: r.califSin, califCon: r.califCon, necesidadTotal: r.necesidadTotal,
-      pensionFondeada: r.pensionFondeada, ahorroFondeado: r.ahorroFondeado,
-      costoAnualAplicado: r.costoAnualAplicado, tasaSolucionNeta: r.tasaSolucionNeta,
-      tasaRealNetaCosto: r.tasaRealNetaCosto, esperanzaVida: r.esperanzaVida,
-      plazoComprometido: r.plazoComprometido
-    };
-    return JSON.stringify(detalle);
-  }
-
-  function maxxModalHTML() {
-    return '<div id="maxx-modal-pdf-overlay" style="display:none;position:fixed;inset:0;background:rgba(4,44,83,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;font-family:Roboto,-apple-system,sans-serif;">' +
-      '<div style="background:#fff;border-radius:14px;max-width:420px;width:100%;padding:22px;box-sizing:border-box;position:relative;">' +
-        '<button type="button" id="maxx-modal-pdf-cerrar" style="position:absolute;top:10px;right:12px;border:none;background:transparent;font-size:20px;color:#5F5E5A;cursor:pointer;line-height:1;">×</button>' +
-        '<div id="maxx-pdf-header-normal">' +
-          '<div style="font-size:19px;font-weight:800;color:#042C53;margin-bottom:6px;line-height:1.3;">Recibe TU Calificación en PDF</div>' +
-          '<div style="font-size:14px;color:#378ADD;font-weight:600;margin-bottom:16px;line-height:1.45;">Ya diste el primer paso hacia TU Destino.<br>Ahora dinos a dónde enviar TU resultado.</div>' +
-        '</div>' +
-        '<div style="margin-bottom:10px;"><input type="text" id="maxx-pdf-nombre" placeholder="Nombre" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
-        '<div style="margin-bottom:10px;"><input type="text" id="maxx-pdf-apellidos" placeholder="Apellidos" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
-        '<div style="margin-bottom:14px;"><input type="email" id="maxx-pdf-correo" placeholder="Correo" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
-        '<input type="text" id="maxx-pdf-empresa" name="empresa_web" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">' +
-        '<div id="maxx-pdf-error" style="display:none;color:#C0392B;font-size:12px;margin-bottom:10px;"></div>' +
-        '<button type="button" id="maxx-pdf-enviar" style="display:block;width:100%;padding:13px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;">Enviarme el PDF →</button>' +
-        '<div id="maxx-pdf-exito" style="display:none;">' +
-          '<div style="font-size:20px;font-weight:800;color:#042C53;margin-bottom:8px;line-height:1.3;">¡YA lograste el primer paso! 🎉</div>' +
-          '<div style="font-size:14px;color:#3D3B36;line-height:1.5;margin-bottom:2px;"><strong style="color:#042C53;">La visión de TU Futuro ya viaja hacia tu correo.</strong></div>' +
-          '<div style="font-size:14px;color:#3D3B36;line-height:1.5;margin-bottom:10px;">Revisa tu bandeja de entrada y/o SPAM en los próximos minutos.</div>' +
-          '<div style="font-size:14px;font-weight:700;color:#3B6D11;line-height:1.4;margin-bottom:2px;">Ya tienes TUS números.</div>' +
-          '<div style="font-size:14px;font-weight:700;color:#3B6D11;line-height:1.4;margin-bottom:16px;">Ahora falta construir TU Destino con ellos.</div>' +
-          '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=pdf_exito&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:14px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1.4;text-align:center;text-decoration:none;box-sizing:border-box;">Agenda TU Cita. ¡Empieza HOY! →<br><span style="font-size:12px;font-weight:600;">30 minutos. Gratuito. Sin Compromisos.</span></a>' +
-        '</div>' +
-        '<div id="maxx-pdf-cta-repetido" style="display:none;">' +
-          '<div style="font-size:21px;font-weight:800;color:#042C53;margin-bottom:8px;line-height:1.25;">¡YA lograste el primer paso! 🎉</div>' +
-          '<div style="font-size:14px;color:#3D3B36;line-height:1.5;margin-bottom:2px;"><strong style="color:#042C53;">TU Calificación en PDF ya fue enviada a tu correo.</strong></div>' +
-          '<div style="font-size:14px;color:#3D3B36;line-height:1.5;margin-bottom:10px;">Revisa tu bandeja de entrada y/o SPAM.</div>' +
-          '<div style="font-size:16px;font-weight:700;color:#3B6D11;margin-bottom:16px;line-height:1.35;">Ahora es momento de mejorar TU Calificación y construir TU Destino.</div>' +
-          '<div style="background:#EAF3DE;border-radius:10px;padding:14px;margin-bottom:16px;">' +
-            '<div style="font-size:13px;color:#3B6D11;font-weight:700;line-height:1.6;">' +
-              'a) YA tienes TUS números reales, no genéricos.<br>' +
-              'b) YA sabes exactamente en dónde estás parado.<br>' +
-              'c) Solo falta el paso que TODO lo cambia: platicarlo con MAXX.' +
-            '</div>' +
-          '</div>' +
-          '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=pdf_repetido&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:14px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1.4;text-align:center;text-decoration:none;box-sizing:border-box;">Agenda TU Cita y Empieza HOY a Construir TU Futuro →<br><span style="font-size:12px;font-weight:600;">30 minutos. Gratuito. Sin Compromisos.</span></a>' +
-        '</div>' +
-      '</div>' +
+function maxxCtaQrHTML(urlQr, urlMostrar, sizePx, tituloHtml, tamTitulo, colorLink, colorTitulo) {
+  var qr = maxxQrDataUri(urlQr, sizePx);
+  tamTitulo = tamTitulo || 14;
+  colorLink = colorLink || "#5F5E5A";
+  colorTitulo = colorTitulo || "#8FD14F";
+  return '<div style="text-align:center;">' +
+    '<div style="font-size:' + tamTitulo + 'px;font-weight:800;color:' + colorTitulo + ';margin-bottom:8px;line-height:1.3;">' + tituloHtml + '</div>' +
+    (qr ? ('<img src="' + qr + '" style="width:' + sizePx + 'px;height:' + sizePx + 'px;" />') : '') +
+    '<div style="font-size:11px;color:' + colorLink + ';margin-top:7px;font-weight:700;">Escanea, o visita: <b>' + urlMostrar + '</b></div>' +
     '</div>';
-  }
+}
 
-  window.maxxAbrirModalPDF = function() {
-    if (!document.getElementById('maxx-modal-pdf-overlay')) {
-      var wrapper = document.createElement('div');
-      wrapper.innerHTML = maxxModalHTML();
-      document.body.appendChild(wrapper.firstChild);
-      maxxWireModalPDF();
-    } else {
-      // El modal ya existía (se abrió antes en esta sesión): reseteamos su estado visual
-      // para que no quede atorado en "ya recibiste tu PDF" o en "¡Listo!" de una vez anterior.
-      document.getElementById('maxx-pdf-header-normal').style.display = 'block';
-      document.getElementById('maxx-pdf-nombre').parentElement.style.display = 'block';
-      document.getElementById('maxx-pdf-apellidos').parentElement.style.display = 'block';
-      document.getElementById('maxx-pdf-correo').parentElement.style.display = 'block';
-      document.getElementById('maxx-pdf-cta-repetido').style.display = 'none';
-      document.getElementById('maxx-pdf-exito').style.display = 'none';
-      var btnReset = document.getElementById('maxx-pdf-enviar');
-      btnReset.style.display = 'block';
-      btnReset.disabled = false;
-      btnReset.textContent = 'Enviarme el PDF →';
-      document.getElementById('maxx-pdf-error').style.display = 'none';
-    }
-    window.maxxModalPdfAbiertoEn = Date.now();
-    var overlay = document.getElementById('maxx-modal-pdf-overlay');
-    overlay.style.display = 'flex';
-  };
+function maxxConstruirHtmlPdfCuestionario(d, det) {
+  var edadActual = det.edadActual || 0;
+  var edadRetiro = det.edadRetiro || 65;
+  var esperanzaVida = det.esperanzaVida || 0;
+  var plazo = det.plazoComprometido || (edadRetiro - edadActual);
+  var tasaRealNeta = det.tasaRealNetaCosto !== undefined ? det.tasaRealNetaCosto : ((1 + (det.tasaSolucionNeta || 0)) / (1 + (det.inflacion || 0)) - 1);
+  var aforeTexto = det.tieneAfore === "S" ? ("Sí — " + (det.ley73 === "S" ? "Ley 73" : "Ley 97")) : "No";
+  var edadCapitalAgota = det.califCon >= 100 ? null : Math.round(edadRetiro + esperanzaVida * Math.min(1, (det.califCon || 0) / 100));
+  var textoCobertura = edadCapitalAgota ? ("hasta los " + edadCapitalAgota + " años de edad") : "durante toda tu esperanza de vida";
 
-  function maxxCerrarModalPDF() {
-    var overlay = document.getElementById('maxx-modal-pdf-overlay');
-    if (overlay) overlay.style.display = 'none';
-  }
+  var css = '<style>' +
+    '*{box-sizing:border-box;margin:0;padding:0;}' +
+    'body{background:#e8e8e4;font-family:Roboto,Arial,sans-serif;}' +
+    '.hoja{width:816px;min-height:1056px;background:#fff;margin:0 auto;display:flex;flex-direction:column;position:relative;page-break-after:always;}' +
+    '.encabezado{background:#042C53;color:#fff;padding:10px 40px;display:flex;justify-content:space-between;align-items:center;}' +
+    '.encabezado-compacto{padding:8px 40px;}' +
+    '.titulo-doc{font-size:22px;font-weight:700;letter-spacing:0.3px;}' +
+    '.titulo-doc-chico{font-size:15px;font-weight:700;letter-spacing:0.3px;}' +
+    '.pie{display:flex;justify-content:space-between;align-items:center;padding:12px 40px;border-top:1px solid #E6E4DA;font-size:10.5px;color:#8A8778;}' +
+    '.pie .centro{font-weight:600;color:#042C53;}' +
+    '.fila{display:flex;justify-content:space-between;font-size:13.5px;padding:5px 0;color:#3D3B36;}' +
+    '.fila b{color:#042C53;}' +
+    '.seccion-mini{background:#F5F4F0;border-radius:10px;padding:14px 16px;margin-bottom:14px;}' +
+    '.seccion-mini h4{font-size:13px;color:#042C53;letter-spacing:0.4px;margin-bottom:9px;font-weight:700;}' +
+    '.cuerpo1{flex:1;padding:26px 40px 10px 40px;display:flex;flex-direction:column;}' +
+    '.fila-saludo-fecha{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;}' +
+    '.saludo{font-size:26px;font-weight:800;color:#042C53;}' +
+    '.nombre-usuario{color:#3B6D11;}' +
+    '.fecha-doc{font-size:13px;color:#5F5E5A;font-weight:500;}' +
+    '.bienvenida{font-size:15px;color:#3D3B36;line-height:1.6;margin:0 0 24px 0;}' +
+    '.banner-emotivo{margin-top:16px;background:linear-gradient(115deg,#1F3B57 0%,#042C53 45%,#0B4A2E 100%);border-radius:12px;padding:26px 30px;display:flex;align-items:center;justify-content:center;flex:1;min-height:160px;}' +
+    '.banner-emotivo .frase{color:#fff;font-size:19px;font-weight:700;text-align:center;line-height:1.5;}' +
+    '.banner-emotivo .frase span{color:#8FD14F;}' +
+    '.cuerpo2{flex:1;padding:22px 40px 10px 40px;}' +
+    '.titulo-pagina2{font-size:18px;color:#042C53;font-weight:800;margin-bottom:16px;}' +
+    '.flex2col{display:flex;gap:16px;align-items:flex-start;}' +
+    '.col-principal{flex:2;}.col-lateral{flex:1;}' +
+    '.titulo-seccion2{font-size:13.5px;color:#042C53;font-weight:700;letter-spacing:0.4px;margin-bottom:9px;}' +
+    '.como-leer{background:#F5F4F0;border-radius:10px;padding:14px 16px;font-size:12.5px;color:#3D3B36;line-height:1.55;}' +
+    '.como-leer p{margin-bottom:7px;}' +
+    '.caja-resultados{background:#EAF3DE;border-radius:10px;padding:18px;}' +
+    '.caja-resultados .monto{font-size:30px;font-weight:800;color:#3B6D11;line-height:1.1;}' +
+    '.caja-resultados .detalle-fila{display:flex;justify-content:space-between;font-size:13.5px;color:#3D3B36;padding:5px 0;}' +
+    '.caja-calif{background:#F5F4F0;border-radius:10px;padding:18px;text-align:center;margin-bottom:12px;}' +
+    '.caja-calif .numero{font-size:52px;font-weight:800;line-height:1;}' +
+    '.caja-calif.sin .numero{color:#042C53;}.caja-calif.con .numero{color:#3B6D11;}' +
+    '.caja-calif .etiqueta{font-size:13px;color:#5F5E5A;font-weight:700;margin-bottom:6px;}' +
+    '.caja-calif .gap{font-size:13.5px;font-weight:700;color:#042C53;margin-top:4px;}' +
+    '.caja-calif .msg{font-size:12.5px;color:#3D3B36;margin-top:8px;line-height:1.4;}' +
+    '.caja-calif.con .msg{color:#3B6D11;font-weight:600;}' +
+    '.cierre-cta{background:#042C53;color:#fff;border-radius:12px;margin-top:18px;display:flex;align-items:stretch;overflow:hidden;min-height:230px;}' +
+    '.cierre-texto{flex:2;padding:22px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;justify-content:center;}' +
+    '.cierre-imagen{flex:1;background:rgba(255,255,255,0.08);border-left:1.5px dashed rgba(255,255,255,0.35);display:flex;align-items:center;justify-content:center;text-align:center;font-size:11px;color:rgba(255,255,255,0.75);padding:10px;font-weight:600;line-height:1.4;}' +
+    '.cierre-cta .frase-linea1{font-size:18px;font-weight:800;line-height:1.3;margin-bottom:10px;}' +
+    '.cierre-cta .verde{color:#8FD14F;display:block;margin-top:2px;}' +
+    '.cierre-cta .frase-grande{font-size:23px;font-weight:800;color:#8FD14F;line-height:1.15;margin-bottom:10px;}' +
+    '.cierre-cta .frase-chica{font-size:10.5px;color:#B9C6D6;margin-top:8px;}' +
+    '.cuerpo3{flex:1;padding:26px 40px 10px 40px;}' +
+    '.nota-item{display:flex;gap:12px;margin-bottom:18px;}' +
+    '.nota-num{width:26px;height:26px;border-radius:50%;background:#042C53;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;}' +
+    '.nota-texto{flex:1;min-width:0;font-size:12px;color:#3D3B36;line-height:1.55;}' +
+    '.nota-texto b{color:#042C53;}' +
+    '.nota-origen{font-size:10.5px;color:#378ADD;font-weight:700;text-align:center;margin-bottom:6px;}' +
+    '.tabla-nota{border-collapse:collapse;margin:9px auto 0 auto;width:auto;font-size:11px;border:1px solid #C9CBD1;}' +
+    '.tabla-nota th,.tabla-nota td{border:1px solid #C9CBD1;padding:3px 10px;text-align:center;white-space:nowrap;}' +
+    '.tabla-nota th{background:#E6F1FB;color:#042C53;font-weight:700;}' +
+    '.tabla-nota td{color:#5F5E5A;}' +
+    '.fila-usada,td.fila-usada{background:#EAF3DE !important;color:#3B6D11 !important;font-weight:700;}' +
+    '.tabla-nota-chica{font-size:10.5px;}.tabla-nota-chica th,.tabla-nota-chica td{padding:2px 7px;}' +
+    '.col-año{background:#F0F0EC;font-weight:700;color:#5F5E5A;text-align:center;}' +
+    '.flex-lado{display:flex;gap:14px;align-items:stretch;margin-bottom:14px;}' +
+    '.flex-lado .seccion-mini{flex:1;margin-bottom:0;}' +
+    '</style>';
 
-  function maxxWireModalPDF() {
-    document.getElementById('maxx-modal-pdf-cerrar').addEventListener('click', maxxCerrarModalPDF);
-    document.getElementById('maxx-modal-pdf-overlay').addEventListener('click', function(e) {
-      if (e.target.id === 'maxx-modal-pdf-overlay') maxxCerrarModalPDF();
-    });
+  var citaUrlP1 = "https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=pdf&utm_medium=calificacion&utm_campaign=p1_hero";
 
-    document.getElementById('maxx-pdf-enviar').addEventListener('click', function() {
-      var nombre = document.getElementById('maxx-pdf-nombre').value.trim();
-      var apellidos = document.getElementById('maxx-pdf-apellidos').value.trim();
-      var correo = document.getElementById('maxx-pdf-correo').value.trim();
-      var trampa = document.getElementById('maxx-pdf-empresa').value.trim();
-      var errEl = document.getElementById('maxx-pdf-error');
+  var pagina1 = '<div class="hoja">' + maxxEncabezadoHTML(false) +
+    '<div class="cuerpo1">' +
+    '<div class="fila-saludo-fecha"><div class="saludo">Hola, <span class="nombre-usuario">' + d.nombre + ' ' + d.apellidos + '</span> 👋</div><div class="fecha-doc">' + d.fecha + '</div></div>' +
+    '<div class="bienvenida" style="margin-bottom:14px;font-size:15px;line-height:1.5;"><b style="color:#042C53;">Gracias por tu confianza al compartirnos TU información.</b><br><b style="color:#378ADD;">Este es TU primer paso hacia TU Libertad Económica.</b></div>' +
+    '<div class="flex2col" style="margin-bottom:16px;align-items:stretch;">' +
+    '<div class="col-principal">' +
+    '<div class="caja-resultados" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;height:100%;min-height:230px;padding:22px;">' +
+    '<div style="font-size:14px;color:#3B6D11;font-weight:700;line-height:1.4;">Con el nivel de aportaciones de <b>' + maxxFmtMoney(det.capacidadAhorro) + '</b><br>y para la edad de retiro de <b>' + edadRetiro + ' años</b>, acumularás:</div>' +
+    '<div class="monto" style="margin-top:8px;">' + maxxFmtMoney(det.fondoAlRetiro) + ' pesos</div>' +
+    '<div style="font-size:12.5px;color:#3B6D11;font-weight:700;margin-top:2px;">(incluye inflación<sup style="color:#B5651D;font-weight:800;font-size:10px;">3</sup>)</div>' +
+    '</div></div>' +
+    '<div class="col-lateral" style="display:flex;align-items:center;justify-content:center;background:#F5F4F0;border-radius:10px;">' +
+    maxxCtaQrHTML(citaUrlP1, "www.maxx.mx", 116, "Agenda TU Cita.<br>¡Empieza YA! →", 14, "#5F5E5A", "#3B6D11") +
+    '</div></div>' +
+    '<div class="flex-lado">' +
+    '<div class="seccion-mini"><h4>SECCIÓN I · TU LIBERTAD ECONÓMICA</h4>' +
+    '<div class="fila"><span>Edad actual</span><b>' + edadActual + ' años</b></div>' +
+    '<div class="fila"><span>Edad de retiro</span><b>' + edadRetiro + ' años</b></div>' +
+    '<div class="fila"><span>Monto mensual deseado</span><b>' + maxxFmtMoney(det.montoDeseado) + '</b></div></div>' +
+    '<div class="seccion-mini"><h4>SECCIÓN II · CON QUÉ CUENTAS</h4>' +
+    '<div class="fila"><span>Capacidad de ahorro mensual</span><b>' + maxxFmtMoney(det.capacidadAhorro) + '</b></div>' +
+    '<div class="fila"><span>¿Tienes AFORE?</span><b>' + aforeTexto + '</b></div>' +
+    (det.tieneAfore === "S" ? ('<div class="fila"><span>Años cotizando</span><b>' + (det.aniosCotizando || 0) + ' años</b></div>') : '') +
+    '</div></div>' +
+    '<div class="banner-emotivo" style="margin-top:0;min-height:100px;padding:16px 30px;position:relative;">' +
+    '<div style="position:absolute;top:8px;left:14px;font-size:9.5px;color:rgba(255,255,255,0.65);font-weight:700;">🖼️ IMAGEN (Canva) — el texto va sobre la foto</div>' +
+    '<div class="frase" style="font-size:16px;">"TU calificación de HOY no define TU destino.<br><span>TÚ lo haces. Empieza HOY.</span>"</div></div>' +
+    '<div class="seccion-mini" style="margin-top:12px;background:#F0F0EC;">' +
+    '<h4>RESPALDO TÉCNICO DE TU RESULTADO · SECCIÓN III · INDICADORES</h4>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;gap:4px;margin-top:6px;">' +
+    '<div style="text-align:center;flex:1;"><div style="text-align:center;font-size:11px;color:#3D3B36;font-weight:600;">Bruta<sup style="color:#B5651D;font-weight:800;font-size:9px;">1</sup></div><div style="text-align:center;font-size:16px;font-weight:800;color:#042C53;">' + maxxFmtPct(det.tasaSolucion) + '</div></div>' +
+    '<div style="color:#a8a69d;font-size:14px;">−</div>' +
+    '<div style="text-align:center;flex:1;"><div style="text-align:center;font-size:11px;color:#3D3B36;font-weight:600;">Costo<sup style="color:#B5651D;font-weight:800;font-size:9px;">2</sup></div><div style="text-align:center;font-size:16px;font-weight:800;color:#042C53;">' + maxxFmtPct(det.costoAnualAplicado) + '</div></div>' +
+    '<div style="color:#a8a69d;font-size:14px;">−</div>' +
+    '<div style="text-align:center;flex:1;"><div style="text-align:center;font-size:11px;color:#3D3B36;font-weight:600;">Inflación<sup style="color:#B5651D;font-weight:800;font-size:9px;">3</sup></div><div style="text-align:center;font-size:16px;font-weight:800;color:#042C53;">' + maxxFmtPct(det.inflacion) + '</div></div>' +
+    '<div style="color:#a8a69d;font-size:14px;">=</div>' +
+    '<div style="text-align:center;flex:1.3;"><div style="text-align:center;font-size:11px;color:#3D3B36;font-weight:700;">Real Neta</div><div style="text-align:center;font-size:23px;font-weight:800;color:#3B6D11;">' + maxxFmtPct(tasaRealNeta) + '</div></div>' +
+    '</div><div style="font-size:10.5px;color:#3D3B36;font-weight:600;margin-top:8px;line-height:1.4;text-align:center;">Respaldo técnico — detalle completo (incluida la tabla de inflación) en la Página 3.</div></div>' +
+    '</div>' + maxxPieHTML(1) + '</div>';
 
-      var tiempoTranscurrido = Date.now() - (window.maxxModalPdfAbiertoEn || 0);
-      if (trampa || tiempoTranscurrido < 2000) {
-        document.getElementById('maxx-pdf-enviar').style.display = 'none';
-        document.getElementById('maxx-pdf-exito').style.display = 'block';
-        return;
-      }
+  var edadCapitalAgotaTxt = edadCapitalAgota ? edadCapitalAgota : "";
+  var bodyCosto = maxxTablaCostoHTML(det.costoAnualAplicado);
+  var bodySP = maxxTablaSPHTML(det.tasaSolucion);
+  var bodyInflacion = maxxTablaInflacionHTML(det.inflacion);
 
-      var correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
-      if (!nombre || !apellidos || !correoValido) {
-        errEl.style.display = 'block';
-        errEl.textContent = '⚠ Completa todos los campos con un correo válido.';
-        return;
-      }
+  var citaUrlP2 = "https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=pdf&utm_medium=calificacion&utm_campaign=p2_cierre";
 
-      errEl.style.display = 'none';
+  var pagina2 = '<div class="hoja">' + maxxEncabezadoHTML(true) +
+    '<div class="cuerpo2">' +
+    '<div class="titulo-pagina2">TU Calificación: CON Aportaciones.</div>' +
+    '<div class="flex2col">' +
+    '<div class="col-principal">' +
+    '<div class="titulo-seccion2">GRÁFICA · ACUMULACIÓN Y DESACUMULACIÓN</div>' +
+    maxxGraficaSvgPdf(det) +
+    '<div style="text-align:center;font-size:13px;font-weight:700;color:#042C53;margin-top:8px;margin-bottom:16px;line-height:1.4;">' +
+    'Montos a tus ' + edadRetiro + ' años de edad — <b>a valor del momento de tu retiro</b> (no de hoy):<br>' +
+    'Acumulado ' + maxxFmtMoney(det.fondoAlRetiro) + ' &nbsp;·&nbsp; Deseado ' + maxxFmtMoney(det.montoDeseado) + '/mes &nbsp;·&nbsp; Pensión ' + maxxFmtMoney(det.pensionMensualAlRetiro) + '/mes</div>' +
+    '<div class="titulo-seccion2">SECCIÓN V · RESULTADOS</div>' +
+    '<div class="caja-resultados">' +
+    '<div style="font-size:14px;color:#3B6D11;font-weight:700;margin-bottom:8px;line-height:1.4;text-align:center;">🎉 Esto es lo que se estima que tus aportaciones acumularán para tu retiro a los ' + edadRetiro + ' años de edad</div>' +
+    '<div class="monto" style="text-align:center;">' + maxxFmtMoney(det.fondoAlRetiro) + '</div>' +
+    '<div style="font-size:12.5px;color:#3B6D11;font-weight:700;margin-bottom:10px;text-align:center;">(incluye inflación)</div>' +
+    '<div style="font-size:12.5px;color:#3B6D11;font-weight:600;line-height:1.5;margin-bottom:3px;">Lo logras aportando <b>' + maxxFmtMoney(det.capacidadAhorro) + '/mes</b>.</div>' +
+    '<div style="font-size:12.5px;color:#3B6D11;font-weight:600;line-height:1.5;margin-bottom:3px;">Invertido a una tasa nominal de <b>' + maxxFmtPct(det.tasaSolucion) + ' anual</b> (estimado con S&P500).</div>' +
+    '<div style="font-size:12.5px;color:#3B6D11;font-weight:600;line-height:1.5;margin-bottom:3px;">Ya descontado el costo de tu plan<sup style="color:#042C53;font-weight:800;font-size:10px;">2</sup> (' + maxxFmtPct(det.costoAnualAplicado) + '), tu tasa nominal neta es de <b>' + maxxFmtPct(det.tasaSolucionNeta) + ' anual</b>.</div>' +
+    '<div style="font-size:12.5px;color:#3B6D11;font-weight:600;line-height:1.5;margin-bottom:3px;">En poder de compra real<sup style="color:#042C53;font-weight:800;font-size:10px;">3</sup>, esto equivale a la <b>Tasa Real Neta de ' + maxxFmtPct(tasaRealNeta) + '</b>.</div>' +
+    '<div style="font-size:12.5px;color:#3B6D11;font-weight:600;line-height:1.5;margin-bottom:10px;">Tu saldo seguirá invertido y te alcanzará para <b>' + maxxFmtMoney(det.montoDeseado) + '/mes de hoy</b>, ' + textoCobertura + '.</div>' +
+    '<div style="font-size:13px;color:#3B6D11;font-weight:700;margin-bottom:12px;line-height:1.4;">MAXX te puede ayudar a lograr más.<br>Agenda TU Cita.</div>' +
+    '<div class="detalle-fila"><span>Necesidad total</span><b>' + maxxFmtMoney(det.necesidadTotal) + '</b></div>' +
+    '<div class="detalle-fila"><span>Tu pensión IMSS/AFORE cubre</span><b>' + maxxFmtMoney(det.pensionFondeada) + '</b></div>' +
+    '<div class="detalle-fila"><span>Tu pensión vía AFORE, al retiro (mensual)</span><b>' + maxxFmtMoney(det.pensionMensualAlRetiro) + '</b></div>' +
+    '<div class="detalle-fila"><span>Tu ahorro actual cubre</span><b>' + maxxFmtMoney(det.ahorroFondeado) + '</b></div>' +
+    '<div class="detalle-fila"><span>Costo anual de tu plan<sup style="color:#042C53;font-weight:800;font-size:9px;">2</sup></span><b>' + maxxFmtPct(det.costoAnualAplicado) + '</b></div>' +
+    '</div></div>' +
+    '<div class="col-lateral">' +
+    '<div class="titulo-seccion2">SECCIÓN IV · CÓMO LEER TU GRÁFICA</div>' +
+    '<div class="como-leer">' +
+    '<p><b>①</b> <b style="color:#EF9F27;">Naranja</b>: tu dinero creciendo mes a mes, hasta tu retiro.</p>' +
+    '<p><b>②</b> Al llegar a tu retiro, nace la línea <b style="color:#639922;">verde</b>.</p>' +
+    '<p><b>③</b> La <b style="color:#639922;">verde</b> se usa cada mes para completar lo que tu pensión no alcanza.</p>' +
+    '<p><b>④</b> Las líneas verticales marcan tu edad de retiro y tu esperanza de vida.</p>' +
+    '<p style="margin-bottom:0;"><b>⑤</b> Si la <b style="color:#639922;">verde</b> llega a $0 antes de tu esperanza de vida, tu capital se agotó — de ahí en adelante vives solo de tu pensión.</p>' +
+    '</div>' +
+    '<div class="titulo-seccion2" style="margin-top:18px;">TUS CALIFICACIONES</div>' +
+    '<div class="caja-calif sin"><div class="etiqueta">SIN Solución MAXX</div><div class="numero">' + (det.califSin || 0) + '<span style="font-size:13px;">/100</span></div><div class="gap">Tu GAP: ' + (100 - (det.califSin || 0)) + '%</div><div class="msg">Este es tu punto de partida.<br>Vamos a mejorarlo.</div></div>' +
+    '<div class="caja-calif con"><div class="etiqueta">CON TU Propuesta</div><div class="numero">' + (det.califCon || 0) + '<span style="font-size:13px;">/100</span></div><div class="gap">Tu GAP: ' + (100 - (det.califCon || 0)) + '%</div><div class="msg">' + (det.califCon >= 100 ? "Con TUS Aportaciones podrás cerrar la brecha." : "Con TUS Aportaciones cierras una parte de la brecha.") + '</div></div>' +
+    '</div></div>' +
+    '<div class="cierre-cta">' +
+    '<div class="cierre-texto">' +
+    '<div class="frase-linea1">TU calificación de HOY<span class="verde" style="font-size:21px;">no define TU destino.</span></div>' +
+    '<div class="frase-grande">TÚ lo haces.</div>' +
+    '<div style="font-size:13px;font-weight:600;margin-bottom:4px;">En 30 minutos, te mostramos cómo mejorar TU Calificación.</div>' +
+    '<div class="frase-chica" style="margin-top:0;margin-bottom:12px;">Consulta Gratuita. Sin Compromiso.</div>' +
+    maxxCtaQrHTML(citaUrlP2, "www.maxx.mx", 118, "¿Quieres conocer<br>la Solución Ideal para TI?<br>Agenda TU Cita. ¡Hazlo YA! →", 19, "#D9E4F0") +
+    '</div>' +
+    '<div class="cierre-imagen">IMAGEN<br>(se arma en Canva)</div>' +
+    '</div>' +
+    '</div>' + maxxPieHTML(2) + '</div>';
 
-      var btn = document.getElementById('maxx-pdf-enviar');
-      btn.disabled = true;
-      btn.textContent = 'Verificando...';
+  var pagina3 = '<div class="hoja">' + maxxEncabezadoHTML(true) +
+    '<div class="cuerpo3">' +
+    '<div class="titulo-seccion2" style="font-size:16px;margin-bottom:20px;">NOTAS ACLARATORIAS</div>' +
+    '<div class="nota-item"><div class="nota-num">1</div><div class="nota-texto"><b>Rendimiento — Solución propuesta por MAXX.</b> El S&P 500 es una excelente opción para hacer crecer tu dinero: incluso después de descontar la inflación, sigue dando rendimientos reales atractivos, año tras año.<div class="nota-origen" style="margin-top:9px;">Referencia: Página 1, Sección II</div>' + bodySP + '</div></div>' +
+    '<div class="nota-item"><div class="nota-num">2</div><div class="nota-texto"><b>Costo de tu plan.</b> Entre más largo el plazo que eliges para tu plan, más baja tu tasa de costo anual promedio.<div class="nota-origen" style="margin-top:9px;">Referencia: Página 1, Sección II · Página 2, Sección V</div>' + bodyCosto + '</div></div>' +
+    '<div class="nota-item"><div class="nota-num">3</div><div class="nota-texto"><b>Inflación anual.</b> En México ha habido años con más de 15% de inflación. Por eso es mejor ser conservador al proyectar.<div class="nota-origen" style="margin-top:9px;">Últimos 10 años · Fuente: INEGI/Banxico · Referencia: Página 1, Sección II</div>' + bodyInflacion + '</div></div>' +
+    '<div class="nota-item"><div class="nota-num">4</div><div class="nota-texto"><b>Esperanza de vida.</b> Si te retiras a los ' + edadRetiro + ' años, tu esperanza de vida remanente es de aproximadamente ' + Math.round(esperanzaVida * 10) / 10 + ' años más — tu dinero necesita alcanzarte hasta cerca de los ' + Math.round(edadRetiro + esperanzaVida) + ' años.<div class="nota-origen">Referencia: Página 2, Gráfica</div></div></div>' +
+    '<div class="nota-item"><div class="nota-num">5</div><div class="nota-texto"><b>MAXX SIEMPRE te muestra la verdad completa.</b> Este cálculo YA incluye: a) el costo real de tu plan, b) tu pensión IMSS/AFORE. Otros cotizadores NO restan costos, y muchos ni siquiera calculan tu pensión. Por eso, si comparas cifras, MAXX puede verse con un monto menor. Tu futuro merece números reales.<div class="nota-origen">Referencia: Página 2, Sección V y Calificaciones</div></div></div>' +
+    '<div style="border:1.5px dashed #C7C4B8;border-radius:10px;padding:16px;text-align:center;color:#8A8778;font-size:12px;font-weight:600;min-height:110px;display:flex;align-items:center;justify-content:center;margin-top:8px;">IMAGEN — banner de cierre<br>(se arma en Canva)</div>' +
+    '</div>' + maxxPieHTML(3) + '</div>';
 
-      // Antes de enviar nada a HubSpot, le preguntamos al Checador si este correo ya
-      // recibió su PDF antes (tipo "pdf" — separado del registro de Calificación Financiera).
-      maxxConsultarChecador(correo, 'pdf').then(function(resultadoChecador) {
-        if (resultadoChecador.yaEnviado) {
-          // Ya lo recibió antes: NO se envía nada a HubSpot. Se muestra el CTA a la Cita.
-          document.getElementById('maxx-pdf-header-normal').style.display = 'none';
-          document.getElementById('maxx-pdf-nombre').parentElement.style.display = 'none';
-          document.getElementById('maxx-pdf-apellidos').parentElement.style.display = 'none';
-          document.getElementById('maxx-pdf-correo').parentElement.style.display = 'none';
-          btn.style.display = 'none';
-          document.getElementById('maxx-pdf-cta-repetido').style.display = 'block';
-          return;
-        }
+  return '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">' + css + '</head><body>' + pagina1 + pagina2 + pagina3 + '</body></html>';
+}
 
-        // No lo ha recibido (o el Checador no pudo responder, y fallamos "abierto"): procede normal.
-        btn.textContent = 'Enviando...';
+function generarPdfCuestionario(d) {
+  var det = d.detalle || {};
+  var html = maxxConstruirHtmlPdfCuestionario(d, det);
 
-        var payload = {
-          fields: [
-            { objectTypeId: '0-1', name: 'firstname', value: nombre },
-            { objectTypeId: '0-1', name: 'lastname', value: apellidos },
-            { objectTypeId: '0-1', name: 'email', value: correo },
-            { objectTypeId: '0-1', name: 'detalle_cuestionario_maxx', value: maxxConstruirDetalleJSON() }
-          ],
-          context: { pageUri: window.location.href, pageName: document.title }
-        };
+  var htmlBlob = Utilities.newBlob(html, "text/html", "temp_calificacion.html");
+  var pdfBlob = htmlBlob.getAs("application/pdf");
+  pdfBlob.setName("Calificacion_MAXX_" + d.nombre + "_" + d.apellidos + ".pdf");
+  return pdfBlob;
+}
+// ==== ENVIAR CORREOS: al usuario DIRECTO, y copia a Javier ====
+function enviarCorreosCuestionario(d, pdfBlob) {
+  // --- Al usuario: el PDF, directo, sin intervención de Javier ---
+  var asuntoUsuario = "TU Calificación Financiera Personal — MAXX";
+  var cuerpoUsuario = "Hola " + d.nombre + ",\n\n" +
+    "Gracias por confiar en MAXX para dar este paso hacia TU libertad económica.\n\n" +
+    "Adjunto encontrarás TU Calificación Financiera Personal, con el resumen completo de tu situación actual y lo que puedes construir a partir de hoy.\n\n" +
+    "Si tienes dudas o quieres platicarlo a detalle, con gusto te ayudamos. Puedes agendar TU Cita gratuita aquí:\n" +
+    "https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=pdf&utm_medium=email&utm_campaign=cuestionario\n\n" +
+    "Saludos,\nMAXX";
 
-        fetch('https://api.hsforms.com/submissions/v3/integration/submit/' + MAXX_PDF_PORTAL_ID + '/' + MAXX_PDF_FORM_GUID, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        }).then(function(resp) {
-          if (!resp.ok) throw new Error('submit failed');
-          // Aviso instantáneo al checador — no esperamos al pipeline de fondo.
-          maxxMarcarChecador(correo, 'pdf');
-          document.getElementById('maxx-pdf-enviar').style.display = 'none';
-          document.getElementById('maxx-pdf-exito').style.display = 'block';
-        }).catch(function() {
-          btn.disabled = false;
-          btn.textContent = 'Enviarme el PDF →';
-          errEl.style.display = 'block';
-          errEl.textContent = '⚠ Algo falló. Intenta de nuevo en un momento.';
-        });
-      });
-    });
-  }
-
-
-  function renderPlaceholder(panelId, titulo) {
-    var el = document.getElementById(panelId);
-    el.innerHTML = '<div style="font-size:15px;color:#5F5E5A;font-weight:700;letter-spacing:0.5px;">🔒 ' + titulo + '</div>';
-  }
-  renderPlaceholder('maxx-panel-grafica', 'GRÁFICA · ACUMULACIÓN Y DESACUMULACIÓN');
-  renderPlaceholder('maxx-panel-5', 'SECCIÓN III · RESULTADOS');
-  renderPlaceholder('maxx-panel-califn1', 'SIN TU Propuesta de Aportaciones');
-  renderPlaceholder('maxx-panel-califn2', 'CON TU Propuesta de Aportaciones');
-  renderPlaceholder('maxx-panel-cta', 'AGENDA TU CITA');
-  renderPlaceholder('maxx-panel-indicadores', 'Indicadores Financieros');
-  renderPlaceholder('maxx-panel-apoyo', 'Apoyo o Ahorro complementario');
-
-  // ---------- Inicializar ----------
-  maxxCargarConfig(MAXX_CONFIG_URL).then(function(resultado) {
-    var cfg = resultado.config.parametros;
-    if (cfg.uma_diaria) { MAXX_UMA_MENSUAL = cfg.uma_diaria * 30.4; MAXX_TOPE_25_UMA = 25 * MAXX_UMA_MENSUAL; }
-    if (cfg.descuento_salarial_bloque) MAXX_DESCUENTO_SALARIAL_BLOQUE = cfg.descuento_salarial_bloque;
-    if (cfg.pmg_ley73) MAXX_PMG_LEY73 = cfg.pmg_ley73;
-    if (cfg.pmg_ley97) MAXX_PMG_LEY97 = cfg.pmg_ley97;
-    if (cfg.semanas_min_ley97_2026) MAXX_SEMANAS_MIN_LEY97 = cfg.semanas_min_ley97_2026;
-    window.maxxConfigFuente = resultado.fuente;
-
-    renderPanel1();
-    renderPanelEsencial(false);
-    window.maxxSetGenero(window.maxxData.genero);
+  GmailApp.sendEmail(d.correo, asuntoUsuario, cuerpoUsuario, {
+    attachments: [pdfBlob]
   });
+
+  // --- A Javier: copia de registro ---
+  var asuntoJavier = "PDF enviado automáticamente — " + d.nombre + " " + d.apellidos;
+  var cuerpoJavier = "Se envió el PDF automáticamente al usuario.\n\n" +
+    "Nombre: " + d.nombre + " " + d.apellidos + "\n" +
+    "Correo: " + d.correo + "\n" +
+    "Fecha: " + d.fecha + "\n\n" +
+    "Detalle completo:\n" + JSON.stringify(d.detalle, null, 2);
+
+  GmailApp.sendEmail(CORREO_JAVIER, asuntoJavier, cuerpoJavier, {
+    attachments: [pdfBlob]
+  });
+}
+
+// ==== CONTROL DE ENVÍOS YA PROCESADOS EN ESTA EJECUCIÓN (evita duplicar si el script corre encimado) ====
+function obtenerProcesadosCuestionario() {
+  var raw = PropertiesService.getScriptProperties().getProperty("PROCESADOS_CUESTIONARIO");
+  return raw ? JSON.parse(raw) : [];
+}
+
+function marcarComoProcesadoCuestionario(idUnico) {
+  var procesados = obtenerProcesadosCuestionario();
+  procesados.push(idUnico);
+  if (procesados.length > 200) {
+    procesados = procesados.slice(procesados.length - 200);
+  }
+  PropertiesService.getScriptProperties().setProperty("PROCESADOS_CUESTIONARIO", JSON.stringify(procesados));
+}
+
+// ==== FUNCIÓN DE PRUEBA MANUAL ====
+function pruebaManualCuestionario() {
+  revisarEnviosCuestionario();
+  Logger.log("Prueba manual completada. Revisa tu correo (y el del usuario de prueba) y los logs de arriba.");
+}
