@@ -46,6 +46,7 @@
     .maxx-faq-result-q { color: #185FA5; font-weight: bold; font-size: 13.5px; margin: 0 0 4px 0; }
     .maxx-faq-result-cat { color: #639922; font-size: 11px; font-weight: bold; text-transform: uppercase; margin: 0 0 3px 0; }
     .maxx-faq-result-snippet { color: #555; font-size: 12px; margin: 0; line-height: 1.4; }
+    .maxx-faq-result-leermas { color: #185FA5; font-weight: bold; white-space: nowrap; }
     .maxx-faq-no-results { color: #888; font-size: 13px; text-align: center; padding: 20px 10px; }
   `;
   document.head.appendChild(css);
@@ -114,7 +115,7 @@
       el.className = 'maxx-faq-result';
       el.innerHTML = '<div class="maxx-faq-result-cat">' + item.cat + '</div>' +
                       '<div class="maxx-faq-result-q">' + item.q + '</div>' +
-                      '<div class="maxx-faq-result-snippet">' + item.snippet + '</div>';
+                      '<div class="maxx-faq-result-snippet">' + item.snippet + ' <span class="maxx-faq-result-leermas">Leer más →</span></div>';
       el.addEventListener('click', function() {
         goToAnswer(item.target);
       });
