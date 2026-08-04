@@ -123,22 +123,39 @@
   }
 
   function goToAnswer(targetId) {
-    var targetPanel = document.getElementById(targetId);
-    if (!targetPanel) return;
-    var section = targetPanel.closest('section');
-    if (section) {
-      section.querySelectorAll('.maxx-faq-a').forEach(function(p) { p.style.display = 'none'; });
-      section.querySelectorAll('.maxx-faq-icon').forEach(function(ic) { ic.textContent = '+'; });
-    }
-    targetPanel.style.display = 'block';
-    var btnEl = document.querySelector('[data-target="' + targetId + '"]');
-    if (btnEl) {
-      var icon = btnEl.querySelector('.maxx-faq-icon');
-      if (icon) icon.textContent = '\u2212';
-    }
+    // Carrd es de una sola pagina larga: el acordeon completo de FAQs y los
+    // accesos directos por categoria pueden coexistir, generando el MISMO id
+    // repetido en varios lugares del HTML. En vez de tomar solo la primera
+    // coincidencia (que puede no ser la relevante), abrimos TODAS las copias
+    // que existan, y saltamos a la mas cercana a donde ya esta el usuario.
+    var matches = document.querySelectorAll('[id="' + targetId + '"]');
+    if (!matches || matches.length === 0) return;
+
+    var chosen = matches[0];
+    var minDist = Infinity;
+    matches.forEach(function(m) {
+      var rect = m.getBoundingClientRect();
+      var dist = Math.abs(rect.top);
+      if (dist < minDist) { minDist = dist; chosen = m; }
+    });
+
+    matches.forEach(function(targetPanel) {
+      var section = targetPanel.closest('section');
+      if (section) {
+        section.querySelectorAll('.maxx-faq-a').forEach(function(p) { p.style.display = 'none'; });
+        section.querySelectorAll('.maxx-faq-icon').forEach(function(ic) { ic.textContent = '+'; });
+        var btnEl = section.querySelector('[data-target="' + targetId + '"]');
+        if (btnEl) {
+          var icon = btnEl.querySelector('.maxx-faq-icon');
+          if (icon) icon.textContent = '\u2212';
+        }
+      }
+      targetPanel.style.display = 'block';
+    });
+
     panel.classList.remove('open');
     setTimeout(function() {
-      targetPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      chosen.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
   }
 
