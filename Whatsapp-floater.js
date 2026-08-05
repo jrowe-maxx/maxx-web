@@ -38,13 +38,26 @@
     // propio marcador este exactamente dentro del viewport.
     var margen = 2500;
     var visible = idsCalientes.some(function(id) {
-      var el = document.getElementById(id);
+      // Buscamos por id="..." o por name="..." (Carrd a veces usa uno u otro
+      // para las anclas de sus Secciones).
+      var el = document.getElementById(id) || document.getElementsByName(id)[0];
       if (!el) return false;
       var rect = el.getBoundingClientRect();
       return rect.top < window.innerHeight + margen && rect.top > -margen;
     });
     link.classList.toggle('visible', visible);
   }
+
+  // Ayuda de diagnostico: si NINGUNA de las secciones calientes se encuentra
+  // en la pagina, lo avisamos en la consola para poder revisarlo facil.
+  setTimeout(function() {
+    var ningunaEncontrada = idsCalientes.every(function(id) {
+      return !document.getElementById(id) && !document.getElementsByName(id)[0];
+    });
+    if (ningunaEncontrada) {
+      console.warn('[MAXX WhatsApp floater] Ninguna de las secciones calientes (' + idsCalientes.join(', ') + ') se encontro en la pagina por id ni por name.');
+    }
+  }, 1500);
 
   window.addEventListener('scroll', checkVisibility, { passive: true });
   window.addEventListener('resize', checkVisibility);
