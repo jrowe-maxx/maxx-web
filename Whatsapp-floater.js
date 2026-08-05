@@ -32,11 +32,16 @@
   var idsCalientes = ['calificacion', 'cita-pdf1', 'cita-pdf2', 'cita-desde-site', 'cita-desde-faqs'];
 
   function checkVisibility() {
+    // Las anclas de Carrd suelen ser marcadores delgados (casi sin altura),
+    // no el contenido visible completo. Por eso usamos una zona amplia
+    // alrededor del ancla (2500px arriba y abajo) en vez de exigir que el
+    // propio marcador este exactamente dentro del viewport.
+    var margen = 2500;
     var visible = idsCalientes.some(function(id) {
       var el = document.getElementById(id);
       if (!el) return false;
       var rect = el.getBoundingClientRect();
-      return rect.top < window.innerHeight * 0.85 && rect.bottom > window.innerHeight * 0.15;
+      return rect.top < window.innerHeight + margen && rect.top > -margen;
     });
     link.classList.toggle('visible', visible);
   }
