@@ -1,19 +1,12 @@
 (function() {
-  // Este script vive dentro de un iframe de Embed de Carrd. Para poder ver
-  // las secciones reales de la pagina (que viven en la pagina principal,
-  // fuera de este iframe), usamos window.top en vez de window/document
-  // directamente. Esto solo funciona si la pagina principal es del mismo
-  // dominio (maxx.mx), lo cual es el caso aqui.
   var topWin;
   try {
     topWin = window.top;
-    // Probar acceso real (si fuera cross-origin, esto lanzaria un error)
     topWin.document.body;
   } catch (e) {
-    console.warn('[MAXX WhatsApp floater] No se pudo acceder a la pagina principal (window.top). El boton no podra detectar secciones.');
+    console.warn('[MAXX WhatsApp floater] No se pudo acceder a la pagina principal (window.top).');
     return;
   }
-
   var topDoc = topWin.document;
 
   var css = topDoc.createElement('style');
@@ -32,7 +25,6 @@
   `;
   topDoc.head.appendChild(css);
 
-  // Evitar duplicados si el script llegara a correr mas de una vez
   if (topDoc.getElementById('maxx-wa-btn')) return;
 
   var mensaje = encodeURIComponent('Hola, vengo del sitio de MAXX y tengo una duda sobre mi Plan.');
@@ -47,29 +39,13 @@
 
   var idsCalientes = ['calificacion', 'cita-pdf1', 'cita-pdf2', 'cita-desde-site', 'cita-desde-faqs'];
 
-  function checkVisibility() {
-    var margen = 2500;
-    var visible = idsCalientes.some(function(id) {
-      var el = topDoc.getElementById(id) || topDoc.getElementsByName(id)[0];
-      if (!el) return false;
-      var rect = el.getBoundingClientRect();
-      return rect.top < topWin.innerHeight + margen && rect.top > -margen;
-    });
+  function checkHash() {
+    var hash = (topWin.location.hash || '').replace('#', '');
+    var visible = idsCalientes.indexOf(hash) !== -1;
     link.classList.toggle('visible', visible);
+    console.log('[MAXX WhatsApp floater] hash actual: "' + hash + '" -> ' + (visible ? 'MOSTRAR' : 'ocultar'));
   }
 
-  topWin.addEventListener('scroll', checkVisibility, { passive: true });
-  topWin.addEventListener('resize', checkVisibility);
-  checkVisibility();
-
-  setTimeout(function() {
-    var ningunaEncontrada = idsCalientes.every(function(id) {
-      return !topDoc.getElementById(id) && !topDoc.getElementsByName(id)[0];
-    });
-    if (ningunaEncontrada) {
-      console.warn('[MAXX WhatsApp floater] Ninguna de las secciones calientes (' + idsCalientes.join(', ') + ') se encontro en la pagina principal (window.top) por id ni por name.');
-    } else {
-      console.log('[MAXX WhatsApp floater] OK: al menos una seccion caliente fue encontrada.');
-    }
-  }, 1500);
+  topWin.addEventListener('hashchange', checkHash);
+  checkHash();
 })();
