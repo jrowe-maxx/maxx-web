@@ -491,6 +491,43 @@ enviarConToken('');
 });
 
 function enviarConToken(recaptchaToken) {
+if (!recaptchaToken) {
+// No se pudo obtener el token (falla tecnica de reCAPTCHA). No bloqueamos a
+// una persona real por esto -- dejamos pasar el envio directo a HubSpot.
+enviarAHubSpot();
+return;
+}
+
+btn.textContent = 'Verificando...';
+
+fetch('https://script.google.com/macros/s/AKfycbw1c9tZ7ZbbL9JbQyZlDUK5K4jS6-WQgwkxX9vcqlMq8-0tUUfxe-VoYVVke4pNIihOlQ/exec', {
+method: 'POST',
+headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+body: JSON.stringify({ token: recaptchaToken })
+})
+.then(function(res) { return res.json(); })
+.then(function(resultado) {
+if (resultado.ok) {
+enviarAHubSpot();
+} else {
+// Score bajo o token invalido: no bloqueamos silenciosamente -- mostramos
+// un mensaje honesto y dejamos que la persona reintente (evita frustrar
+// a un usuario real que por alguna razon obtuvo un score bajo).
+btn.disabled = false;
+btn.textContent = 'Generar y enviar mi Calificación';
+status.className = 'error';
+status.textContent = 'No pudimos confirmar tu envío automáticamente. Por favor intenta de nuevo, o contáctanos directo a contacto@maxx.mx.';
+console.warn('MAXX reCAPTCHA bloqueo el envio:', resultado.motivo, 'score:', resultado.score);
+}
+})
+.catch(function() {
+// Si el verificador mismo falla (caido, red, etc.), no le negamos el
+// servicio a una persona real -- dejamos pasar el envio.
+enviarAHubSpot();
+});
+}
+
+function enviarAHubSpot() {
 btn.textContent = 'Enviando...';
 
 var telDigits = document.getElementById('maxx-lf-telefono').value.trim().replace(/\D/g, '');
