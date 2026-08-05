@@ -1,3 +1,4 @@
+<script src="https://www.google.com/recaptcha/api.js?render=6LfLJnctAAAAAMFOrGtTH0UT6Mn3Y349MnHFvlvS"></script>
 <style>
 #maxx-lead-form {
 font-family: 'Roboto', Arial, sans-serif;
@@ -474,6 +475,22 @@ return;
 }
 
 btn.disabled = true;
+btn.textContent = 'Verificando...';
+
+// reCAPTCHA v3: obtenemos un token invisible (sin retos, sin clics) antes de enviar.
+// Si falla la obtencion del token, no bloqueamos el envio del usuario real -- solo
+// se pierde la señal anti-bot para ese caso puntual, pero no se le niega el servicio
+// a una persona real por un problema tecnico de reCAPTCHA.
+grecaptcha.ready(function() {
+grecaptcha.execute('6LfLJnctAAAAAMFOrGtTH0UT6Mn3Y349MnHFvlvS', { action: 'submit_calificacion' }).then(function(token) {
+enviarConToken(token);
+}).catch(function() {
+enviarConToken('');
+});
+});
+});
+
+function enviarConToken(recaptchaToken) {
 btn.textContent = 'Enviando...';
 
 var telDigits = document.getElementById('maxx-lf-telefono').value.trim().replace(/\D/g, '');
@@ -511,12 +528,17 @@ var fields = [
 { name: "aportacion_posible_mensual_a_ppr", value: aporteNum || "" }
 ];
 
+// Nota: el token de reCAPTCHA no se manda como "field" de HubSpot (no hay una
+// propiedad de contacto creada para esto), se manda dentro de "context" mas abajo,
+// que es un espacio libre para metadata que HubSpot no intenta mapear a un campo.
+
 var payload = {
 fields: fields,
 context: {
 pageUri: window.location.href,
 pageName: document.title
 },
+maxxRecaptchaToken: recaptchaToken,
 legalConsentOptions: {
 consent: {
 consentToProcess: true,
@@ -554,6 +576,6 @@ btn.disabled = false;
 btn.textContent = 'Generar y enviar mi Calificación';
 console.error('MAXX lead form error:', err);
 });
-});
+}
 })();
 </script>
