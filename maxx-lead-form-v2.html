@@ -497,7 +497,7 @@ function enviarConToken(recaptchaToken) {
 if (!recaptchaToken) {
 // No se pudo obtener el token (falla tecnica de reCAPTCHA). No bloqueamos a
 // una persona real por esto -- dejamos pasar el envio directo a HubSpot.
-enviarAHubSpot();
+enviarAHubSpot('');
 return;
 }
 
@@ -511,7 +511,7 @@ body: JSON.stringify({ token: recaptchaToken })
 .then(function(res) { return res.json(); })
 .then(function(resultado) {
 if (resultado.ok) {
-enviarAHubSpot();
+enviarAHubSpot(recaptchaToken);
 } else {
 // Score bajo o token invalido: no bloqueamos silenciosamente -- mostramos
 // un mensaje honesto y dejamos que la persona reintente (evita frustrar
@@ -526,11 +526,11 @@ console.warn('MAXX reCAPTCHA bloqueo el envio:', resultado.motivo, 'score:', res
 .catch(function() {
 // Si el verificador mismo falla (caido, red, etc.), no le negamos el
 // servicio a una persona real -- dejamos pasar el envio.
-enviarAHubSpot();
+enviarAHubSpot(recaptchaToken);
 });
 }
 
-function enviarAHubSpot() {
+function enviarAHubSpot(recaptchaToken) {
 btn.textContent = 'Enviando...';
 
 var telDigits = document.getElementById('maxx-lf-telefono').value.trim().replace(/\D/g, '');
