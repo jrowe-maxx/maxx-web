@@ -1,4 +1,3 @@
-<script src="https://www.google.com/recaptcha/api.js?render=6LfLJnctAAAAAMFOrGtTH0UT6Mn3Y349MnHFvlvS"></script>
 <style>
 #maxx-lead-form {
 font-family: 'Roboto', Arial, sans-serif;
@@ -320,6 +319,10 @@ text-align: center;
 
 <script>
 (function() {
+var __rcScript = document.createElement('script');
+__rcScript.src = 'https://www.google.com/recaptcha/api.js?render=6LfLJnctAAAAAMFOrGtTH0UT6Mn3Y349MnHFvlvS';
+document.head.appendChild(__rcScript);
+
 
 document.querySelectorAll('.maxx-lf-help-icon').forEach(function(iconBtn) {
 iconBtn.addEventListener('click', function() {
