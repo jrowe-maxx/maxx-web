@@ -707,7 +707,7 @@ function maxxCargarConfig(url, timeoutMs) {
   var MAXX_INFLACION_MIN = 0.04;
   var MAXX_TASA_MIN = 0.0882;
   window.maxxData.inflacion = window.maxxData.inflacion || 0.0485;
-  window.maxxData.tasaSolucion = window.maxxData.tasaSolucion || 0.1482;
+  window.maxxData.tasaSolucion = window.maxxData.tasaSolucion || 0.12; // 12% -- punto de partida conservador-defendible (mediana historica S&P500 rolling ~10%, ver conversacion 6-ago-2026), ajustable en vivo hasta 14.82%+ con datos reales de la ultima decada
 
   function renderPanelIndicadores(unlocked) {
     var el = document.getElementById('maxx-panel-indicadores');
