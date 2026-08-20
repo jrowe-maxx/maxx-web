@@ -2749,12 +2749,21 @@ var qrcode = function() {
   function compartirBlob(blob, nombreArchivo) {
     var file = new File([blob], nombreArchivo, { type: 'image/png' });
 
+    console.log('[MAXX diagnóstico] canShare?', navigator.canShare ? navigator.canShare({ files: [file] }) : 'navigator.canShare no existe');
+
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       navigator.share({
         files: [file],
         title: 'MAXX — TUS ahorros, TU libertad'
-      }).catch(function() { /* usuario canceló, no pasa nada */ });
+      }).then(function() {
+        console.log('[MAXX diagnóstico] share() se completó bien');
+      }).catch(function(err) {
+        console.log('[MAXX diagnóstico] share() falló:', err.name, err.message);
+        estadoEl.style.display = 'block';
+        estadoEl.textContent = 'No se pudo compartir: ' + err.name + ' — ' + err.message;
+      });
     } else {
+      console.log('[MAXX diagnóstico] usando descarga directa (canShare no disponible o rechazó el archivo)');
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
