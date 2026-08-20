@@ -10,13 +10,14 @@
   .aviso { background: #E6F1FB; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 14px; color: #042C53; }
   .galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; max-width: 900px; }
   .titulo-etapa { color: #042C53; border-bottom: 2px solid #E6F1FB; padding-bottom: 6px; margin-top: 28px; margin-bottom: 6px; }
-  .objetivo-etapa { color: #185FA5; font-size: 13px; margin: 0 0 4px 0; max-width: 700px; }
-  .destino-etapa { color: #639922; font-size: 12px; font-weight: bold; margin: 0 0 12px 0; max-width: 700px; }
+  .objetivo-etapa { color: #185FA5; font-size: 15px; margin: 0 0 4px 0; max-width: 700px; line-height: 1.4; }
+  .destino-etapa { color: #639922; font-size: 14px; font-weight: bold; margin: 0 0 12px 0; max-width: 700px; line-height: 1.4; }
   .seccion-etapa:first-child .titulo-etapa { margin-top: 0; }
-  .miniatura { cursor: pointer; border-radius: 8px; overflow: hidden; border: 2px solid transparent; transition: border-color 0.15s; background: white; }
+  .miniatura { cursor: pointer; border-radius: 8px; overflow: hidden; border: 2px solid #D8D4CC; transition: border-color 0.15s; background: white; }
   .miniatura:hover { border-color: #378ADD; }
   .miniatura .etiqueta { font-size: 13px; text-align: center; padding: 6px 4px; color: white; font-weight: bold; background: #042C53; }
   .miniatura .badge { text-align: center; background: #E6F1FB; color: #042C53; font-size: 12px; font-weight: bold; padding: 6px 4px; }
+  .miniatura .badge-personal { text-align: center; background: #FBF0DC; color: #EF9F27; font-size: 12px; font-weight: bold; padding: 5px 4px; border-top: 1px solid white; }
   .miniatura .imagen-wrap { position: relative; }
   .miniatura .imagen-wrap img { width: 100%; display: block; }
   .miniatura .lupa { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; background: rgba(4,44,83,0.75); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
@@ -2431,6 +2432,28 @@ var qrcode = function() {
     in: { x: 900, y: 1225, tam: 90 }
   };
 
+  function claveContadorPersonal(copy) {
+    return 'zr_contador_' + REF_PRUEBA + '_' + copy.etapa + '-' + copy.tema;
+  }
+
+  function leerContadorPersonal(copy) {
+    try {
+      return parseInt(localStorage.getItem(claveContadorPersonal(copy)) || '0', 10);
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  function sumarContadorPersonal(copy) {
+    try {
+      var actual = leerContadorPersonal(copy) + 1;
+      localStorage.setItem(claveContadorPersonal(copy), String(actual));
+      return actual;
+    } catch (e) {
+      return leerContadorPersonal(copy);
+    }
+  }
+
   function construirLink(ref, etapa, tema) {
     return 'https://maxx.mx/ir?ref=' + encodeURIComponent(ref) + '&c=' + encodeURIComponent(etapa + '-' + tema);
   }
@@ -2493,13 +2516,15 @@ var qrcode = function() {
     copiesDeEtapa.forEach(function(copy) {
       var div = document.createElement('div');
       div.className = 'miniatura';
+      var idBadgePersonal = 'zr-personal-' + copy.etapa + '-' + copy.tema;
       div.innerHTML =
         '<div class="etiqueta">' + copy.tema + '</div>' +
         '<div class="imagen-wrap">' +
           '<img src="' + GITHUB_BASE + copy.archivo + '" alt="' + copy.etapa + '-' + copy.tema + '">' +
           '<div class="lupa"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
         '</div>' +
-        '<div class="badge">' + copy.baseVistas + ' compartidos</div>';
+        '<div class="badge">' + copy.baseVistas + ' compartidos</div>' +
+        '<div class="badge-personal" id="' + idBadgePersonal + '">TÚ: ' + leerContadorPersonal(copy) + ' veces</div>';
       div.addEventListener('click', function() { abrirModal(copy); });
       fila.appendChild(div);
     });
@@ -2586,6 +2611,10 @@ var qrcode = function() {
         var nombreArchivo = 'MAXX_' + copy.etapa + '-' + copy.tema + '_' + REF_PRUEBA + '.png';
         compartirBlob(blob, nombreArchivo);
         btnCompartir.disabled = false;
+
+        var nuevoConteo = sumarContadorPersonal(copy);
+        var badgeEl = document.getElementById('zr-personal-' + copy.etapa + '-' + copy.tema);
+        if (badgeEl) badgeEl.textContent = 'TÚ: ' + nuevoConteo + ' veces';
       }, 'image/png');
     };
     img.onerror = function() {
