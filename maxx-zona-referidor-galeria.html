@@ -9,15 +9,20 @@
   h2 { color: #042C53; }
   .aviso { background: #E6F1FB; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 14px; color: #042C53; }
   .galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; max-width: 900px; }
+  .filtro-etapas { position: sticky; top: 0; z-index: 10; background: #F5F4F0; display: flex; gap: 6px; padding: 10px 0; margin-bottom: 8px; overflow-x: auto; }
+  .filtro-btn { flex: 1; min-width: 70px; background: white; border: 2px solid #E6F1FB; color: #042C53; border-radius: 8px; padding: 10px 6px; font-size: 13px; font-weight: bold; text-align: center; cursor: pointer; white-space: nowrap; }
+  .filtro-btn.activo { background: #042C53; border-color: #042C53; color: white; }
+  .seccion-etapa { display: none; }
+  .seccion-etapa.visible { display: block; }
   .titulo-etapa { color: #042C53; border-bottom: 2px solid #E6F1FB; padding-bottom: 6px; margin-top: 28px; margin-bottom: 6px; }
-  .objetivo-etapa { color: #185FA5; font-size: 15px; margin: 0 0 4px 0; max-width: 700px; line-height: 1.4; }
-  .destino-etapa { color: #639922; font-size: 14px; font-weight: bold; margin: 0 0 12px 0; max-width: 700px; line-height: 1.4; }
+  .objetivo-etapa { color: #185FA5; font-size: 15px; margin: 0 0 4px 0; line-height: 1.4; }
+  .destino-etapa { color: #639922; font-size: 14px; font-weight: bold; margin: 0 0 12px 0; line-height: 1.4; }
   .seccion-etapa:first-child .titulo-etapa { margin-top: 0; }
-  .miniatura { cursor: pointer; border-radius: 8px; overflow: hidden; border: 2px solid #D8D4CC; transition: border-color 0.15s; background: white; }
+  .miniatura { cursor: pointer; border-radius: 8px; overflow: hidden; border: 3px solid #042C53; transition: border-color 0.15s; background: white; }
   .miniatura:hover { border-color: #378ADD; }
   .miniatura .etiqueta { font-size: 13px; text-align: center; padding: 6px 4px; color: white; font-weight: bold; background: #042C53; }
   .miniatura .badge { text-align: center; background: #E6F1FB; color: #042C53; font-size: 12px; font-weight: bold; padding: 6px 4px; }
-  .miniatura .badge-personal { text-align: center; background: #FBF0DC; color: #EF9F27; font-size: 12px; font-weight: bold; padding: 5px 4px; border-top: 1px solid white; }
+  .miniatura .badge-personal { text-align: center; background: #639922; color: white; font-size: 13px; font-weight: bold; padding: 6px 4px; border-top: 1px solid white; }
   .miniatura .imagen-wrap { position: relative; }
   .miniatura .imagen-wrap img { width: 100%; display: block; }
   .miniatura .lupa { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; background: rgba(4,44,83,0.75); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
@@ -42,6 +47,7 @@
   Toca cualquier copy para generar TU versión personalizada con QR y compartirla.
 </div>
 
+<div class="filtro-etapas" id="filtro-etapas"></div>
 <div id="galeria"></div>
 
 <div class="modal-fondo" id="modal">
@@ -2493,6 +2499,7 @@ var qrcode = function() {
 
     var seccion = document.createElement('div');
     seccion.className = 'seccion-etapa';
+    seccion.id = 'seccion-' + etapa;
 
     var info = INFO_ETAPA[etapa];
     var titulo = document.createElement('h3');
@@ -2532,6 +2539,32 @@ var qrcode = function() {
     seccion.appendChild(fila);
     galeria.appendChild(seccion);
   });
+
+  // ---- Barra de filtro: muestra solo una etapa a la vez ----
+  var filtroEl = document.getElementById('filtro-etapas');
+
+  function mostrarEtapa(etapa) {
+    ORDEN_ETAPAS.forEach(function(e) {
+      var seccionEl = document.getElementById('seccion-' + e);
+      if (seccionEl) seccionEl.classList.toggle('visible', e === etapa);
+    });
+    Array.prototype.forEach.call(filtroEl.children, function(btn) {
+      btn.classList.toggle('activo', btn.dataset.etapa === etapa);
+    });
+  }
+
+  ORDEN_ETAPAS.forEach(function(etapa) {
+    if (!document.getElementById('seccion-' + etapa)) return; // por si esa etapa no tiene copies
+    var info = INFO_ETAPA[etapa];
+    var btn = document.createElement('div');
+    btn.className = 'filtro-btn';
+    btn.dataset.etapa = etapa;
+    btn.textContent = info.numero + ' · ' + etapa;
+    btn.addEventListener('click', function() { mostrarEtapa(etapa); });
+    filtroEl.appendChild(btn);
+  });
+
+  mostrarEtapa('RH'); // Etapa 1 visible por default al entrar
 
   // ---- Vista grande instantánea + generación diferida al compartir ----
   var modal = document.getElementById('modal');
