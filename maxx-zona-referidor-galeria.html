@@ -2428,15 +2428,15 @@ var qrcode = function() {
     IN: { numero: 4, nombre: 'Invita', objetivo: 'El empujón final. Corto, directo, con la fecha de HOY en mente — pide la cita, ya no más educación.', destino: 'Único caso que lleva directo a agendar la Cita — ya no pasa por el Cuestionario.' }
   };
 
-  // ---- Coordenadas medidas directamente sobre los archivos reales ----
-  // Lienzo: 1080 x 1920 en todos los copies.
+  // ---- Coordenadas medidas directamente sobre los archivos reales de producción ----
+  // Lienzo: 1080 x 1920 en todos los copies. Confirmado sobre MAXX_AO-PAT-01 e
+  // MAXX_IN-PAT-01 (archivos reales ya en GitHub), no sobre bocetos antiguos.
   var POSICIONES = {
-    // RH/AO/DE: franja crema final, y=1779–1919. Ícono ocupa x=14–155.
-    // QR se coloca a la derecha, dentro de esa misma franja.
-    pie: { x: 900, y: 1799, tam: 120 },
-    // IN: espacio libre debajo del ícono, dentro de la franja crema,
-    // y=1207–1327 aprox. QR se coloca a la derecha de esa zona.
-    in: { x: 900, y: 1225, tam: 90 }
+    // RH/AO/DE: franja crema final, y=1779–1919 (141px alto). Ícono ocupa
+    // x=14–155. QR a la derecha, link de texto a la izquierda del QR.
+    pie: { qrX: 940, qrY: 1789, qrTam: 120, textoX: 175, textoY: 1800, textoAncho: 745, fontSize: 32 },
+    // IN: espacio libre debajo del ícono, y=1207–1328. Ícono ocupa x=32–219.
+    in: { qrX: 965, qrY: 1218, qrTam: 100, textoX: 240, textoY: 1225, textoAncho: 705, fontSize: 26 }
   };
 
   function claveContadorPersonal(copy) {
@@ -2463,6 +2463,32 @@ var qrcode = function() {
 
   function construirLink(ref, etapa, tema) {
     return 'https://maxx.mx/ir?ref=' + encodeURIComponent(ref) + '&c=' + encodeURIComponent(etapa + '-' + tema);
+  }
+
+  // Versión corta para MOSTRAR como texto sobre la imagen (sin https://,
+  // más fácil de leer y escribir a mano) — el destino real sigue siendo
+  // exactamente el mismo que construirLink().
+  function construirLinkVisible(ref, etapa, tema) {
+    return 'maxx.mx/ir?ref=' + ref + '&c=' + etapa + '-' + tema;
+  }
+
+  // Dibuja texto ajustado a varias líneas dentro de un ancho máximo,
+  // ya que Canvas no hace wrap de texto de forma nativa.
+  function envolverTexto(ctx, texto, x, y, anchoMax, altoLinea) {
+    var palabras = texto.split(/([&=])/); // corta también en & y = para poder quebrar links largos
+    var linea = '';
+    var lineaY = y;
+    for (var i = 0; i < palabras.length; i++) {
+      var pruebaLinea = linea + palabras[i];
+      if (ctx.measureText(pruebaLinea).width > anchoMax && linea !== '') {
+        ctx.fillText(linea, x, lineaY);
+        linea = palabras[i];
+        lineaY += altoLinea;
+      } else {
+        linea = pruebaLinea;
+      }
+    }
+    ctx.fillText(linea, x, lineaY);
   }
 
   // Dibuja el QR directo en un <canvas>, usando la librería incrustada arriba.
@@ -2631,14 +2657,21 @@ var qrcode = function() {
       ctx.drawImage(img, 0, 0, 1080, 1920);
 
       var link = construirLink(REF_PRUEBA, copy.etapa, copy.tema);
+      var linkVisible = construirLinkVisible(REF_PRUEBA, copy.etapa, copy.tema);
       var pos = POSICIONES[copy.categoria];
 
+      // QR a la derecha
       var qrCanvas = document.createElement('canvas');
-      dibujarQR(qrCanvas, link, pos.tam);
-
+      dibujarQR(qrCanvas, link, pos.qrTam);
       ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(pos.x - 6, pos.y - 6, pos.tam + 12, pos.tam + 12);
-      ctx.drawImage(qrCanvas, pos.x, pos.y, pos.tam, pos.tam);
+      ctx.fillRect(pos.qrX - 6, pos.qrY - 6, pos.qrTam + 12, pos.qrTam + 12);
+      ctx.drawImage(qrCanvas, pos.qrX, pos.qrY, pos.qrTam, pos.qrTam);
+
+      // Link de texto a la izquierda del QR (respaldo para escribir a mano)
+      ctx.fillStyle = '#185FA5';
+      ctx.font = 'bold ' + pos.fontSize + 'px Arial';
+      ctx.textBaseline = 'top';
+      envolverTexto(ctx, linkVisible, pos.textoX, pos.textoY, pos.textoAncho, pos.fontSize * 1.15);
 
       canvas.toBlob(function(blob) {
         estadoEl.style.display = 'none';
