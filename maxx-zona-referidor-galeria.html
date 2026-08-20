@@ -61,6 +61,7 @@
     </div>
     <div id="estado-generacion" class="cargando" style="display:none;">Generando tu versión con QR...</div>
     <button class="btn" id="btn-compartir">Compartir este copy</button>
+    <button class="btn" id="btn-copiar-link" style="background:#EF9F27;">Copiar Link (para pegar junto a la imagen)</button>
     <button class="btn" id="btn-ver-qr" style="background:#639922;">Ver mi QR (para mostrar en persona)</button>
     <button class="btn-cerrar" id="btn-cerrar">Cerrar</button>
   </div>
@@ -2614,7 +2615,28 @@ var qrcode = function() {
     btnCompartir.textContent = 'Compartir este copy';
     btnCompartir.disabled = false;
     document.getElementById('btn-ver-qr').style.display = 'block';
+    document.getElementById('btn-copiar-link').style.display = 'block';
+    document.getElementById('btn-copiar-link').textContent = 'Copiar Link (para pegar junto a la imagen)';
   }
+
+  document.getElementById('btn-copiar-link').addEventListener('click', function() {
+    if (!copyActual) return;
+    var link = construirLink(REF_PRUEBA, copyActual.etapa, copyActual.tema);
+    var btn = document.getElementById('btn-copiar-link');
+
+    function marcarCopiado() {
+      btn.textContent = '¡Copiado! Ya lo puedes pegar';
+      setTimeout(function() { btn.textContent = 'Copiar Link (para pegar junto a la imagen)'; }, 2000);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link).then(marcarCopiado).catch(function() {
+        prompt('Copia el link manualmente:', link);
+      });
+    } else {
+      prompt('Copia el link manualmente:', link);
+    }
+  });
 
   document.getElementById('btn-ver-qr').addEventListener('click', function() {
     if (!copyActual) return;
@@ -2624,6 +2646,7 @@ var qrcode = function() {
     canvas.style.display = 'none';
     btnCompartir.style.display = 'none';
     document.getElementById('btn-ver-qr').style.display = 'none';
+    document.getElementById('btn-copiar-link').style.display = 'none';
 
     var vistaQr = document.getElementById('vista-qr-sola');
     vistaQr.style.display = 'block';
@@ -2640,6 +2663,7 @@ var qrcode = function() {
     if (!copyActual) return;
     btnCompartir.disabled = true;
     document.getElementById('btn-ver-qr').style.display = 'none';
+    document.getElementById('btn-copiar-link').style.display = 'none';
 
     vistaGrande.style.display = 'none';
     canvas.style.display = 'block';
