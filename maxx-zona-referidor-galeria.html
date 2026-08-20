@@ -41,10 +41,6 @@
 <body>
 
 <h2>Zona Referidor — TU Biblioteca de Copies</h2>
-<div class="aviso">
-  Hola. TU código de referidor: <b id="ref-mostrado"></b>.
-  Toca cualquier copy para generar TU versión personalizada con QR y compartirla.
-</div>
 
 <div class="filtro-etapas" id="filtro-etapas"></div>
 <p style="color:#042C53; font-size:14px; font-weight:bold; margin:0 0 8px 0; line-height:1.4;">
@@ -2392,7 +2388,7 @@ var qrcode = function() {
     return;
   }
 
-  document.getElementById('ref-mostrado').textContent = REF_PRUEBA;
+  // (el nombre y código ya se muestran en el embed de bienvenida separado)
 
   var GITHUB_BASE = 'https://raw.githubusercontent.com/jrowe-maxx/maxx-web/0c62721/';
 
