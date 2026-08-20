@@ -2601,9 +2601,48 @@ var qrcode = function() {
   var estadoEl = document.getElementById('estado-generacion');
   var btnCompartir = document.getElementById('btn-compartir');
   var copyActual = null;
+  var blobListo = null;
+  var blobEnProceso = false;
+
+  function generarBlobPersonalizado(copy, callback) {
+    var ctx = canvas.getContext('2d');
+    canvas.width = 1080;
+    canvas.height = 1920;
+
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      ctx.drawImage(img, 0, 0, 1080, 1920);
+
+      var link = construirLink(REF_PRUEBA, copy.etapa, copy.tema);
+      var linkVisible = construirLinkVisible(REF_PRUEBA, copy.etapa, copy.tema);
+      var pos = POSICIONES[copy.categoria];
+
+      var qrCanvas = document.createElement('canvas');
+      dibujarQR(qrCanvas, link, pos.qrTam);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(pos.qrX - 6, pos.qrY - 6, pos.qrTam + 12, pos.qrTam + 12);
+      ctx.drawImage(qrCanvas, pos.qrX, pos.qrY, pos.qrTam, pos.qrTam);
+
+      ctx.fillStyle = '#185FA5';
+      ctx.font = 'bold ' + pos.fontSize + 'px Arial';
+      ctx.textBaseline = 'top';
+      envolverTexto(ctx, linkVisible, pos.textoX, pos.textoY, pos.textoAncho, pos.fontSize * 1.15);
+
+      canvas.toBlob(function(blob) {
+        callback(blob);
+      }, 'image/png');
+    };
+    img.onerror = function() {
+      callback(null);
+    };
+    img.src = GITHUB_BASE + copy.archivo;
+  }
 
   function abrirModal(copy) {
     copyActual = copy;
+    blobListo = null;
+    blobEnProceso = true;
     modal.classList.add('abierto');
 
     vistaGrande.style.display = 'block';
@@ -2617,6 +2656,18 @@ var qrcode = function() {
     document.getElementById('btn-ver-qr').style.display = 'block';
     document.getElementById('btn-copiar-link').style.display = 'block';
     document.getElementById('btn-copiar-link').textContent = 'Copiar Link (para pegar junto a la imagen)';
+
+    // Generamos la imagen personalizada YA, en segundo plano, mientras el
+    // referidor todavía está viendo la vista grande — así, cuando toque
+    // "Compartir", el menú nativo se abre al instante, sin ninguna espera
+    // de por medio (los navegadores bloquean el menú si hay demora entre
+    // el toque y la llamada — por eso a veces no abría).
+    generarBlobPersonalizado(copy, function(blob) {
+      blobEnProceso = false;
+      if (copyActual === copy) { // por si ya cambiaron de copy mientras generaba
+        blobListo = blob;
+      }
+    });
   }
 
   document.getElementById('btn-copiar-link').addEventListener('click', function() {
@@ -2661,58 +2712,38 @@ var qrcode = function() {
 
   btnCompartir.addEventListener('click', function() {
     if (!copyActual) return;
-    btnCompartir.disabled = true;
-    document.getElementById('btn-ver-qr').style.display = 'none';
-    document.getElementById('btn-copiar-link').style.display = 'none';
-
-    vistaGrande.style.display = 'none';
-    canvas.style.display = 'block';
-    estadoEl.style.display = 'block';
-    estadoEl.textContent = 'Generando tu versión con QR...';
-
     var copy = copyActual;
-    var ctx = canvas.getContext('2d');
-    canvas.width = 1080;
-    canvas.height = 1920;
 
-    var img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = function() {
-      ctx.drawImage(img, 0, 0, 1080, 1920);
+    function dispararCompartir() {
+      if (!blobListo) {
+        estadoEl.style.display = 'block';
+        estadoEl.textContent = 'No se pudo generar la imagen. Cierra e inténtalo de nuevo.';
+        return;
+      }
+      var nombreArchivo = 'MAXX_' + copy.etapa + '-' + copy.tema + '_' + REF_PRUEBA + '.png';
+      compartirBlob(blobListo, nombreArchivo);
 
-      var link = construirLink(REF_PRUEBA, copy.etapa, copy.tema);
-      var linkVisible = construirLinkVisible(REF_PRUEBA, copy.etapa, copy.tema);
-      var pos = POSICIONES[copy.categoria];
+      var nuevoConteo = sumarContadorPersonal(copy);
+      var badgeEl = document.getElementById('zr-personal-' + copy.etapa + '-' + copy.tema);
+      if (badgeEl) badgeEl.textContent = 'TÚ: ' + nuevoConteo + ' veces';
+    }
 
-      // QR a la derecha
-      var qrCanvas = document.createElement('canvas');
-      dibujarQR(qrCanvas, link, pos.qrTam);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(pos.qrX - 6, pos.qrY - 6, pos.qrTam + 12, pos.qrTam + 12);
-      ctx.drawImage(qrCanvas, pos.qrX, pos.qrY, pos.qrTam, pos.qrTam);
-
-      // Link de texto a la izquierda del QR (respaldo para escribir a mano)
-      ctx.fillStyle = '#185FA5';
-      ctx.font = 'bold ' + pos.fontSize + 'px Arial';
-      ctx.textBaseline = 'top';
-      envolverTexto(ctx, linkVisible, pos.textoX, pos.textoY, pos.textoAncho, pos.fontSize * 1.15);
-
-      canvas.toBlob(function(blob) {
-        estadoEl.style.display = 'none';
-        var nombreArchivo = 'MAXX_' + copy.etapa + '-' + copy.tema + '_' + REF_PRUEBA + '.png';
-        compartirBlob(blob, nombreArchivo);
-        btnCompartir.disabled = false;
-
-        var nuevoConteo = sumarContadorPersonal(copy);
-        var badgeEl = document.getElementById('zr-personal-' + copy.etapa + '-' + copy.tema);
-        if (badgeEl) badgeEl.textContent = 'TÚ: ' + nuevoConteo + ' veces';
-      }, 'image/png');
-    };
-    img.onerror = function() {
-      estadoEl.textContent = 'No se pudo cargar la imagen base. Revisa la conexión.';
-      btnCompartir.disabled = false;
-    };
-    img.src = GITHUB_BASE + copy.archivo;
+    if (blobEnProceso) {
+      // Caso raro: el referidor tocó "Compartir" antes de que terminara de
+      // generarse (muy rápido). Esperamos, aunque en este caso sí puede
+      // perderse el permiso del navegador para abrir el menú nativo.
+      estadoEl.style.display = 'block';
+      estadoEl.textContent = 'Un momento...';
+      var intervalo = setInterval(function() {
+        if (!blobEnProceso) {
+          clearInterval(intervalo);
+          estadoEl.style.display = 'none';
+          dispararCompartir();
+        }
+      }, 100);
+    } else {
+      dispararCompartir();
+    }
   });
 
   function compartirBlob(blob, nombreArchivo) {
