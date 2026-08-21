@@ -2499,6 +2499,21 @@ var qrcode = function() {
     ctx.fillText(linea, x, lineaY);
   }
 
+  // Encuentra el tamaño de letra más grande que cabe en UNA sola línea,
+  // midiendo con la fuente real que va a dibujar el navegador (no con una
+  // fuente distinta calculada de antemano, que puede medir diferente).
+  function tamañoMaximoUnaLinea(ctx, texto, anchoMax, tamañoInicial) {
+    var tam = tamañoInicial;
+    while (tam > 14) {
+      ctx.font = 'bold ' + tam + 'px Arial';
+      if (ctx.measureText(texto).width <= anchoMax) {
+        return tam;
+      }
+      tam -= 1;
+    }
+    return 14; // tamaño mínimo de respaldo, por si el link fuera extremadamente largo
+  }
+
   // Dibuja el QR directo en un <canvas>, usando la librería incrustada arriba.
   // Es síncrono — no necesita callback ni depende de ninguna red.
   function dibujarQR(canvasEl, texto, tamPx) {
@@ -2632,9 +2647,18 @@ var qrcode = function() {
       ctx.drawImage(qrCanvas, pos.qrX, pos.qrY, pos.qrTam, pos.qrTam);
 
       ctx.fillStyle = '#185FA5';
-      ctx.font = 'bold ' + pos.fontSize + 'px Arial';
       ctx.textBaseline = 'top';
-      envolverTexto(ctx, linkVisible, pos.textoX, pos.textoY, pos.textoAncho, pos.fontSize * 1.15);
+      var tamañoReal = tamañoMaximoUnaLinea(ctx, linkVisible, pos.textoAncho, pos.fontSize + 10);
+      ctx.font = 'bold ' + tamañoReal + 'px Arial';
+      // Si el link cupo en una sola línea al tamaño máximo, se dibuja
+      // centrado verticalmente en el mismo espacio que ya calculamos;
+      // si es un link inusualmente largo que ni al tamaño mínimo cabe en
+      // una línea, cae de forma segura a varias líneas más chicas.
+      if (ctx.measureText(linkVisible).width <= pos.textoAncho) {
+        ctx.fillText(linkVisible, pos.textoX, pos.textoY + (pos.fontSize - tamañoReal) / 2);
+      } else {
+        envolverTexto(ctx, linkVisible, pos.textoX, pos.textoY, pos.textoAncho, tamañoReal * 1.15);
+      }
 
       canvas.toBlob(function(blob) {
         callback(blob);
