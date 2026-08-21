@@ -2439,9 +2439,11 @@ var qrcode = function() {
   var POSICIONES = {
     // RH/AO/DE: franja crema final, y=1779–1919 (141px alto). Ícono ocupa
     // x=14–155. QR a la derecha, link de texto a la izquierda del QR.
-    pie: { qrX: 920, qrY: 1787, qrTam: 124, textoX: 175, textoY: 1793, textoAncho: 720, fontSize: 36 },
-    // IN: espacio libre debajo del ícono, y=1207–1328. Ícono ocupa x=32–219.
-    in: { qrX: 960, qrY: 1215, qrTam: 104, textoX: 240, textoY: 1216, textoAncho: 685, fontSize: 30 }
+    // Columna libre real, confirmada por medición directa (sin traslape
+    // con el texto/ícono existente): x832-1079, y1654-1919.
+    pie: { qrX: 880, qrY: 1754, qrTam: 150, textoX: 840, textoY: 1664, textoAncho: 230, fontSize: 22 },
+    // IN: columna libre real x800-1080, y1057-1329.
+    in: { qrX: 848, qrY: 1131, qrTam: 183, textoX: 815, textoY: 1067, textoAncho: 250, fontSize: 22 }
   };
 
   function claveContadorPersonal(copy) {
