@@ -60,9 +60,12 @@
       <div id="link-texto" style="font-size:12px; color:#042C53; word-break:break-all; margin: 10px 0 16px;"></div>
     </div>
     <div id="estado-generacion" class="cargando" style="display:none;">Generando tu versión con QR...</div>
+    <p style="font-size:12px; color:#5F5E5A; margin:0 0 10px 0; line-height:1.4;">
+      Nota: "Compartir" funciona distinto según TU dispositivo — en celular abre el menú nativo con la imagen; en computadora copia la imagen al portapapeles para que la pegues donde quieras.
+    </p>
     <button class="btn" id="btn-compartir">Compartir este copy</button>
+    <button class="btn" id="btn-copiar-link" style="background:#EF9F27;">Copiar TU Enlace de Referidor</button>
     <button class="btn" id="btn-descargar" style="background:#5F5E5A;">Descargar este copy</button>
-    <button class="btn" id="btn-copiar-link" style="background:#EF9F27;">Copiar Link (para pegar junto a la imagen)</button>
     <button class="btn" id="btn-ver-qr" style="background:#639922;">Ver mi QR (para mostrar en persona)</button>
     <button class="btn-cerrar" id="btn-cerrar">Cerrar</button>
   </div>
@@ -2657,7 +2660,7 @@ var qrcode = function() {
     document.getElementById('btn-ver-qr').style.display = 'block';
     document.getElementById('btn-descargar').style.display = 'block';
     document.getElementById('btn-copiar-link').style.display = 'block';
-    document.getElementById('btn-copiar-link').textContent = 'Copiar Link (para pegar junto a la imagen)';
+    document.getElementById('btn-copiar-link').textContent = 'Copiar TU Enlace de Referidor';
 
     // Generamos la imagen personalizada YA, en segundo plano, mientras el
     // referidor todavía está viendo la vista grande — así, cuando toque
@@ -2679,7 +2682,7 @@ var qrcode = function() {
 
     function marcarCopiado() {
       btn.textContent = '¡Copiado! Ya lo puedes pegar';
-      setTimeout(function() { btn.textContent = 'Copiar Link (para pegar junto a la imagen)'; }, 2000);
+      setTimeout(function() { btn.textContent = 'Copiar TU Enlace de Referidor'; }, 2000);
     }
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -2827,20 +2830,17 @@ var qrcode = function() {
     // En computadora: el "compartir" nativo de archivos de Windows está
     // roto de forma comprobada (falla igual en Chrome y Edge, incluso
     // recargando la página) — no depende de nuestro código, es un límite
-    // real de esa plataforma. En vez de eso, copiamos AMBOS formatos al
-    // portapapeles a la vez (imagen + texto): al pegar donde se espera una
-    // foto, se pega la foto; al pegar donde se espera texto, se pega el
-    // link. Nada se pierde, solo son dos "pegar" en vez de uno.
+    // real de esa plataforma. Copiamos solo la IMAGEN al portapapeles.
+    // (Probamos combinar imagen+texto en un solo copiado, pero WhatsApp
+    // Web prioriza la imagen sin importar dónde esté el cursor, así que
+    // el texto nunca se pegaba — por eso el link va aparte, con el botón
+    // "Copiar Link" dedicado, que ya sabemos que funciona bien solo.)
     if (navigator.clipboard && window.ClipboardItem) {
-      var textBlob = new Blob([textoMensaje], { type: 'text/plain' });
       navigator.clipboard.write([
-        new ClipboardItem({
-          'image/png': blob,
-          'text/plain': textBlob
-        })
+        new ClipboardItem({ 'image/png': blob })
       ]).then(function() {
         estadoEl.style.display = 'block';
-        estadoEl.textContent = '¡Copiado! Pega (Ctrl+V) la imagen donde vayas a mandarla, y pega otra vez (Ctrl+V) en el pie de foto para el link.';
+        estadoEl.textContent = '¡Imagen copiada! Pégala (Ctrl+V) donde la vayas a mandar. Usa el botón "Copiar TU Enlace de Referidor" para copiarlo por separado.';
       }).catch(function() {
         descargarDirecto();
       });
