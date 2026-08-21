@@ -2792,8 +2792,6 @@ var qrcode = function() {
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   }
 
-  var compartiendoEnCurso = false;
-
   function compartirBlob(blob, nombreArchivo, link) {
     var file = new File([blob], nombreArchivo, { type: 'image/png' });
 
@@ -2806,24 +2804,12 @@ var qrcode = function() {
       URL.revokeObjectURL(url);
     }
 
-    // El "compartir" nativo de archivos es lo que se intenta primero, en
-    // cualquier dispositivo — si falla o tarda (conocido en algunos
-    // navegadores de escritorio), el botón "Descargar este copy" aparte
-    // siempre está disponible como respaldo, a elección del referidor.
+    // Cada toque de "Compartir" se intenta de inmediato, sin preguntar si
+    // hay otro en curso — un referidor debe poder compartir 20 copies
+    // seguidos, uno tras otro, sin ninguna espera artificial de nuestra
+    // parte. Si el navegador mismo se queja (poco común, pero pasa en
+    // algunos de escritorio), lo manejamos ahí — nunca antes de intentar.
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      if (compartiendoEnCurso) {
-        estadoEl.style.display = 'block';
-        estadoEl.innerHTML = 'Espera unos segundos a que termine el envío anterior. Si no responde, ' +
-          '<a href="#" id="zr-link-descarga-emergencia" style="color:#185FA5; font-weight:bold;">descarga la imagen aquí</a>.';
-        document.getElementById('zr-link-descarga-emergencia').addEventListener('click', function(e) {
-          e.preventDefault();
-          compartiendoEnCurso = false;
-          descargarDirecto();
-        });
-        return;
-      }
-      compartiendoEnCurso = true;
-
       // Salida de emergencia: si el menú nativo no responde en 6 segundos
       // (falla conocida en algunos navegadores de escritorio), ofrecemos
       // descarga directa para que nadie se quede atorado.
@@ -2846,13 +2832,22 @@ var qrcode = function() {
       }).then(function() {
         yaResolvio = true;
         clearTimeout(timeoutEmergencia);
-        compartiendoEnCurso = false;
         estadoEl.style.display = 'none';
       }).catch(function(err) {
         yaResolvio = true;
         clearTimeout(timeoutEmergencia);
-        compartiendoEnCurso = false;
-        if (err.name !== 'AbortError') { // AbortError = el usuario solo canceló el menú, no es error real
+        if (err.name === 'InvalidStateError') {
+          // El navegador dice que "un compartir anterior sigue en curso"
+          // (puede pasar en escritorio) — no es un error del referidor,
+          // simplemente ofrecemos descarga directa sin drama.
+          estadoEl.style.display = 'block';
+          estadoEl.innerHTML = 'TU navegador está ocupado con un envío anterior. ' +
+            '<a href="#" id="zr-link-descarga-emergencia2" style="color:#185FA5; font-weight:bold;">Descarga la imagen aquí</a> mientras tanto.';
+          document.getElementById('zr-link-descarga-emergencia2').addEventListener('click', function(e) {
+            e.preventDefault();
+            descargarDirecto();
+          });
+        } else if (err.name !== 'AbortError') { // AbortError = el usuario solo canceló el menú, no es error real
           estadoEl.style.display = 'block';
           estadoEl.textContent = 'No se pudo compartir: ' + err.name + '. Intenta de nuevo.';
         } else {
