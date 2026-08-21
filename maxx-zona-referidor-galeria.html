@@ -2794,24 +2794,58 @@ var qrcode = function() {
 
   function compartirBlob(blob, nombreArchivo, link) {
     var file = new File([blob], nombreArchivo, { type: 'image/png' });
+    var textoMensaje = 'MAXX — TUS ahorros, TU libertad\n\n' + link;
 
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      navigator.share({
-        files: [file],
-        text: 'MAXX — TUS ahorros, TU libertad\n\n\n' + link
-      }).catch(function(err) {
-        if (err.name !== 'AbortError') { // AbortError = solo canceló el menú, no es error real
-          estadoEl.style.display = 'block';
-          estadoEl.textContent = 'No se pudo compartir: ' + err.name + '. Usa el botón de Descargar si vuelve a pasar.';
-        }
-      });
-    } else {
+    function descargarDirecto() {
       var url = URL.createObjectURL(blob);
       var a = document.createElement('a');
       a.href = url;
       a.download = nombreArchivo;
       a.click();
       URL.revokeObjectURL(url);
+    }
+
+    if (esMovil()) {
+      // En celular, el "compartir" nativo funciona bien de verdad —
+      // confirmado con pruebas reales (WhatsApp).
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({
+          files: [file],
+          text: textoMensaje
+        }).catch(function(err) {
+          if (err.name !== 'AbortError') {
+            estadoEl.style.display = 'block';
+            estadoEl.textContent = 'No se pudo compartir: ' + err.name + '. Usa el botón de Descargar si vuelve a pasar.';
+          }
+        });
+      } else {
+        descargarDirecto();
+      }
+      return;
+    }
+
+    // En computadora: el "compartir" nativo de archivos de Windows está
+    // roto de forma comprobada (falla igual en Chrome y Edge, incluso
+    // recargando la página) — no depende de nuestro código, es un límite
+    // real de esa plataforma. En vez de eso, copiamos AMBOS formatos al
+    // portapapeles a la vez (imagen + texto): al pegar donde se espera una
+    // foto, se pega la foto; al pegar donde se espera texto, se pega el
+    // link. Nada se pierde, solo son dos "pegar" en vez de uno.
+    if (navigator.clipboard && window.ClipboardItem) {
+      var textBlob = new Blob([textoMensaje], { type: 'text/plain' });
+      navigator.clipboard.write([
+        new ClipboardItem({
+          'image/png': blob,
+          'text/plain': textBlob
+        })
+      ]).then(function() {
+        estadoEl.style.display = 'block';
+        estadoEl.textContent = '¡Copiado! Pega (Ctrl+V) la imagen donde vayas a mandarla, y pega otra vez (Ctrl+V) en el pie de foto para el link.';
+      }).catch(function() {
+        descargarDirecto();
+      });
+    } else {
+      descargarDirecto();
     }
   }
 })();
