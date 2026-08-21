@@ -32,7 +32,7 @@
   .modal-contenido { background: white; border-radius: 12px; padding: 20px; max-width: 340px; width: 100%; text-align: center; margin: 0 auto; }
   .modal-contenido canvas, .modal-contenido img.vista-grande { max-width: 100%; max-height: 72vh; width: auto; height: auto; border-radius: 8px; margin: 0 auto 16px; display: block; }
   #canvas-qr-solo { width: 220px !important; max-width: 100%; margin: 0 auto 0; }
-  .btn { background: #185FA5; color: white; border: none; border-radius: 8px; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 8px; }
+  .btn { background: #185FA5; color: white; border: none; border-radius: 8px; padding: 9px 18px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 6px; }
   .btn:hover { background: #378ADD; }
   .btn-cerrar { background: transparent; color: #042C53; text-decoration: underline; border: none; cursor: pointer; font-size: 14px; }
   .cargando { color: #639922; font-weight: bold; }
@@ -61,6 +61,7 @@
     </div>
     <div id="estado-generacion" class="cargando" style="display:none;">Generando tu versión con QR...</div>
     <button class="btn" id="btn-compartir">Compartir este copy</button>
+    <button class="btn" id="btn-descargar" style="background:#5F5E5A;">Descargar este copy</button>
     <button class="btn" id="btn-copiar-link" style="background:#EF9F27;">Copiar Link (para pegar junto a la imagen)</button>
     <button class="btn" id="btn-ver-qr" style="background:#639922;">Ver mi QR (para mostrar en persona)</button>
     <button class="btn-cerrar" id="btn-cerrar">Cerrar</button>
@@ -2435,9 +2436,9 @@ var qrcode = function() {
   var POSICIONES = {
     // RH/AO/DE: franja crema final, y=1779–1919 (141px alto). Ícono ocupa
     // x=14–155. QR a la derecha, link de texto a la izquierda del QR.
-    pie: { qrX: 940, qrY: 1789, qrTam: 120, textoX: 175, textoY: 1800, textoAncho: 745, fontSize: 32 },
+    pie: { qrX: 920, qrY: 1787, qrTam: 124, textoX: 175, textoY: 1793, textoAncho: 720, fontSize: 36 },
     // IN: espacio libre debajo del ícono, y=1207–1328. Ícono ocupa x=32–219.
-    in: { qrX: 965, qrY: 1218, qrTam: 100, textoX: 240, textoY: 1225, textoAncho: 705, fontSize: 26 }
+    in: { qrX: 960, qrY: 1215, qrTam: 104, textoX: 240, textoY: 1216, textoAncho: 685, fontSize: 30 }
   };
 
   function claveContadorPersonal(copy) {
@@ -2651,9 +2652,10 @@ var qrcode = function() {
     document.getElementById('vista-qr-sola').style.display = 'none';
     estadoEl.style.display = 'none';
     btnCompartir.style.display = 'block';
-    btnCompartir.textContent = esMovil() ? 'Compartir este copy' : 'Descargar este copy';
+    btnCompartir.textContent = 'Compartir este copy';
     btnCompartir.disabled = false;
     document.getElementById('btn-ver-qr').style.display = 'block';
+    document.getElementById('btn-descargar').style.display = 'block';
     document.getElementById('btn-copiar-link').style.display = 'block';
     document.getElementById('btn-copiar-link').textContent = 'Copiar Link (para pegar junto a la imagen)';
 
@@ -2697,6 +2699,7 @@ var qrcode = function() {
     canvas.style.display = 'none';
     btnCompartir.style.display = 'none';
     document.getElementById('btn-ver-qr').style.display = 'none';
+    document.getElementById('btn-descargar').style.display = 'none';
     document.getElementById('btn-copiar-link').style.display = 'none';
 
     var vistaQr = document.getElementById('vista-qr-sola');
@@ -2747,6 +2750,44 @@ var qrcode = function() {
     }
   });
 
+  document.getElementById('btn-descargar').addEventListener('click', function() {
+    if (!copyActual) return;
+    var copy = copyActual;
+
+    function dispararDescarga() {
+      if (!blobListo) {
+        estadoEl.style.display = 'block';
+        estadoEl.textContent = 'No se pudo generar la imagen. Cierra e inténtalo de nuevo.';
+        return;
+      }
+      var nombreArchivo = 'MAXX_' + copy.etapa + '-' + copy.tema + '_' + REF_PRUEBA + '.png';
+      var url = URL.createObjectURL(blobListo);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = nombreArchivo;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      var nuevoConteo = sumarContadorPersonal(copy);
+      var badgeEl = document.getElementById('zr-personal-' + copy.etapa + '-' + copy.tema);
+      if (badgeEl) badgeEl.textContent = 'TÚ: ' + nuevoConteo + ' veces';
+    }
+
+    if (blobEnProceso) {
+      estadoEl.style.display = 'block';
+      estadoEl.textContent = 'Un momento...';
+      var intervaloDescarga = setInterval(function() {
+        if (!blobEnProceso) {
+          clearInterval(intervaloDescarga);
+          estadoEl.style.display = 'none';
+          dispararDescarga();
+        }
+      }, 100);
+    } else {
+      dispararDescarga();
+    }
+  });
+
   function esMovil() {
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   }
@@ -2765,13 +2806,11 @@ var qrcode = function() {
       URL.revokeObjectURL(url);
     }
 
-    // El "compartir" nativo de archivos es confiable en celular (el uso
-    // real de un referidor), pero conocido por fallar de forma
-    // inconsistente en Windows/Chrome de escritorio (AbortError,
-    // InvalidStateError, o quedarse colgado). En computadora, mejor
-    // evitarlo del todo y descargar directo — es una computadora de
-    // prueba, no el dispositivo real de un referidor de todas formas.
-    if (esMovil() && navigator.canShare && navigator.canShare({ files: [file] })) {
+    // El "compartir" nativo de archivos es lo que se intenta primero, en
+    // cualquier dispositivo — si falla o tarda (conocido en algunos
+    // navegadores de escritorio), el botón "Descargar este copy" aparte
+    // siempre está disponible como respaldo, a elección del referidor.
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
       if (compartiendoEnCurso) {
         estadoEl.style.display = 'block';
         estadoEl.innerHTML = 'Espera unos segundos a que termine el envío anterior. Si no responde, ' +
