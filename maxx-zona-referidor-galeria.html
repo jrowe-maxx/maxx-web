@@ -2652,7 +2652,7 @@ var qrcode = function() {
     document.getElementById('vista-qr-sola').style.display = 'none';
     estadoEl.style.display = 'none';
     btnCompartir.style.display = 'block';
-    btnCompartir.textContent = 'Compartir este copy';
+    btnCompartir.textContent = esMovil() ? 'Compartir este copy' : 'Descargar este copy';
     btnCompartir.disabled = false;
     document.getElementById('btn-ver-qr').style.display = 'block';
     document.getElementById('btn-descargar').style.display = 'block';
@@ -2804,11 +2804,17 @@ var qrcode = function() {
       URL.revokeObjectURL(url);
     }
 
-    // Cada toque de "Compartir" se intenta de inmediato, sin preguntar si
-    // hay otro en curso — un referidor debe poder compartir 20 copies
-    // seguidos, uno tras otro, sin ninguna espera artificial de nuestra
-    // parte. Si el navegador mismo se queja (poco común, pero pasa en
-    // algunos de escritorio), lo manejamos ahí — nunca antes de intentar.
+    // En computadora, el "compartir" nativo de archivos de Windows es
+    // conocido por fallar de forma repetida e impredecible (confirmado en
+    // pruebas reales) — ahí ni siquiera lo intentamos: descarga directa,
+    // al instante, sin espera ni mensajes. En celular sí es confiable
+    // (confirmado con pruebas reales de WhatsApp), así que ahí se usa el
+    // menú nativo de compartir.
+    if (!esMovil()) {
+      descargarDirecto();
+      return;
+    }
+
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       // Salida de emergencia: si el menú nativo no responde en 6 segundos
       // (falla conocida en algunos navegadores de escritorio), ofrecemos
