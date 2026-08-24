@@ -1,14 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>MAXX — Brilla ante la Duda — Vista previa completa</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap">
-<style>
-  body { background:#FFFFFF; padding:40px 20px; }
-</style>
-</head>
-<body>
+document.write(`
 <div id="brilla-ante-la-duda-root" style="font-family:'Roboto',Arial,sans-serif; max-width:900px; margin:0 auto;">
 
 <div class="brilla-categoria" style="margin-bottom:12px;">
@@ -656,7 +646,9 @@
 </div>
 </div>
 </div>
-<script>
+
+`);
+
 (function() {
   // Acordeón de categorías — una abierta a la vez
   document.querySelectorAll('.brilla-cat-btn').forEach(function(btn) {
@@ -687,4 +679,3 @@
     });
   });
 })();
-</script></body></html>
