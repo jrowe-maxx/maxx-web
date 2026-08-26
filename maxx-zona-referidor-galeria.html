@@ -2420,17 +2420,19 @@ var qrcode = function() {
     { archivo: 'MAXX_IN-LIB-01.png', etapa: 'IN', tema: 'LIB', categoria: 'in', agregado: '2026-08-15', baseVistas: 31 },
     { archivo: 'MAXX_IN-FIS-01.png', etapa: 'IN', tema: 'FIS', categoria: 'in', agregado: '2026-08-15', baseVistas: 2 },
     { archivo: 'MAXX_IN-OPC-01.png', etapa: 'IN', tema: 'OPC', categoria: 'in', agregado: '2026-08-15', baseVistas: 16 },
-    { archivo: 'MAXX_IN-INV-01.png', etapa: 'IN', tema: 'INV', categoria: 'in', agregado: '2026-08-19', baseVistas: 1 }
+    { archivo: 'MAXX_IN-INV-01.png', etapa: 'IN', tema: 'INV', categoria: 'in', agregado: '2026-08-19', baseVistas: 1 },
+    { archivo: 'MAXX_VIDEO-portada-01.png', etapa: 'VIDEO', tema: 'PPR', categoria: 'video', agregado: '2026-08-26', baseVistas: 0 }
   ];
 
   // Orden fijo de las secciones (etapas) — no cronológico, es el orden de
   // progresión obligatoria del referidor: primero Rompe el Hielo, etc.
-  var ORDEN_ETAPAS = ['RH', 'AO', 'DE', 'IN'];
+  var ORDEN_ETAPAS = ['RH', 'AO', 'DE', 'IN', 'VIDEO'];
   var INFO_ETAPA = {
     RH: { numero: 1, nombre: 'Rompe el Hielo', objetivo: 'El primer contacto, ligero y sin presión. Solo genera curiosidad — nada de cifras complicadas ni compromiso.', destino: 'Lleva al Cuestionario (maxx.mx) para hacer su Diagnóstico Financiero Gratuito.' },
     AO: { numero: 2, nombre: 'Abre los Ojos', objetivo: 'Ya generaste curiosidad — ahora muestra el problema real: TU pensión no será suficiente. Educa, todavía sin empujar a la cita.', destino: 'Lleva al Cuestionario (maxx.mx) para hacer su Diagnóstico Financiero Gratuito.' },
     DE: { numero: 3, nombre: 'Demuestra', objetivo: 'Convence con evidencia real — cifras completas o prueba social. Es momento de mostrar que esto funciona.', destino: 'Lleva al Cuestionario (maxx.mx) para hacer su Diagnóstico Financiero Gratuito.' },
-    IN: { numero: 4, nombre: 'Invita', objetivo: 'El empujón final. Corto, directo, con la fecha de HOY en mente — pide la cita, ya no más educación.', destino: 'Único caso que lleva directo a agendar la Cita — ya no pasa por el Cuestionario.' }
+    IN: { numero: 4, nombre: 'Invita', objetivo: 'El empujón final. Corto, directo, con la fecha de HOY en mente — pide la cita, ya no más educación.', destino: 'Único caso que lleva directo a agendar la Cita — ya no pasa por el Cuestionario.' },
+    VIDEO: { numero: 5, nombre: 'Video', etiquetaBoton: 'Videos', objetivo: 'Comparte el video explicativo completo — ideal para quien prefiere ver y escuchar antes de decidir.', destino: 'Lleva directo al Video en maxx.mx.' }
   };
 
   // ---- Coordenadas medidas directamente sobre los archivos reales de producción ----
@@ -2609,7 +2611,7 @@ var qrcode = function() {
     var btn = document.createElement('div');
     btn.className = 'filtro-btn';
     btn.dataset.etapa = etapa;
-    btn.textContent = info.numero + ' · ' + etapa;
+    btn.textContent = info.numero + ' · ' + (info.etiquetaBoton || etapa);
     btn.addEventListener('click', function() { mostrarEtapa(etapa); });
     filtroEl.appendChild(btn);
   });
@@ -2628,12 +2630,28 @@ var qrcode = function() {
 
   function generarBlobPersonalizado(copy, callback) {
     var ctx = canvas.getContext('2d');
-    canvas.width = 1080;
-    canvas.height = 1920;
 
     var img = new Image();
     img.crossOrigin = 'anonymous';
     img.onload = function() {
+      // El Video usa portada horizontal (1280x720) — las demás tarjetas
+      // son verticales (1080x1920). El tamaño del canvas se ajusta al
+      // tipo de tarjeta, para no estirar ni deformar ninguna imagen.
+      if (copy.categoria === 'video') {
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        // El Video no lleva QR ni link dibujados encima de la portada —
+        // su acceso al link/QR vive en los botones "Copiar TU Enlace" y
+        // "Ver mi QR" por separado. Aquí solo se comparte la portada tal cual.
+        canvas.toBlob(function(blob) {
+          callback(blob);
+        }, 'image/png');
+        return;
+      }
+
+      canvas.width = 1080;
+      canvas.height = 1920;
       ctx.drawImage(img, 0, 0, 1080, 1920);
 
       var link = construirLink(REF_PRUEBA, copy.etapa, copy.tema);
@@ -2685,7 +2703,9 @@ var qrcode = function() {
     btnCompartir.textContent = 'Compartir este copy';
     btnCompartir.disabled = false;
     document.getElementById('btn-ver-qr').style.display = 'block';
-    document.getElementById('btn-descargar').style.display = 'block';
+    // El Video no tiene una imagen personalizada que descargar (no lleva
+    // QR/link dibujados encima) — por eso no aplica el botón Descargar.
+    document.getElementById('btn-descargar').style.display = (copy.categoria === 'video') ? 'none' : 'block';
     document.getElementById('btn-copiar-link').style.display = 'block';
     document.getElementById('btn-copiar-link').textContent = 'Copiar TU Enlace de Referidor';
 
