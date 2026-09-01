@@ -2,7 +2,7 @@ document.write(`
 <div id="brilla-ante-la-duda-root" style="font-family:'Roboto',Arial,sans-serif; max-width:900px; margin:0 auto;">
 
 <div class="brilla-categoria" style="margin-bottom:12px;">
-<button type="button" class="brilla-cat-btn" data-target="brilla-cat1" style="display:flex; justify-content:flex-start; align-items:center; gap:10px; width:480px; max-width:100%; margin:0 auto 12px auto; text-align:left; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-cat-btn" data-target="brilla-cat1" style="display:flex; justify-content:center; align-items:center; gap:10px; width:360px; max-width:100%; margin:0 auto 12px auto; text-align:center; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 <span style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">Desconocimiento del PPR/Aseguradora</span>
 <span class="brilla-cat-icon" style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">+</span>
 </button>
@@ -76,7 +76,7 @@ document.write(`
 </div>
 
 <div class="brilla-categoria" style="margin-bottom:12px;">
-<button type="button" class="brilla-cat-btn" data-target="brilla-cat2" style="display:flex; justify-content:flex-start; align-items:center; gap:10px; width:480px; max-width:100%; margin:0 auto 12px auto; text-align:left; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-cat-btn" data-target="brilla-cat2" style="display:flex; justify-content:center; align-items:center; gap:10px; width:360px; max-width:100%; margin:0 auto 12px auto; text-align:center; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 <span style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">Ya tengo mi Retiro</span>
 <span class="brilla-cat-icon" style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">+</span>
 </button>
@@ -142,7 +142,7 @@ document.write(`
 </div>
 
 <div class="brilla-categoria" style="margin-bottom:12px;">
-<button type="button" class="brilla-cat-btn" data-target="brilla-cat3" style="display:flex; justify-content:flex-start; align-items:center; gap:10px; width:480px; max-width:100%; margin:0 auto 12px auto; text-align:left; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-cat-btn" data-target="brilla-cat3" style="display:flex; justify-content:center; align-items:center; gap:10px; width:360px; max-width:100%; margin:0 auto 12px auto; text-align:center; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 <span style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">Tiempo/Urgencia</span>
 <span class="brilla-cat-icon" style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">+</span>
 </button>
@@ -184,7 +184,7 @@ document.write(`
 </div>
 
 <div class="brilla-categoria" style="margin-bottom:12px;">
-<button type="button" class="brilla-cat-btn" data-target="brilla-cat4" style="display:flex; justify-content:flex-start; align-items:center; gap:10px; width:480px; max-width:100%; margin:0 auto 12px auto; text-align:left; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-cat-btn" data-target="brilla-cat4" style="display:flex; justify-content:center; align-items:center; gap:10px; width:360px; max-width:100%; margin:0 auto 12px auto; text-align:center; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 <span style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">Edad/Etapas de vida</span>
 <span class="brilla-cat-icon" style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">+</span>
 </button>
@@ -245,7 +245,7 @@ document.write(`
 </div>
 
 <div class="brilla-categoria" style="margin-bottom:12px;">
-<button type="button" class="brilla-cat-btn" data-target="brilla-cat5" style="display:flex; justify-content:flex-start; align-items:center; gap:10px; width:480px; max-width:100%; margin:0 auto 12px auto; text-align:left; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-cat-btn" data-target="brilla-cat5" style="display:flex; justify-content:center; align-items:center; gap:10px; width:360px; max-width:100%; margin:0 auto 12px auto; text-align:center; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 <span style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">Pensarlo/Consultarlo</span>
 <span class="brilla-cat-icon" style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">+</span>
 </button>
@@ -310,7 +310,7 @@ Es mucho más fácil pensarlo con TUS propios números enfrente, que pensarlo en
 </div>
 
 <div class="brilla-categoria" style="margin-bottom:12px;">
-<button type="button" class="brilla-cat-btn" data-target="brilla-cat6" style="display:flex; justify-content:flex-start; align-items:center; gap:10px; width:480px; max-width:100%; margin:0 auto 12px auto; text-align:left; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-cat-btn" data-target="brilla-cat6" style="display:flex; justify-content:center; align-items:center; gap:10px; width:360px; max-width:100%; margin:0 auto 12px auto; text-align:center; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 <span style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">Dinero/Capacidad</span>
 <span class="brilla-cat-icon" style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">+</span>
 </button>
@@ -369,7 +369,7 @@ Es mucho más fácil pensarlo con TUS propios números enfrente, que pensarlo en
 </div>
 
 <div class="brilla-categoria" style="margin-bottom:12px;">
-<button type="button" class="brilla-cat-btn" data-target="brilla-cat7" style="display:flex; justify-content:flex-start; align-items:center; gap:10px; width:480px; max-width:100%; margin:0 auto 12px auto; text-align:left; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-cat-btn" data-target="brilla-cat7" style="display:flex; justify-content:center; align-items:center; gap:10px; width:360px; max-width:100%; margin:0 auto 12px auto; text-align:center; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 <span style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">Flexibilidad — "No quiero Amarrarme"</span>
 <span class="brilla-cat-icon" style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">+</span>
 </button>
@@ -452,7 +452,7 @@ Es mucho más fácil pensarlo con TUS propios números enfrente, que pensarlo en
 </div>
 
 <div class="brilla-categoria" style="margin-bottom:12px;">
-<button type="button" class="brilla-cat-btn" data-target="brilla-cat8" style="display:flex; justify-content:flex-start; align-items:center; gap:10px; width:480px; max-width:100%; margin:0 auto 12px auto; text-align:left; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-cat-btn" data-target="brilla-cat8" style="display:flex; justify-content:center; align-items:center; gap:10px; width:360px; max-width:100%; margin:0 auto 12px auto; text-align:center; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 <span style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">Sobre TU Cita/Proceso</span>
 <span class="brilla-cat-icon" style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">+</span>
 </button>
@@ -535,7 +535,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </div>
 
 <div class="brilla-categoria" style="margin-bottom:12px;">
-<button type="button" class="brilla-cat-btn" data-target="brilla-cat9" style="display:flex; justify-content:flex-start; align-items:center; gap:10px; width:480px; max-width:100%; margin:0 auto 12px auto; text-align:left; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-cat-btn" data-target="brilla-cat9" style="display:flex; justify-content:center; align-items:center; gap:10px; width:360px; max-width:100%; margin:0 auto 12px auto; text-align:center; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 <span style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">Asesor/Otra Opción</span>
 <span class="brilla-cat-icon" style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">+</span>
 </button>
@@ -598,7 +598,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </div>
 
 <div class="brilla-categoria" style="margin-bottom:12px;">
-<button type="button" class="brilla-cat-btn" data-target="brilla-cat10" style="display:flex; justify-content:flex-start; align-items:center; gap:10px; width:480px; max-width:100%; margin:0 auto 12px auto; text-align:left; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-cat-btn" data-target="brilla-cat10" style="display:flex; justify-content:center; align-items:center; gap:10px; width:360px; max-width:100%; margin:0 auto 12px auto; text-align:center; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 <span style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">Desconfianza/"Es Fraude"</span>
 <span class="brilla-cat-icon" style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">+</span>
 </button>
@@ -665,7 +665,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </div>
 
 <div class="brilla-categoria" style="margin-bottom:12px;">
-<button type="button" class="brilla-cat-btn" data-target="brilla-cat11" style="display:flex; justify-content:flex-start; align-items:center; gap:10px; width:480px; max-width:100%; margin:0 auto 12px auto; text-align:left; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-cat-btn" data-target="brilla-cat11" style="display:flex; justify-content:center; align-items:center; gap:10px; width:360px; max-width:100%; margin:0 auto 12px auto; text-align:center; background:#E6F1FB; border:none; border-radius:10px; box-shadow:0 2px 8px rgba(4,44,83,0.15); padding:14px 16px; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 <span style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">Sobre el Referidor</span>
 <span class="brilla-cat-icon" style="font-family:'Roboto',Arial,sans-serif;color:#042C53; font-size:13px; font-weight:bold;">+</span>
 </button>
