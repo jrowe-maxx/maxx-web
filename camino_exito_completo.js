@@ -1,3 +1,4 @@
+document.write(`
 <div id="camino-exito-root" style="font-family:'Roboto',Arial,sans-serif; max-width:1000px; margin:0 auto;">
 <div class="camino-fila" style="display:flex; gap:14px; overflow-x:auto; padding:10px 4px 16px 4px; -webkit-overflow-scrolling:touch;">
 
@@ -292,8 +293,21 @@
 </div>
 </div>
 </div>
-<script>
+`);
 (function() {
+  // CANDADO DE SEGURIDAD: este script solo debe actuar cuando la sección
+  // visible es #zona-referidor-galeria — de lo contrario, se ejecuta en
+  // CUALQUIER página del sitio (lección aprendida hoy con /ir).
+  var hashActual;
+  try {
+    hashActual = window.top.location.hash;
+  } catch (e) {
+    hashActual = window.location.hash;
+  }
+  if (hashActual.indexOf('#zona-referidor-galeria') !== 0) {
+    return;
+  }
+
   document.querySelectorAll('.camino-tarjeta').forEach(function(tarjeta) {
     tarjeta.addEventListener('click', function() {
       var target = document.getElementById(tarjeta.getAttribute('data-target'));
@@ -301,7 +315,9 @@
       document.querySelectorAll('.camino-panel').forEach(function(p) { p.style.display = 'none'; });
       if (!isOpen) {
         target.style.display = 'block';
-        target.scrollIntoView({behavior:'smooth', block:'nearest'});
+        if (target.scrollIntoView) {
+          target.scrollIntoView({behavior:'smooth', block:'nearest'});
+        }
       }
     });
   });
@@ -320,4 +336,3 @@
     });
   });
 })();
-</script>
