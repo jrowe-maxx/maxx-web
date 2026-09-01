@@ -43,7 +43,6 @@
 
 <div id="contenedor-galeria" style="max-width:900px; margin:0 auto;">
 
-<div class="filtro-etapas" id="filtro-etapas"></div>
 <p style="color:#042C53; font-size:14px; font-weight:bold; margin:0 0 8px 0; line-height:1.4;">
   Siempre empieza en "Rompe el Hielo" (RH),<br>
   y con el tema que más le interesará a TU prospecto (PAT, LIB, INV, FIS u OPC).
@@ -52,6 +51,7 @@
   A partir de lo anterior, sigue la secuencia completa con el mismo tema<br>
   — es lo que da los mejores resultados.
 </p>
+<div class="filtro-etapas" id="filtro-etapas"></div>
 <div id="galeria"></div>
 
 </div>
@@ -2616,7 +2616,7 @@ var qrcode = function() {
     var btn = document.createElement('div');
     btn.className = 'filtro-btn';
     btn.dataset.etapa = etapa;
-    btn.textContent = info.numero + ' · ' + (info.etiquetaBoton || etapa);
+    btn.textContent = info.numero + ' · ' + (info.etiquetaBoton || info.nombre);
     btn.addEventListener('click', function() { mostrarEtapa(etapa); });
     filtroEl.appendChild(btn);
   });
