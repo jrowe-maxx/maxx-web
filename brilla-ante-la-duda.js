@@ -8,7 +8,7 @@ document.write(`
 </button>
 <div id="brilla-cat1" class="brilla-cat-content" style="display:none; padding-left:4px; font-family:'Roboto',Arial,sans-serif;">
 
-<button type="button" class="brilla-op-btn" data-target="cat1-op1" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat1-op1" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "No entiendo bien qué es un PPR" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat1-op1" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -30,7 +30,7 @@ document.write(`
 <p style="margin:8px 0 0 0;font-family:'Roboto',Arial,sans-serif;"><a href="https://maxx.mx/#video-myt-ppr" style="font-family:'Roboto',Arial,sans-serif;color:#185FA5; font-weight:bold;">TU video →</a></p>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat1-op2" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat1-op2" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "¿Quién es la aseguradora?" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat1-op2" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -55,7 +55,7 @@ document.write(`
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat1-op3" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat1-op3" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "¿Esto es un banco o qué es?" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat1-op3" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -82,7 +82,7 @@ document.write(`
 </button>
 <div id="brilla-cat2" class="brilla-cat-content" style="display:none; padding-left:4px; font-family:'Roboto',Arial,sans-serif;">
 
-<button type="button" class="brilla-op-btn" data-target="cat2-op1" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat2-op1" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Ya tengo Afore, con eso basta" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat2-op1" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -101,7 +101,7 @@ document.write(`
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat2-op2" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat2-op2" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Ya tengo un seguro de vida/inversión" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat2-op2" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -119,7 +119,7 @@ document.write(`
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat2-op3" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat2-op3" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Ya ahorro por mi cuenta" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat2-op3" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -148,7 +148,7 @@ document.write(`
 </button>
 <div id="brilla-cat3" class="brilla-cat-content" style="display:none; padding-left:4px; font-family:'Roboto',Arial,sans-serif;">
 
-<button type="button" class="brilla-op-btn" data-target="cat3-op1" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat3-op1" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Falta mucho para mi retiro, no es urgente" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat3-op1" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -165,7 +165,7 @@ document.write(`
 <p style="margin:0 0 8px 0;font-family:'Roboto',Arial,sans-serif; color:#639922;">La diferencia te va a sorprender.</p>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat3-op2" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat3-op2" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "No tengo tiempo para una cita" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat3-op2" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -190,7 +190,7 @@ document.write(`
 </button>
 <div id="brilla-cat4" class="brilla-cat-content" style="display:none; padding-left:4px; font-family:'Roboto',Arial,sans-serif;">
 
-<button type="button" class="brilla-op-btn" data-target="cat4-op1" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat4-op1" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Estoy muy joven para pensar en retiro" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat4-op1" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -207,7 +207,7 @@ document.write(`
 <p style="margin:0 0 8px 0;font-family:'Roboto',Arial,sans-serif; color:#185FA5;">Ver la diferencia en pesos y centavos suele ser lo que más convence.</p>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat4-op2" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat4-op2" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Ya estoy muy grande, ya no vale la pena" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat4-op2" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -223,7 +223,7 @@ document.write(`
 <p style="margin:0 0 8px 0;font-family:'Roboto',Arial,sans-serif; color:#639922;">Nunca es tan tarde como uno cree.</p>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat4-op3" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat4-op3" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Mejor cuando gane más" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat4-op3" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -251,7 +251,7 @@ document.write(`
 </button>
 <div id="brilla-cat5" class="brilla-cat-content" style="display:none; padding-left:4px; font-family:'Roboto',Arial,sans-serif;">
 
-<button type="button" class="brilla-op-btn" data-target="cat5-op1" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat5-op1" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Déjame pensarlo" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat5-op1" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -271,7 +271,7 @@ Es mucho más fácil pensarlo con TUS propios números enfrente, que pensarlo en
 <p style="margin:8px 0 0 0;font-family:'Roboto',Arial,sans-serif;"><a href="https://maxx.mx/#calificacion" style="font-family:'Roboto',Arial,sans-serif;color:#185FA5; font-weight:bold;">Obtén TU Calificación Financiera aquí →</a></p>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat5-op2" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat5-op2" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Lo consulto con mi pareja/familia" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat5-op2" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -290,7 +290,7 @@ Es mucho más fácil pensarlo con TUS propios números enfrente, que pensarlo en
 <p style="margin:8px 0 0 0;font-family:'Roboto',Arial,sans-serif;"><a href="https://maxx.mx/#calificacion" style="font-family:'Roboto',Arial,sans-serif;color:#185FA5; font-weight:bold;">la Calificación Financiera →</a></p>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat5-op3" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat5-op3" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Mándame información y yo te digo" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat5-op3" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -316,7 +316,7 @@ Es mucho más fácil pensarlo con TUS propios números enfrente, que pensarlo en
 </button>
 <div id="brilla-cat6" class="brilla-cat-content" style="display:none; padding-left:4px; font-family:'Roboto',Arial,sans-serif;">
 
-<button type="button" class="brilla-op-btn" data-target="cat6-op1" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat6-op1" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "No tengo dinero para eso ahora" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat6-op1" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -332,7 +332,7 @@ Es mucho más fácil pensarlo con TUS propios números enfrente, que pensarlo en
 <p style="margin:0 0 8px 0;font-family:'Roboto',Arial,sans-serif; color:#185FA5;">La mayoría de la gente se sorprende de lo fácil que es cuando lo ve aterrizado así.</p>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat6-op2" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat6-op2" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Está caro, no me alcanza" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat6-op2" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -349,7 +349,7 @@ Es mucho más fácil pensarlo con TUS propios números enfrente, que pensarlo en
 <p style="margin:0 0 8px 0;font-family:'Roboto',Arial,sans-serif; color:#185FA5;">Hay más caminos de los que parece a primera vista.</p>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat6-op3" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat6-op3" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "¿Y si después no puedo seguir pagando?" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat6-op3" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -375,7 +375,7 @@ Es mucho más fácil pensarlo con TUS propios números enfrente, que pensarlo en
 </button>
 <div id="brilla-cat7" class="brilla-cat-content" style="display:none; padding-left:4px; font-family:'Roboto',Arial,sans-serif;">
 
-<button type="button" class="brilla-op-btn" data-target="cat7-op1" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat7-op1" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "¿Y si necesito el dinero antes de tiempo?" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat7-op1" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -395,7 +395,7 @@ Es mucho más fácil pensarlo con TUS propios números enfrente, que pensarlo en
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat7-op2" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat7-op2" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Me da miedo comprometerme a algo tan largo" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat7-op2" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -412,7 +412,7 @@ Es mucho más fácil pensarlo con TUS propios números enfrente, que pensarlo en
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat7-op3" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat7-op3" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "¿Qué pasa si dejo de pagar a la mitad?" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat7-op3" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -431,7 +431,7 @@ Es mucho más fácil pensarlo con TUS propios números enfrente, que pensarlo en
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat7-op4" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat7-op4" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "¿Y si surge algo mejor después y quiero mover mi dinero ahí?" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat7-op4" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -458,7 +458,7 @@ Es mucho más fácil pensarlo con TUS propios números enfrente, que pensarlo en
 </button>
 <div id="brilla-cat8" class="brilla-cat-content" style="display:none; padding-left:4px; font-family:'Roboto',Arial,sans-serif;">
 
-<button type="button" class="brilla-op-btn" data-target="cat8-op1" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat8-op1" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "No tengo tiempo para una cita" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat8-op1" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -478,7 +478,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat8-op2" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat8-op2" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "¿Para qué necesito una cita si me puedes decir aquí?" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat8-op2" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -497,7 +497,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 <p style="margin:8px 0 0 0;font-family:'Roboto',Arial,sans-serif;"><a href="https://maxx.mx/#calificacion" style="font-family:'Roboto',Arial,sans-serif;color:#185FA5; font-weight:bold;">Obtén TU Calificación Financiera aquí →</a></p>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat8-op3" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat8-op3" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "¿Tiene costo la cita?" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat8-op3" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -514,7 +514,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat8-op4" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat8-op4" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "¿Es por videollamada o en persona?" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat8-op4" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -541,7 +541,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </button>
 <div id="brilla-cat9" class="brilla-cat-content" style="display:none; padding-left:4px; font-family:'Roboto',Arial,sans-serif;">
 
-<button type="button" class="brilla-op-btn" data-target="cat9-op1" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat9-op1" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Ya tengo mi asesor financiero" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat9-op1" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -559,7 +559,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat9-op2" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat9-op2" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Prefiero invertir yo mismo (Cetes, acciones, cripto)" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat9-op2" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -577,7 +577,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat9-op3" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat9-op3" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Mi banco ya me ofrece algo parecido" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat9-op3" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -604,7 +604,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </button>
 <div id="brilla-cat10" class="brilla-cat-content" style="display:none; padding-left:4px; font-family:'Roboto',Arial,sans-serif;">
 
-<button type="button" class="brilla-op-btn" data-target="cat10-op1" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat10-op1" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Esto suena a pirámide" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat10-op1" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -625,7 +625,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat10-op2" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat10-op2" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "¿Y si es una estafa?" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat10-op2" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -643,7 +643,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat10-op3" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat10-op3" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "Nunca he oído hablar de MAXX" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat10-op3" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -671,7 +671,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </button>
 <div id="brilla-cat11" class="brilla-cat-content" style="display:none; padding-left:4px; font-family:'Roboto',Arial,sans-serif;">
 
-<button type="button" class="brilla-op-btn" data-target="cat11-op1" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat11-op1" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "¿Tú ganas algo si yo entro?" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat11-op1" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -689,7 +689,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat11-op2" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat11-op2" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "¿Por qué me lo estás ofreciendo a mí?" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat11-op2" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
@@ -707,7 +707,7 @@ Lo importante es que quede en TU calendario, no en TU &quot;luego&quot;." style=
 </div>
 </div>
 
-<button type="button" class="brilla-op-btn" data-target="cat11-op3" style="display:block; width:100%; text-align:left; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; margin-bottom:6px; font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
+<button type="button" class="brilla-op-btn" data-target="cat11-op3" style="display:block; width:75%; max-width:75%; margin:0 auto 6px auto; text-align:center; background:#E6F1FB; color:#185FA5; border:none; border-radius:8px; padding:14px 18px; box-shadow:0 2px 6px rgba(120,120,115,0.4); font-size:15px; font-weight:bold; cursor:pointer; font-family:'Roboto',Arial,sans-serif;">
 "¿Tú ya tienes uno?" <span class="brilla-op-icon">+</span>
 </button>
 <div id="cat11-op3" class="brilla-op-content" style="display:none; background:#F5F4F0; border-radius:8px; padding:18px 20px; margin-bottom:10px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
