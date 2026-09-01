@@ -77,7 +77,10 @@ document.write(`
 <div id="camino-paneles">
 
 <div id="camino-paso1" class="camino-panel" style="display:none; background:#F5F4F0; border-radius:10px; padding:20px 22px; margin-top:16px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
-<p style="margin:0 0 14px 0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 1 — Respeta la Secuencia</p>
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px;">
+<p style="margin:0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 1 — Respeta la Secuencia</p>
+<button type="button" class="camino-btn-cerrar" data-target="camino-paso1" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:22px; line-height:1; color:#042C53; padding:0 4px; font-family:'Roboto',Arial,sans-serif;" aria-label="Cerrar">&times;</button>
+</div>
 <p style="margin:12px 0 6px 0; font-weight:bold; color:#185FA5; font-family:'Roboto',Arial,sans-serif;">SÍ:</p>
 <p style="margin:0 0 10px 0;font-family:'Roboto',Arial,sans-serif; color:#185FA5;">Sigue el orden: <strong>Rompe el Hielo → Abre los Ojos → Demuestra → Invita.</strong> Cada etapa prepara el terreno para la siguiente.</p>
 <p style="margin:12px 0 6px 0; font-weight:bold; color:#8B0000; font-family:'Roboto',Arial,sans-serif;">NO:</p>
@@ -90,7 +93,10 @@ document.write(`
 </div>
 
 <div id="camino-paso2" class="camino-panel" style="display:none; background:#F5F4F0; border-radius:10px; padding:20px 22px; margin-top:16px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
-<p style="margin:0 0 14px 0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 2 — El Tiempo que Sí Tienes</p>
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px;">
+<p style="margin:0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 2 — El Tiempo que Sí Tienes</p>
+<button type="button" class="camino-btn-cerrar" data-target="camino-paso2" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:22px; line-height:1; color:#042C53; padding:0 4px; font-family:'Roboto',Arial,sans-serif;" aria-label="Cerrar">&times;</button>
+</div>
 <p style="margin:12px 0 6px 0; font-weight:bold; color:#185FA5; font-family:'Roboto',Arial,sans-serif;">SÍ:</p>
 <p style="margin:0 0 10px 0;font-family:'Roboto',Arial,sans-serif; color:#185FA5;">Establece en <strong>TU agenda un espacio de 30 minutos cada día laboral.</strong> Respétalo como cualquier otra cita importante.</p>
 <p style="margin:10px 0 4px 0; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Ese tiempo se usa para dos cosas:</p>
@@ -111,7 +117,10 @@ document.write(`
 </div>
 
 <div id="camino-paso3" class="camino-panel" style="display:none; background:#F5F4F0; border-radius:10px; padding:20px 22px; margin-top:16px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
-<p style="margin:0 0 14px 0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 3 — Empieza por TU Círculo Cercano</p>
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px;">
+<p style="margin:0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 3 — Empieza por TU Círculo Cercano</p>
+<button type="button" class="camino-btn-cerrar" data-target="camino-paso3" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:22px; line-height:1; color:#042C53; padding:0 4px; font-family:'Roboto',Arial,sans-serif;" aria-label="Cerrar">&times;</button>
+</div>
 <p style="margin:12px 0 6px 0; font-weight:bold; color:#185FA5; font-family:'Roboto',Arial,sans-serif;">SÍ:</p>
 <p style="margin:0 0 10px 0;font-family:'Roboto',Arial,sans-serif; color:#185FA5;">Antes de buscar gente que no conoces, <strong>haz una lista de personas cercanas</strong> (familia, vecinos, excompañeros) que <strong>aún no saben</strong> que eres referidor MAXX. Ahí están tus primeros 3 del día — gente que ya confía en ti, no desconocidos que tienes que convencer desde cero. <strong>Ofrécelo a todos por igual — sin importar edad, género, o lo que creas que ganan.</strong></p>
 <p style="margin:12px 0 6px 0; font-weight:bold; color:#8B0000; font-family:'Roboto',Arial,sans-serif;">NO:</p>
@@ -127,7 +136,10 @@ document.write(`
 </div>
 
 <div id="camino-paso4" class="camino-panel" style="display:none; background:#F5F4F0; border-radius:10px; padding:20px 22px; margin-top:16px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
-<p style="margin:0 0 14px 0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 4 — Pide, No Insinúes / Pregunta, No Asumas</p>
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px;">
+<p style="margin:0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 4 — Pide, No Insinúes / Pregunta, No Asumas</p>
+<button type="button" class="camino-btn-cerrar" data-target="camino-paso4" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:22px; line-height:1; color:#042C53; padding:0 4px; font-family:'Roboto',Arial,sans-serif;" aria-label="Cerrar">&times;</button>
+</div>
 <p style="margin:0 0 10px 0;font-family:'Roboto',Arial,sans-serif;"><strong>Pide, no insinúes:</strong></p>
 <p style="margin:12px 0 6px 0; font-weight:bold; color:#185FA5; font-family:'Roboto',Arial,sans-serif;">SÍ:</p>
 <p style="margin:0 0 10px 0;font-family:'Roboto',Arial,sans-serif; color:#185FA5;">Cuando quieras que alguien te presente con un contacto suyo, <strong>pídelo con nombre y verbo claro:</strong> "¿me lo presentas?", "¿me pasas su número?", "¿le hablas tú primero para avisarle que le voy a escribir?"</p>
@@ -144,7 +156,10 @@ document.write(`
 </div>
 
 <div id="camino-paso5" class="camino-panel" style="display:none; background:#F5F4F0; border-radius:10px; padding:20px 22px; margin-top:16px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
-<p style="margin:0 0 14px 0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 5 — Ayuda, No Vendas</p>
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px;">
+<p style="margin:0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 5 — Ayuda, No Vendas</p>
+<button type="button" class="camino-btn-cerrar" data-target="camino-paso5" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:22px; line-height:1; color:#042C53; padding:0 4px; font-family:'Roboto',Arial,sans-serif;" aria-label="Cerrar">&times;</button>
+</div>
 <p style="margin:0 0 6px 0; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">La ciencia detrás de este paso:</p>
 <ul style="margin:0 0 12px 0; padding-left:20px;font-family:'Roboto',Arial,sans-serif;"><li style="margin-bottom:8px;font-family:'Roboto',Arial,sans-serif;"><strong>La Ley de Efecto Indirecto</strong> (Brian Tracy, "Las 27 Leyes Mentales del Éxito"): conseguimos más ayudando genuinamente que persiguiendo directamente. Pero cómo se aborda esto, cambia según qué tan cerca conoces al contacto:</li></ul>
 <p style="margin:10px 0 4px 0; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Ángulo 1 — Círculo cercano: ¿qué es "preguntar primero por su situación"?</p>
@@ -184,7 +199,10 @@ document.write(`
 </div>
 
 <div id="camino-paso6" class="camino-panel" style="display:none; background:#F5F4F0; border-radius:10px; padding:20px 22px; margin-top:16px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
-<p style="margin:0 0 14px 0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 6 — El Hábito y la Determinación Construyen TU Éxito</p>
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px;">
+<p style="margin:0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 6 — El Hábito y la Determinación Construyen TU Éxito</p>
+<button type="button" class="camino-btn-cerrar" data-target="camino-paso6" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:22px; line-height:1; color:#042C53; padding:0 4px; font-family:'Roboto',Arial,sans-serif;" aria-label="Cerrar">&times;</button>
+</div>
 <p style="margin:0 0 6px 0; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">La ciencia detrás de este paso:</p>
 <ul style="margin:0 0 12px 0; padding-left:20px;font-family:'Roboto',Arial,sans-serif;"><li style="margin-bottom:8px;font-family:'Roboto',Arial,sans-serif;"><strong>Napoleon Hill:</strong> la persistencia es resultado directo del hábito — no naces con ella, la construyes repitiendo.</li>
 <li style="margin-bottom:8px;font-family:'Roboto',Arial,sans-serif;"><strong>Angela Duckworth ("Grit"):</strong> el esfuerzo cuenta doble — te hace mejor, y además convierte lo que ya sabes en resultados reales. La constancia gana más que el talento.</li>
@@ -200,7 +218,10 @@ document.write(`
 </div>
 
 <div id="camino-paso7" class="camino-panel" style="display:none; background:#F5F4F0; border-radius:10px; padding:20px 22px; margin-top:16px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
-<p style="margin:0 0 14px 0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 7 — Piensa en Grupos: Es el Mismo Esfuerzo</p>
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px;">
+<p style="margin:0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 7 — Piensa en Grupos: Es el Mismo Esfuerzo</p>
+<button type="button" class="camino-btn-cerrar" data-target="camino-paso7" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:22px; line-height:1; color:#042C53; padding:0 4px; font-family:'Roboto',Arial,sans-serif;" aria-label="Cerrar">&times;</button>
+</div>
 <p style="margin:0 0 10px 0;font-family:'Roboto',Arial,sans-serif;"><strong>Tu rol en un grupo, igual que con una persona:</strong> tú abres la puerta y armas el encuentro — <strong>MAXX te acompaña presentando</strong>, para que la plática quede en las mejores manos.</p>
 <p style="margin:12px 0 6px 0; font-weight:bold; color:#185FA5; font-family:'Roboto',Arial,sans-serif;">SÍ:</p>
 <p style="margin:0 0 10px 0;font-family:'Roboto',Arial,sans-serif; color:#185FA5;">Identifica grupos donde podrías abrir una conversación colectiva — el mismo esfuerzo de contactar a <strong>una</strong> persona puede abrir la puerta a <strong>veinte</strong>.</p>
@@ -229,7 +250,10 @@ document.write(`
 </div>
 
 <div id="camino-paso8" class="camino-panel" style="display:none; background:#F5F4F0; border-radius:10px; padding:20px 22px; margin-top:16px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
-<p style="margin:0 0 14px 0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 8 — Agradece en Cada Momento: La Gratitud es Proactiva y Abre Puertas</p>
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px;">
+<p style="margin:0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 8 — Agradece en Cada Momento: La Gratitud es Proactiva y Abre Puertas</p>
+<button type="button" class="camino-btn-cerrar" data-target="camino-paso8" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:22px; line-height:1; color:#042C53; padding:0 4px; font-family:'Roboto',Arial,sans-serif;" aria-label="Cerrar">&times;</button>
+</div>
 <p style="margin:0 0 10px 0;font-family:'Roboto',Arial,sans-serif;"><strong>Por qué importa:</strong> agradecer refuerza el comportamiento — tanto en el contacto (se siente acompañado, no perseguido) como en ti (construye el hábito de cerrar bien cada interacción). El agradecimiento no debe vivir solo al final de una conversación — hay que sembrarlo en cada momento donde algo bueno pasó, por pequeño que sea.</p>
 <p style="margin:14px 0 6px 0; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Jornada Individual — momentos donde agradecer</p>
 <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; background:#E6F1FB; border-radius:8px; padding:10px 14px; margin-bottom:8px;">
@@ -278,7 +302,10 @@ document.write(`
 </div>
 
 <div id="camino-paso9" class="camino-panel" style="display:none; background:#F5F4F0; border-radius:10px; padding:20px 22px; margin-top:16px; color:#333; font-size:15px; line-height:1.55; font-family:'Roboto',Arial,sans-serif;">
-<p style="margin:0 0 14px 0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 9 — Prémiate ante el Éxito</p>
+<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px;">
+<p style="margin:0; font-size:18px; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">Paso 9 — Prémiate ante el Éxito</p>
+<button type="button" class="camino-btn-cerrar" data-target="camino-paso9" style="flex-shrink:0; background:none; border:none; cursor:pointer; font-size:22px; line-height:1; color:#042C53; padding:0 4px; font-family:'Roboto',Arial,sans-serif;" aria-label="Cerrar">&times;</button>
+</div>
 <p style="margin:0 0 6px 0; font-weight:bold; color:#042C53; font-family:'Roboto',Arial,sans-serif;">La ciencia detrás de este paso:</p>
 <ul style="margin:0 0 12px 0; padding-left:20px;font-family:'Roboto',Arial,sans-serif;"><li style="margin-bottom:8px;font-family:'Roboto',Arial,sans-serif;"><strong>Charles Duhigg</strong> ("El Poder de los Hábitos"): todo hábito se construye con un ciclo de 3 partes — señal → rutina → recompensa. El cerebro repite con más fuerza lo que asocia con algo placentero inmediato. Por eso, premiarte tú mismo por completar tu rutina diaria — además de tu comisión — es lo que hace que el hábito se quede fuerte, todos los días, no solo quede como una meta lejana.</li></ul>
 <p style="margin:12px 0 6px 0; font-weight:bold; color:#185FA5; font-family:'Roboto',Arial,sans-serif;">SÍ:</p>
@@ -319,6 +346,14 @@ document.write(`
           target.scrollIntoView({behavior:'smooth', block:'nearest'});
         }
       }
+    });
+  });
+
+  document.querySelectorAll('.camino-btn-cerrar').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var target = document.getElementById(btn.getAttribute('data-target'));
+      target.style.display = 'none';
     });
   });
 
