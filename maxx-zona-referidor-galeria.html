@@ -2398,6 +2398,29 @@ var qrcode = function() {
     return;
   }
 
+  // URL del mismo Apps Script de tracking que ya registra clicks de
+  // prospectos — aquí lo usamos para registrar actividad del REFERIDOR
+  // (Compartir/Descargar), acción nueva 'actividad'.
+  var TRACKING_URL = 'https://script.google.com/macros/s/AKfycbywUm6ayvFy-jdHeFJLEaIOLP85jhOe5ZmcpQpy90sC1bLBazTQPJACjaUOJFSJDeXYfg/exec';
+
+  function registrarActividadReferidor(tipoAccion, copy) {
+    // No bloqueante — si falla, no debe afectar la experiencia del
+    // referidor. Mismo patrón ya usado y probado en el script de /ir.
+    try {
+      fetch(TRACKING_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          accion: 'actividad',
+          lgen: REF_PRUEBA,
+          tipo: tipoAccion,
+          c: copy.etapa + '-' + copy.tema
+        })
+      }).catch(function() {});
+    } catch (e) {}
+  }
+
   // (el nombre y código ya se muestran en el embed de bienvenida separado)
 
   var GITHUB_BASE = 'https://raw.githubusercontent.com/jrowe-maxx/maxx-web/e15eda1/';
@@ -2785,6 +2808,7 @@ var qrcode = function() {
       var nuevoConteo = sumarContadorPersonal(copy);
       var badgeEl = document.getElementById('zr-personal-' + copy.etapa + '-' + copy.tema);
       if (badgeEl) badgeEl.textContent = 'TÚ: ' + nuevoConteo + ' veces';
+      registrarActividadReferidor('compartir', copy);
     }
 
     if (blobEnProceso) {
@@ -2826,6 +2850,7 @@ var qrcode = function() {
       var nuevoConteo = sumarContadorPersonal(copy);
       var badgeEl = document.getElementById('zr-personal-' + copy.etapa + '-' + copy.tema);
       if (badgeEl) badgeEl.textContent = 'TÚ: ' + nuevoConteo + ' veces';
+      registrarActividadReferidor('descargar', copy);
     }
 
     if (blobEnProceso) {
