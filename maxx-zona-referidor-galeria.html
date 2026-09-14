@@ -11,6 +11,9 @@
   .galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; max-width: 900px; }
   #seccion-VIDEO .galeria { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
   .filtro-etapas { position: sticky; top: 0; z-index: 10; background: #F5F4F0; display: flex; gap: 6px; padding: 10px 0; margin-bottom: 8px; overflow-x: auto; }
+  .filtro-principal { position: sticky; top: 0; z-index: 11; background: #F5F4F0; display: flex; gap: 8px; padding: 10px 0 4px; }
+  .filtro-principal-btn { flex: 1; background: white; border: 2px solid #042C53; color: #042C53; border-radius: 10px; padding: 14px 8px; font-size: 15px; font-weight: bold; text-align: center; cursor: pointer; }
+  .filtro-principal-btn.activo { background: #042C53; border-color: #042C53; color: white; }
   .filtro-btn { flex: 1; min-width: 70px; background: white; border: 2px solid #E6F1FB; color: #042C53; border-radius: 8px; padding: 10px 6px; font-size: 13px; font-weight: bold; text-align: center; cursor: pointer; white-space: nowrap; }
   .filtro-btn.activo { background: #042C53; border-color: #042C53; color: white; }
   .seccion-etapa { display: none; }
@@ -51,6 +54,7 @@
   A partir de lo anterior, sigue la secuencia completa con el mismo tema<br>
   — es lo que da los mejores resultados.
 </p>
+<div class="filtro-principal" id="filtro-principal"></div>
 <div class="filtro-etapas" id="filtro-etapas"></div>
 <div id="galeria"></div>
 
@@ -2379,6 +2383,11 @@ var qrcode = function() {
 
 </script>
 
+<!-- pdf-lib: usada SOLO para los PDFs de Grupos (dibuja QR+link sobre
+     el PDF en el navegador, igual que Canvas lo hace con las imágenes).
+     No afecta nada de los copies RH/AO/DE/IN/VIDEO. -->
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+
 <script>
 (function() {
   // ---- Configuración de prueba ----
@@ -2449,18 +2458,21 @@ var qrcode = function() {
     { archivo: 'MAXX_IN-FIS-01.png', etapa: 'IN', tema: 'FIS', categoria: 'in', agregado: '2026-08-15', baseVistas: 0 },
     { archivo: 'MAXX_IN-OPC-01.png', etapa: 'IN', tema: 'OPC', categoria: 'in', agregado: '2026-08-15', baseVistas: 0 },
     { archivo: 'MAXX_IN-INV-01.png', etapa: 'IN', tema: 'INV', categoria: 'in', agregado: '2026-08-19', baseVistas: 0 },
-    { archivo: 'MAXX_VIDEO-portada-01.png', etapa: 'VIDEO', tema: 'PPR', categoria: 'video', agregado: '2026-08-26', baseVistas: 0 }
+    { archivo: 'MAXX_VIDEO-portada-01.png', etapa: 'VIDEO', tema: 'PPR', categoria: 'video', agregado: '2026-08-26', baseVistas: 0 },
+    { archivo: 'PDF_MAXX_Promocional_Escuelas_utm.pdf', etapa: 'GRUPOS', tema: 'ESCUELA', categoria: 'pdf', agregado: '2026-09-14', baseVistas: 0 },
+    { archivo: 'PDF_MAXX_Promocional_Empresas_utm.pdf', etapa: 'GRUPOS', tema: 'EMPRESA', categoria: 'pdf', agregado: '2026-09-14', baseVistas: 0 }
   ];
 
   // Orden fijo de las secciones (etapas) — no cronológico, es el orden de
   // progresión obligatoria del referidor: primero Rompe el Hielo, etc.
-  var ORDEN_ETAPAS = ['RH', 'AO', 'DE', 'IN', 'VIDEO'];
+  var ORDEN_ETAPAS = ['GRUPOS', 'RH', 'AO', 'DE', 'IN', 'VIDEO'];
   var INFO_ETAPA = {
-    RH: { numero: 1, nombre: 'Rompe el Hielo', objetivo: 'El primer contacto, ligero y sin presión. Solo genera curiosidad — nada de cifras complicadas ni compromiso.', destino: 'Lleva al Cuestionario (maxx.mx) para hacer su Diagnóstico Financiero Gratuito.' },
-    AO: { numero: 2, nombre: 'Abre los Ojos', objetivo: 'Ya generaste curiosidad — ahora muestra el problema real: TU pensión no será suficiente. Educa, todavía sin empujar a la cita.', destino: 'Lleva al Cuestionario (maxx.mx) para hacer su Diagnóstico Financiero Gratuito.' },
-    DE: { numero: 3, nombre: 'Demuestra', objetivo: 'Convence con evidencia real — cifras completas o prueba social. Es momento de mostrar que esto funciona.', destino: 'Lleva al Cuestionario (maxx.mx) para hacer su Diagnóstico Financiero Gratuito.' },
-    IN: { numero: 4, nombre: 'Invita', objetivo: 'El empujón final. Corto, directo, con la fecha de HOY en mente — pide la cita, ya no más educación.', destino: 'Único caso que lleva directo a agendar la Cita — ya no pasa por el Cuestionario.' },
-    VIDEO: { numero: 5, nombre: 'Video', etiquetaBoton: 'Videos', objetivo: 'Comparte el video explicativo completo — ideal para quien prefiere ver y escuchar antes de decidir.', destino: 'Lleva directo al Video en maxx.mx.' }
+    GRUPOS: { numero: 1, nombre: 'Grupos y Centros de Influencia', etiquetaBoton: 'Grupos', objetivo: 'Comparte el PDF informativo con una Escuela o Empresa que quieras invitar a registrar su grupo.', destino: 'Lleva directo a "Registra TU Grupo" en maxx.mx.' },
+    RH: { numero: 2, nombre: 'Rompe el Hielo', objetivo: 'El primer contacto, ligero y sin presión. Solo genera curiosidad — nada de cifras complicadas ni compromiso.', destino: 'Lleva al Cuestionario (maxx.mx) para hacer su Diagnóstico Financiero Gratuito.' },
+    AO: { numero: 3, nombre: 'Abre los Ojos', objetivo: 'Ya generaste curiosidad — ahora muestra el problema real: TU pensión no será suficiente. Educa, todavía sin empujar a la cita.', destino: 'Lleva al Cuestionario (maxx.mx) para hacer su Diagnóstico Financiero Gratuito.' },
+    DE: { numero: 4, nombre: 'Demuestra', objetivo: 'Convence con evidencia real — cifras completas o prueba social. Es momento de mostrar que esto funciona.', destino: 'Lleva al Cuestionario (maxx.mx) para hacer su Diagnóstico Financiero Gratuito.' },
+    IN: { numero: 5, nombre: 'Invita', objetivo: 'El empujón final. Corto, directo, con la fecha de HOY en mente — pide la cita, ya no más educación.', destino: 'Único caso que lleva directo a agendar la Cita — ya no pasa por el Cuestionario.' },
+    VIDEO: { numero: 6, nombre: 'Video', etiquetaBoton: 'Videos', objetivo: 'Comparte el video explicativo completo — ideal para quien prefiere ver y escuchar antes de decidir.', destino: 'Lleva directo al Video en maxx.mx.' }
   };
 
   // ---- Coordenadas medidas directamente sobre los archivos reales de producción ----
@@ -2476,6 +2488,20 @@ var qrcode = function() {
     pie: { qrX: 880, qrY: 1754, qrTam: 150, textoX: 95, textoY: 1811, textoAncho: 770, fontSize: 35 },
     in: { qrX: 848, qrY: 1131, qrTam: 183, textoX: 95, textoY: 1206, textoAncho: 738, fontSize: 34 }
   };
+
+  // ---- Coordenadas para los PDFs de Grupos (página 2, pt PDF estándar,
+  // origen ABAJO-izquierda — distinto al de POSICIONES arriba, que es
+  // para Canvas). Página completa: 1912.5 x 2475 pt. Medido el 14 sept
+  // 2026 sobre PDF_MAXX_Promocional_Escuelas_utm.pdf — mismo layout que
+  // el de Empresas (misma plantilla de Canva), así que se reutiliza.
+  var POSICIONES_PDF = {
+    anchoPagina: 1912.5,
+    altoPagina: 2475,
+    paginaQr: 1, // 0-indexed: página 2 del PDF
+    qr: { x: 1195, y: 18, ancho: 147, alto: 158 },
+    texto: { x: 614, y: 55, ancho: 572, tamañoFuente: 20 }
+  };
+  var DESTINO_GRUPOS = 'https://maxx.mx/#regtugrupo';
 
   function claveContadorPersonal(copy) {
     return 'zr_contador_' + REF_PRUEBA + '_' + copy.etapa + '-' + copy.tema;
@@ -2604,12 +2630,19 @@ var qrcode = function() {
       var div = document.createElement('div');
       div.className = 'miniatura';
       var idBadgePersonal = 'zr-personal-' + copy.etapa + '-' + copy.tema;
+      var esPdf = copy.categoria === 'pdf';
+      var wrapVisual = esPdf
+        ? '<div class="imagen-wrap" style="background:#E6F1FB; display:flex; align-items:center; justify-content:center; aspect-ratio:1080/1400;">' +
+            '<svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="#185FA5" stroke-width="1.5"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><text x="12" y="16" font-size="7" fill="#185FA5"></text></svg>' +
+            '<div class="lupa"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
+          '</div>'
+        : '<div class="imagen-wrap">' +
+            '<img src="' + GITHUB_BASE + copy.archivo + '" alt="' + copy.etapa + '-' + copy.tema + '">' +
+            '<div class="lupa"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
+          '</div>';
       div.innerHTML =
         '<div class="etiqueta">' + copy.tema + '</div>' +
-        '<div class="imagen-wrap">' +
-          '<img src="' + GITHUB_BASE + copy.archivo + '" alt="' + copy.etapa + '-' + copy.tema + '">' +
-          '<div class="lupa"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
-        '</div>' +
+        wrapVisual +
         '<div class="badge">' + copy.baseVistas + ' compartidos</div>' +
         '<div class="badge-personal" id="' + idBadgePersonal + '">TÚ: ' + leerContadorPersonal(copy) + ' veces</div>';
       div.addEventListener('click', function() { abrirModal(copy); });
@@ -2620,8 +2653,15 @@ var qrcode = function() {
     galeria.appendChild(seccion);
   });
 
-  // ---- Barra de filtro: muestra solo una etapa a la vez ----
+  // ---- Filtro de 2 niveles: 3 botones principales (Grupos | Individual
+  // | Videos), y dentro de "Individual" el filtro de siempre (RH/AO/DE/IN,
+  // sin cambios). Grupos y Videos no necesitan sub-filtro — cada uno
+  // muestra su contenido directo.
+  var GRUPO_DE_ETAPA = { GRUPOS: 'grupos', RH: 'individual', AO: 'individual', DE: 'individual', IN: 'individual', VIDEO: 'videos' };
+  var ETAPAS_INDIVIDUAL = ORDEN_ETAPAS.filter(function(e) { return GRUPO_DE_ETAPA[e] === 'individual'; });
+
   var filtroEl = document.getElementById('filtro-etapas');
+  var filtroPrincipalEl = document.getElementById('filtro-principal');
 
   function mostrarEtapa(etapa) {
     ORDEN_ETAPAS.forEach(function(e) {
@@ -2633,7 +2673,8 @@ var qrcode = function() {
     });
   }
 
-  ORDEN_ETAPAS.forEach(function(etapa) {
+  // Solo RH/AO/DE/IN entran al sub-filtro — igual que siempre.
+  ETAPAS_INDIVIDUAL.forEach(function(etapa) {
     if (!document.getElementById('seccion-' + etapa)) return; // por si esa etapa no tiene copies
     var info = INFO_ETAPA[etapa];
     var btn = document.createElement('div');
@@ -2644,7 +2685,40 @@ var qrcode = function() {
     filtroEl.appendChild(btn);
   });
 
-  mostrarEtapa('RH'); // Etapa 1 visible por default al entrar
+  // ---- Filtro principal: Grupos | Individual | Videos ----
+  var GRUPOS_PRINCIPALES = [
+    { id: 'grupos', etiqueta: 'Grupos' },
+    { id: 'individual', etiqueta: 'Individual' },
+    { id: 'videos', etiqueta: 'Videos' }
+  ];
+
+  function mostrarGrupoPrincipal(grupo) {
+    Array.prototype.forEach.call(filtroPrincipalEl.children, function(btn) {
+      btn.classList.toggle('activo', btn.dataset.grupo === grupo);
+    });
+
+    if (grupo === 'individual') {
+      filtroEl.style.display = 'flex';
+      mostrarEtapa('RH'); // siempre abre en RH al entrar a Individual
+    } else if (grupo === 'grupos') {
+      filtroEl.style.display = 'none';
+      mostrarEtapa('GRUPOS');
+    } else if (grupo === 'videos') {
+      filtroEl.style.display = 'none';
+      mostrarEtapa('VIDEO');
+    }
+  }
+
+  GRUPOS_PRINCIPALES.forEach(function(g) {
+    var btn = document.createElement('div');
+    btn.className = 'filtro-principal-btn';
+    btn.dataset.grupo = g.id;
+    btn.textContent = g.etiqueta;
+    btn.addEventListener('click', function() { mostrarGrupoPrincipal(g.id); });
+    filtroPrincipalEl.appendChild(btn);
+  });
+
+  mostrarGrupoPrincipal('individual'); // vista por default al entrar, igual que siempre (abre en RH)
 
   // ---- Vista grande instantánea + generación diferida al compartir ----
   var modal = document.getElementById('modal');
@@ -2657,6 +2731,11 @@ var qrcode = function() {
   var blobEnProceso = false;
 
   function generarBlobPersonalizado(copy, callback) {
+    if (copy.categoria === 'pdf') {
+      generarBlobPdfPersonalizado(copy, callback);
+      return;
+    }
+
     var ctx = canvas.getContext('2d');
 
     var img = new Image();
@@ -2716,19 +2795,99 @@ var qrcode = function() {
     img.src = GITHUB_BASE + copy.archivo;
   }
 
+  /**
+   * Genera el PDF personalizado (QR + link grabados encima), usando
+   * pdf-lib — el equivalente a Canvas, pero para PDFs. Mismo resultado
+   * que generarBlobPersonalizado() para imágenes, distinta herramienta
+   * porque un PDF no se puede "dibujar" con Canvas normal.
+   */
+  function generarBlobPdfPersonalizado(copy, callback) {
+    var link = construirLink(REF_PRUEBA, copy.etapa, copy.tema);
+    var linkVisible = construirLinkVisible(REF_PRUEBA, copy.etapa, copy.tema);
+    var pos = POSICIONES_PDF;
+
+    fetch(GITHUB_BASE + copy.archivo)
+      .then(function(res) { return res.arrayBuffer(); })
+      .then(function(pdfBytes) { return PDFLib.PDFDocument.load(pdfBytes); })
+      .then(function(pdfDoc) {
+        var pagina = pdfDoc.getPages()[pos.paginaQr];
+
+        // El QR se genera igual que siempre (misma función dibujarQR de
+        // arriba), en un canvas temporal en memoria — y de ahí se saca
+        // como PNG para incrustarlo en el PDF.
+        var qrCanvas = document.createElement('canvas');
+        dibujarQR(qrCanvas, link, 300);
+        var qrDataUrl = qrCanvas.toDataURL('image/png');
+        var qrBytesBase64 = qrDataUrl.split(',')[1];
+        var qrBinario = atob(qrBytesBase64);
+        var qrBytes = new Uint8Array(qrBinario.length);
+        for (var i = 0; i < qrBinario.length; i++) {
+          qrBytes[i] = qrBinario.charCodeAt(i);
+        }
+
+        return pdfDoc.embedPng(qrBytes).then(function(qrImagen) {
+          pagina.drawImage(qrImagen, {
+            x: pos.qr.x,
+            y: pos.qr.y,
+            width: pos.qr.ancho,
+            height: pos.qr.alto
+          });
+
+          return pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold).then(function(fuente) {
+            var tamañoFuente = pos.texto.tamañoFuente;
+            var anchoTexto = fuente.widthOfTextAtSize(linkVisible, tamañoFuente);
+            // Si el link no cabe al tamaño base, lo reducimos hasta que quepa
+            // (mismo criterio que ya usamos en las imágenes).
+            while (anchoTexto > pos.texto.ancho && tamañoFuente > 8) {
+              tamañoFuente -= 1;
+              anchoTexto = fuente.widthOfTextAtSize(linkVisible, tamañoFuente);
+            }
+            pagina.drawText(linkVisible, {
+              x: pos.texto.x,
+              y: pos.texto.y,
+              size: tamañoFuente,
+              font: fuente,
+              color: PDFLib.rgb(0.094, 0.373, 0.647) // #185FA5
+            });
+
+            return pdfDoc.save();
+          });
+        });
+      })
+      .then(function(pdfBytesFinal) {
+        callback(new Blob([pdfBytesFinal], { type: 'application/pdf' }));
+      })
+      .catch(function(err) {
+        console.error('Error generando PDF personalizado:', err);
+        callback(null);
+      });
+  }
+
   function abrirModal(copy) {
     copyActual = copy;
     blobListo = null;
     blobEnProceso = true;
     modal.classList.add('abierto');
 
-    vistaGrande.style.display = 'block';
-    vistaGrande.src = GITHUB_BASE + copy.archivo;
+    var esPdf = copy.categoria === 'pdf';
+
+    if (esPdf) {
+      // Un PDF no se puede mostrar dentro de una etiqueta <img> — en vez
+      // de eso, mostramos un aviso simple mientras se genera la
+      // personalización de verdad (QR+link grabados en el PDF).
+      vistaGrande.style.display = 'none';
+      estadoEl.style.display = 'block';
+      estadoEl.textContent = 'Generando TU PDF personalizado...';
+    } else {
+      vistaGrande.style.display = 'block';
+      vistaGrande.src = GITHUB_BASE + copy.archivo;
+      estadoEl.style.display = 'none';
+    }
+
     canvas.style.display = 'none';
     document.getElementById('vista-qr-sola').style.display = 'none';
-    estadoEl.style.display = 'none';
     btnCompartir.style.display = 'block';
-    btnCompartir.textContent = 'Compartir este copy';
+    btnCompartir.textContent = esPdf ? 'Compartir este PDF' : 'Compartir este copy';
     btnCompartir.disabled = false;
     document.getElementById('btn-ver-qr').style.display = 'block';
     // El Video no tiene una imagen personalizada que descargar (no lleva
@@ -2737,8 +2896,8 @@ var qrcode = function() {
     document.getElementById('btn-copiar-link').style.display = 'block';
     document.getElementById('btn-copiar-link').textContent = 'Copiar TU Enlace de Referidor';
 
-    // Generamos la imagen personalizada YA, en segundo plano, mientras el
-    // referidor todavía está viendo la vista grande — así, cuando toque
+    // Generamos la imagen/PDF personalizado YA, en segundo plano, mientras
+    // el referidor todavía está viendo la vista grande — así, cuando toque
     // "Compartir", el menú nativo se abre al instante, sin ninguna espera
     // de por medio (los navegadores bloquean el menú si hay demora entre
     // el toque y la llamada — por eso a veces no abría).
@@ -2746,6 +2905,11 @@ var qrcode = function() {
       blobEnProceso = false;
       if (copyActual === copy) { // por si ya cambiaron de copy mientras generaba
         blobListo = blob;
+        if (esPdf && blob) {
+          estadoEl.textContent = 'TU PDF está listo — toca "Compartir este PDF".';
+        } else if (esPdf) {
+          estadoEl.textContent = 'No se pudo generar el PDF. Cierra e inténtalo de nuevo.';
+        }
       }
     });
   }
@@ -2801,9 +2965,10 @@ var qrcode = function() {
         estadoEl.textContent = 'No se pudo generar la imagen. Cierra e inténtalo de nuevo.';
         return;
       }
-      var nombreArchivo = 'MAXX_' + copy.etapa + '-' + copy.tema + '_' + REF_PRUEBA + '.png';
+      var extension = copy.categoria === 'pdf' ? '.pdf' : '.png';
+      var nombreArchivo = 'MAXX_' + copy.etapa + '-' + copy.tema + '_' + REF_PRUEBA + extension;
       var linkParaPrecargar = construirLink(REF_PRUEBA, copy.etapa, copy.tema);
-      compartirBlob(blobListo, nombreArchivo, linkParaPrecargar);
+      compartirBlob(blobListo, nombreArchivo, linkParaPrecargar, copy.categoria);
 
       var nuevoConteo = sumarContadorPersonal(copy);
       var badgeEl = document.getElementById('zr-personal-' + copy.etapa + '-' + copy.tema);
@@ -2839,7 +3004,8 @@ var qrcode = function() {
         estadoEl.textContent = 'No se pudo generar la imagen. Cierra e inténtalo de nuevo.';
         return;
       }
-      var nombreArchivo = 'MAXX_' + copy.etapa + '-' + copy.tema + '_' + REF_PRUEBA + '.png';
+      var extension = copy.categoria === 'pdf' ? '.pdf' : '.png';
+      var nombreArchivo = 'MAXX_' + copy.etapa + '-' + copy.tema + '_' + REF_PRUEBA + extension;
       var url = URL.createObjectURL(blobListo);
       var a = document.createElement('a');
       a.href = url;
@@ -2872,8 +3038,10 @@ var qrcode = function() {
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   }
 
-  function compartirBlob(blob, nombreArchivo, link) {
-    var file = new File([blob], nombreArchivo, { type: 'image/png' });
+  function compartirBlob(blob, nombreArchivo, link, categoria) {
+    var esPdf = categoria === 'pdf';
+    var tipoMime = esPdf ? 'application/pdf' : 'image/png';
+    var file = new File([blob], nombreArchivo, { type: tipoMime });
     var textoMensaje = 'MAXX — TUS ahorros, TU libertad\n\n' + link;
 
     function descargarDirecto() {
@@ -2887,7 +3055,8 @@ var qrcode = function() {
 
     if (esMovil()) {
       // En celular, el "compartir" nativo funciona bien de verdad —
-      // confirmado con pruebas reales (WhatsApp).
+      // confirmado con pruebas reales (WhatsApp), tanto para imágenes
+      // como para PDFs.
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         navigator.share({
           files: [file],
@@ -2905,14 +3074,11 @@ var qrcode = function() {
     }
 
     // En computadora: el "compartir" nativo de archivos de Windows está
-    // roto de forma comprobada (falla igual en Chrome y Edge, incluso
-    // recargando la página) — no depende de nuestro código, es un límite
-    // real de esa plataforma. Copiamos solo la IMAGEN al portapapeles.
-    // (Probamos combinar imagen+texto en un solo copiado, pero WhatsApp
-    // Web prioriza la imagen sin importar dónde esté el cursor, así que
-    // el texto nunca se pegaba — por eso el link va aparte, con el botón
-    // "Copiar Link" dedicado, que ya sabemos que funciona bien solo.)
-    if (navigator.clipboard && window.ClipboardItem) {
+    // roto de forma comprobada — copiamos solo la IMAGEN al portapapeles.
+    // Un PDF NO se puede copiar al portapapeles de esta forma (los
+    // navegadores solo soportan tipos de imagen ahí) — para PDF, en
+    // computadora, se descarga directo.
+    if (!esPdf && navigator.clipboard && window.ClipboardItem) {
       navigator.clipboard.write([
         new ClipboardItem({ 'image/png': blob })
       ]).then(function() {
@@ -2923,6 +3089,10 @@ var qrcode = function() {
       });
     } else {
       descargarDirecto();
+      if (esPdf) {
+        estadoEl.style.display = 'block';
+        estadoEl.textContent = 'TU PDF se descargó — adjúntalo manualmente donde lo vayas a compartir.';
+      }
     }
   }
 })();
