@@ -46,6 +46,7 @@
 
 <div id="contenedor-galeria" style="max-width:900px; margin:0 auto;">
 
+<div id="intro-individual">
 <p style="color:#042C53; font-size:14px; font-weight:bold; margin:0 0 8px 0; line-height:1.4;">
   Siempre empieza en "Rompe el Hielo" (RH),<br>
   y con el tema que más le interesará a TU prospecto (PAT, LIB, INV, FIS u OPC).
@@ -54,6 +55,7 @@
   A partir de lo anterior, sigue la secuencia completa con el mismo tema<br>
   — es lo que da los mejores resultados.
 </p>
+</div>
 <div class="filtro-principal" id="filtro-principal"></div>
 <div class="filtro-etapas" id="filtro-etapas"></div>
 <div id="galeria"></div>
@@ -2432,7 +2434,7 @@ var qrcode = function() {
 
   // (el nombre y código ya se muestran en el embed de bienvenida separado)
 
-  var GITHUB_BASE = 'https://raw.githubusercontent.com/jrowe-maxx/maxx-web/99fc2c3/';
+  var GITHUB_BASE = 'https://raw.githubusercontent.com/jrowe-maxx/maxx-web/fe442c5/';
 
   // ---- Los 17 copies aprobados ----
   // categoria: 'pie' (RH/AO/DE - QR en la franja final) o 'in' (Invita - QR bajo el ícono)
@@ -2459,8 +2461,8 @@ var qrcode = function() {
     { archivo: 'MAXX_IN-OPC-01.png', etapa: 'IN', tema: 'OPC', categoria: 'in', agregado: '2026-08-15', baseVistas: 0 },
     { archivo: 'MAXX_IN-INV-01.png', etapa: 'IN', tema: 'INV', categoria: 'in', agregado: '2026-08-19', baseVistas: 0 },
     { archivo: 'MAXX_VIDEO-portada-01.png', etapa: 'VIDEO', tema: 'PPR', categoria: 'video', agregado: '2026-08-26', baseVistas: 0 },
-    { archivo: 'PDF_MAXX_Promocional_Escuelas_utm.pdf', etapa: 'GRUPOS', tema: 'ESCUELA', categoria: 'pdf', agregado: '2026-09-14', baseVistas: 0 },
-    { archivo: 'PDF_MAXX_Promocional_Empresas_utm.pdf', etapa: 'GRUPOS', tema: 'EMPRESA', categoria: 'pdf', agregado: '2026-09-14', baseVistas: 0 }
+    { archivo: 'PDF_MAXX_Promocional_Escuelas_utm.pdf', miniatura: 'MAXX_Grupos_Escuela_miniatura.png', etapa: 'GRUPOS', tema: 'ESCUELA', categoria: 'pdf', agregado: '2026-09-14', baseVistas: 0 },
+    { archivo: 'PDF_MAXX_Promocional_Empresas_utm.pdf', miniatura: 'MAXX_Grupos_Empresa_miniatura.png', etapa: 'GRUPOS', tema: 'EMPRESA', categoria: 'pdf', agregado: '2026-09-14', baseVistas: 0 }
   ];
 
   // Orden fijo de las secciones (etapas) — no cronológico, es el orden de
@@ -2631,9 +2633,14 @@ var qrcode = function() {
       div.className = 'miniatura';
       var idBadgePersonal = 'zr-personal-' + copy.etapa + '-' + copy.tema;
       var esPdf = copy.categoria === 'pdf';
+      // Para las tarjetas PDF (Grupos), la miniatura mostrada es una imagen
+      // real de la página 1 (copy.miniatura) — un PDF no se puede meter en
+      // un <img> directo, pero una miniatura PNG de su portada sí. El PDF
+      // real (copy.archivo) se sigue usando tal cual al generar/descargar,
+      // solo cambia lo que se ve en la tarjeta antes de abrirla.
       var wrapVisual = esPdf
-        ? '<div class="imagen-wrap" style="background:#E6F1FB; display:flex; align-items:center; justify-content:center; aspect-ratio:1080/1400;">' +
-            '<svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="#185FA5" stroke-width="1.5"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><text x="12" y="16" font-size="7" fill="#185FA5"></text></svg>' +
+        ? '<div class="imagen-wrap">' +
+            '<img src="' + GITHUB_BASE + copy.miniatura + '" alt="' + copy.etapa + '-' + copy.tema + '">' +
             '<div class="lupa"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
           '</div>'
         : '<div class="imagen-wrap">' +
@@ -2692,10 +2699,17 @@ var qrcode = function() {
     { id: 'videos', etiqueta: 'Videos' }
   ];
 
+  var introIndividualEl = document.getElementById('intro-individual');
+
   function mostrarGrupoPrincipal(grupo) {
     Array.prototype.forEach.call(filtroPrincipalEl.children, function(btn) {
       btn.classList.toggle('activo', btn.dataset.grupo === grupo);
     });
+
+    // El texto "Siempre empieza en Rompe el Hielo..." solo aplica a la
+    // secuencia de Individual — en Grupos y Videos cada etapa ya trae su
+    // propio texto (objetivo/destino), así que aquí se oculta.
+    if (introIndividualEl) introIndividualEl.style.display = (grupo === 'individual') ? 'block' : 'none';
 
     if (grupo === 'individual') {
       filtroEl.style.display = 'flex';
