@@ -46,8 +46,12 @@
 
 <div id="contenedor-galeria" style="max-width:900px; margin:0 auto;">
 
+<p style="color:#042C53; font-size:15px; font-weight:bold; margin:0 0 16px 0; line-height:1.4;">
+  Selecciona la opción deseada:
+</p>
+<div class="filtro-principal" id="filtro-principal"></div>
 <div id="intro-individual">
-<p style="color:#042C53; font-size:14px; font-weight:bold; margin:0 0 8px 0; line-height:1.4;">
+<p style="color:#042C53; font-size:14px; font-weight:bold; margin:16px 0 8px 0; line-height:1.4;">
   Siempre empieza en "Rompe el Hielo" (RH),<br>
   y con el tema que más le interesará a TU prospecto (PAT, LIB, INV, FIS u OPC).
 </p>
@@ -56,7 +60,6 @@
   — es lo que da los mejores resultados.
 </p>
 </div>
-<div class="filtro-principal" id="filtro-principal"></div>
 <div class="filtro-etapas" id="filtro-etapas"></div>
 <div id="galeria"></div>
 
@@ -2640,11 +2643,11 @@ var qrcode = function() {
       // solo cambia lo que se ve en la tarjeta antes de abrirla.
       var wrapVisual = esPdf
         ? '<div class="imagen-wrap">' +
-            '<img src="' + GITHUB_BASE + copy.miniatura + '" alt="' + copy.etapa + '-' + copy.tema + '">' +
+            '<img data-src="' + GITHUB_BASE + copy.miniatura + '" alt="' + copy.etapa + '-' + copy.tema + '">' +
             '<div class="lupa"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
           '</div>'
         : '<div class="imagen-wrap">' +
-            '<img src="' + GITHUB_BASE + copy.archivo + '" alt="' + copy.etapa + '-' + copy.tema + '">' +
+            '<img data-src="' + GITHUB_BASE + copy.archivo + '" alt="' + copy.etapa + '-' + copy.tema + '">' +
             '<div class="lupa"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
           '</div>';
       div.innerHTML =
@@ -2670,7 +2673,25 @@ var qrcode = function() {
   var filtroEl = document.getElementById('filtro-etapas');
   var filtroPrincipalEl = document.getElementById('filtro-principal');
 
+  // ---- Carga perezosa: cada <img> se crea con data-src (nada se
+  // descarga todavía) — solo se les pone el src real la primera vez que
+  // su sección se vuelve visible. Así, al entrar a "Individual" solo se
+  // descargan las ~5 imágenes de RH, no las 20 de todo el sitio; al
+  // cambiar de sub-tab (AO/DE/IN) se descargan esas ~5 en ese momento;
+  // Grupos y Videos igual, solo lo suyo. Una vez cargada una imagen se
+  // queda en caché del navegador — volver a ese tab no la vuelve a pedir.
+  function cargarImagenesDeSeccion(etapa) {
+    var seccionEl = document.getElementById('seccion-' + etapa);
+    if (!seccionEl) return;
+    var imgs = seccionEl.querySelectorAll('img[data-src]');
+    Array.prototype.forEach.call(imgs, function(img) {
+      img.src = img.getAttribute('data-src');
+      img.removeAttribute('data-src');
+    });
+  }
+
   function mostrarEtapa(etapa) {
+    cargarImagenesDeSeccion(etapa);
     ORDEN_ETAPAS.forEach(function(e) {
       var seccionEl = document.getElementById('seccion-' + e);
       if (seccionEl) seccionEl.classList.toggle('visible', e === etapa);
