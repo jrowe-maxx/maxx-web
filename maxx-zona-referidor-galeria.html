@@ -2397,17 +2397,26 @@ var qrcode = function() {
 (function() {
   // ---- Configuración de prueba ----
   // En la Zona Referidor real, este valor vendrá de la sesión (PIN), no fijo.
-  var REF_PRUEBA;
+  var REF_PRUEBA, TS_LOGIN;
   try {
     var parametrosUrl = new URLSearchParams(window.top.location.search);
     REF_PRUEBA = parametrosUrl.get('ref') || '';
+    TS_LOGIN = parametrosUrl.get('t') || '';
   } catch (e) {
-    REF_PRUEBA = new URLSearchParams(window.location.search).get('ref') || '';
+    var parametrosUrlLocal = new URLSearchParams(window.location.search);
+    REF_PRUEBA = parametrosUrlLocal.get('ref') || '';
+    TS_LOGIN = parametrosUrlLocal.get('t') || '';
   }
 
-  if (!REF_PRUEBA) {
-    // Nadie debe llegar aquí sin haber pasado por el login — si no hay
-    // código, lo regresamos a la Zona Referidor a iniciar sesión.
+  // Sesión máxima: 30 minutos desde el login — buena práctica de
+  // seguridad, por si alguien deja el equipo con la sesión abierta.
+  var SESION_MAXIMA_MS = 30 * 60 * 1000;
+  var sesionExpirada = !TS_LOGIN || (Date.now() - parseInt(TS_LOGIN, 10)) > SESION_MAXIMA_MS;
+
+  if (!REF_PRUEBA || sesionExpirada) {
+    // Nadie debe llegar aquí sin haber pasado por el login, o con la
+    // sesión vencida — lo regresamos a la Zona Referidor a iniciar
+    // sesión otra vez.
     window.top.location.href = 'https://maxx.mx/#zona-referidor';
     return;
   }
