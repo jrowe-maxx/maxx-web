@@ -161,6 +161,9 @@
   <div class="zrg-filtro-item">
     <label class="zrg-filtro-check"><input type="checkbox" id="zrg-f-30dias" style="width:auto; margin:0;"> Dadas de alta en los últimos 30 días</label>
   </div>
+  <div class="zrg-filtro-item">
+    <label class="zrg-filtro-check"><input type="checkbox" id="zrg-f-seguimiento-hoy" style="width:auto; margin:0;"> Seguimiento para HOY o atrasado</label>
+  </div>
 </div>
 
 <div id="zrg-cargando">Cargando TUS Entidades...</div>
@@ -423,7 +426,9 @@
     var federativa = document.getElementById('zrg-f-federativa').value;
     var sector = document.getElementById('zrg-f-sector').value;
     var solo30dias = document.getElementById('zrg-f-30dias').checked;
+    var soloSeguimientoHoy = document.getElementById('zrg-f-seguimiento-hoy').checked;
     var hace30dias = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    var finDeHoy = new Date(); finDeHoy.setHours(23,59,59,999);
 
     var filtradas = (todasMisEntidades || []).filter(function(ent) {
       if (tipo && ent.tipo !== tipo) return false;
@@ -432,6 +437,7 @@
       if (federativa && ent.entidadFederativa !== federativa) return false;
       if (sector && ent.sectorEconomico !== sector) return false;
       if (solo30dias && (!ent.fechaAlta || ent.fechaAlta < hace30dias)) return false;
+      if (soloSeguimientoHoy && (!ent.proximoSeguimiento || ent.proximoSeguimiento > finDeHoy.getTime())) return false;
       if (nombreCon) {
         var algunContactoCoincide = (ent.contactos || []).some(function(c) {
           return (c.nombre || '').toLowerCase().indexOf(nombreCon) !== -1;
@@ -448,6 +454,7 @@
     document.getElementById(id).addEventListener('change', cargarYFiltrar);
   });
   document.getElementById('zrg-f-30dias').addEventListener('change', cargarYFiltrar);
+  document.getElementById('zrg-f-seguimiento-hoy').addEventListener('change', cargarYFiltrar);
   var temporizadorFiltroTexto = null;
   ['zrg-f-nombre-entidad', 'zrg-f-nombre-contacto'].forEach(function(id) {
     document.getElementById(id).addEventListener('input', function() {
@@ -497,6 +504,7 @@
 
   function pintarDetalle(ent) {
     var html = '<div class="zrg-card" data-id-entidad="' + ent.idEntidad + '">';
+    html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="float:right;" onclick="window.zrgCerrarDetalle()">✕ Cerrar</button>';
     html += '<h3>' + ent.nombre + '</h3>';
     html += '<span class="zrg-tag">' + ent.tipo + '</span>';
     html += '<span class="zrg-tag zrg-tag-etapa">' + etapaDe(ent) + '</span>';
@@ -509,6 +517,12 @@
     if (ent.sectorEconomico) html += '<div class="zrg-linea"><b>Sector Económico:</b> ' + ent.sectorEconomico + '</div>';
     if (ent.publicoPrivado) html += '<div class="zrg-linea"><b>Público/Privado:</b> ' + ent.publicoPrivado + '</div>';
     if (ent.religion) html += '<div class="zrg-linea"><b>Religión:</b> ' + ent.religion + '</div>';
+    if (ent.proximoSeguimiento) {
+      var fechaSeg = new Date(ent.proximoSeguimiento);
+      var hoyLimpio = new Date(); hoyLimpio.setHours(0,0,0,0);
+      var esVencido = fechaSeg < hoyLimpio;
+      html += '<div class="zrg-linea" style="' + (esVencido ? 'color:#791F1F; font-weight:bold;' : '') + '"><b>Próximo Seguimiento:</b> ' + fechaSeg.toLocaleDateString('es-MX') + (esVencido ? ' (¡atrasado!)' : '') + '</div>';
+    }
     var baseGrupos = ent.empleadosConfirmados || ent.empleadosElegibles;
     if (baseGrupos) {
       var gruposPotenciales = Math.round(Number(baseGrupos) / TAMANO_PROMEDIO_GRUPO) || 1;
@@ -535,6 +549,8 @@
     html += '<div id="zrg-ed-sector-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Sector Económico</label><select id="zrg-ed-sector-' + ent.idEntidad + '"></select></div>';
     html += '<div id="zrg-ed-pubpriv-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Público/Privado</label><select id="zrg-ed-pubpriv-' + ent.idEntidad + '"><option value="">Selecciona...</option><option value="Privada">Privada</option><option value="Pública">Pública</option></select></div>';
     html += '<div id="zrg-ed-religion-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Religión</label><select id="zrg-ed-religion-' + ent.idEntidad + '"></select></div>';
+    html += '<label>Próximo Seguimiento</label>';
+    html += '<input type="date" id="zrg-ed-seguimiento-' + ent.idEntidad + '" value="' + (ent.proximoSeguimiento ? new Date(ent.proximoSeguimiento).toISOString().slice(0,10) : '') + '">';
     html += '<label># Empleados/Docentes Elegibles</label>';
     html += '<input type="text" id="zrg-ed-empleados-' + ent.idEntidad + '" value="' + String(ent.empleadosElegibles || '').replace(/"/g, '&quot;') + '">';
     if (ES_ADMIN) {
@@ -591,8 +607,8 @@
     });
 
     var elBtnGuardarEd = document.getElementById('zrg-btn-guardar-ed-' + ent.idEntidad);
-    var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tipo-', 'zrg-ed-ubicacion-', 'zrg-ed-federativa-', 'zrg-ed-empleados-', 'zrg-ed-sector-', 'zrg-ed-pubpriv-', 'zrg-ed-religion-', 'zrg-ed-notas-'];
-    var valoresOriginales = { nombre: String(ent.nombre || ''), tipo: String(ent.tipo || ''), ubicacion: String(ent.ubicacion || ''), federativa: String(ent.entidadFederativa || ''), empleados: String(ent.empleadosElegibles || ''), sector: String(ent.sectorEconomico || ''), pubpriv: String(ent.publicoPrivado || ''), religion: String(ent.religion || ''), notas: String(ent.notas || '') };
+    var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tipo-', 'zrg-ed-ubicacion-', 'zrg-ed-federativa-', 'zrg-ed-empleados-', 'zrg-ed-sector-', 'zrg-ed-pubpriv-', 'zrg-ed-religion-', 'zrg-ed-seguimiento-', 'zrg-ed-notas-'];
+    var valoresOriginales = { nombre: String(ent.nombre || ''), tipo: String(ent.tipo || ''), ubicacion: String(ent.ubicacion || ''), federativa: String(ent.entidadFederativa || ''), empleados: String(ent.empleadosElegibles || ''), sector: String(ent.sectorEconomico || ''), pubpriv: String(ent.publicoPrivado || ''), religion: String(ent.religion || ''), seguimiento: ent.proximoSeguimiento ? new Date(ent.proximoSeguimiento).toISOString().slice(0,10) : '', notas: String(ent.notas || '') };
     if (ES_ADMIN) {
       camposEdicion.push('zrg-ed-empleadosconf-', 'zrg-ed-modulos-');
       valoresOriginales.empleadosconf = String(ent.empleadosConfirmados || '');
@@ -608,6 +624,7 @@
         document.getElementById('zrg-ed-sector-' + ent.idEntidad).value !== valoresOriginales.sector ||
         document.getElementById('zrg-ed-pubpriv-' + ent.idEntidad).value !== valoresOriginales.pubpriv ||
         document.getElementById('zrg-ed-religion-' + ent.idEntidad).value !== valoresOriginales.religion ||
+        document.getElementById('zrg-ed-seguimiento-' + ent.idEntidad).value !== valoresOriginales.seguimiento ||
         document.getElementById('zrg-ed-notas-' + ent.idEntidad).value !== valoresOriginales.notas ||
         (ES_ADMIN && document.getElementById('zrg-ed-empleadosconf-' + ent.idEntidad).value !== valoresOriginales.empleadosconf) ||
         (ES_ADMIN && document.getElementById('zrg-ed-modulos-' + ent.idEntidad).value !== valoresOriginales.modulos);
@@ -620,6 +637,12 @@
       document.getElementById(prefijo + ent.idEntidad).addEventListener('change', revisarCambios);
     });
   }
+
+  window.zrgCerrarDetalle = function() {
+    idEntidadSeleccionada = null;
+    elDetalle.innerHTML = '';
+    aplicarFiltros();
+  };
 
   window.zrgMostrarFormEditar = function(idEntidad) {
     document.getElementById('zrg-vista-' + idEntidad).classList.toggle('zrg-oculto');
@@ -649,6 +672,7 @@
         sectorEconomico: document.getElementById('zrg-ed-sector-' + idEntidad).value,
         publicoPrivado: document.getElementById('zrg-ed-pubpriv-' + idEntidad).value,
         religion: document.getElementById('zrg-ed-religion-' + idEntidad).value,
+        proximoSeguimiento: document.getElementById('zrg-ed-seguimiento-' + idEntidad).value,
         empleadosConfirmados: elCampoConf ? elCampoConf.value.trim() : '',
         modulosComprometidos: elCampoMod ? elCampoMod.value.trim() : '',
         notas: document.getElementById('zrg-ed-notas-' + idEntidad).value.trim()
