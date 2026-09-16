@@ -80,6 +80,22 @@
   <input type="text" id="zrg-alta-ubicacion" placeholder="Opcional">
   <label>Entidad Federativa</label>
   <select id="zrg-alta-federativa"></select>
+  <div id="zrg-alta-sector-wrap" class="zrg-oculto">
+    <label>Sector Económico</label>
+    <select id="zrg-alta-sector"></select>
+  </div>
+  <div id="zrg-alta-pubpriv-wrap" class="zrg-oculto">
+    <label>Público/Privado</label>
+    <select id="zrg-alta-pubpriv">
+      <option value="">Selecciona...</option>
+      <option value="Privada">Privada</option>
+      <option value="Pública">Pública</option>
+    </select>
+  </div>
+  <div id="zrg-alta-religion-wrap" class="zrg-oculto">
+    <label>Religión</label>
+    <select id="zrg-alta-religion"></select>
+  </div>
   <label># Empleados/Docentes Elegibles (estimado)</label>
   <input type="text" id="zrg-alta-empleados" placeholder="Opcional">
   <label>Notas</label>
@@ -137,6 +153,12 @@
     </div>
   </div>
   <div class="zrg-filtro-item">
+    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-sector-campo">Sector Económico</button>
+    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-sector-campo">
+      <select id="zrg-f-sector"></select>
+    </div>
+  </div>
+  <div class="zrg-filtro-item">
     <label class="zrg-filtro-check"><input type="checkbox" id="zrg-f-30dias" style="width:auto; margin:0;"> Dadas de alta en los últimos 30 días</label>
   </div>
 </div>
@@ -191,6 +213,14 @@
     'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz',
     'Yucatán', 'Zacatecas'];
 
+  var SECTORES_ECONOMICOS = ['Agricultura, Ganadería y Pesca', 'Manufactura/Industrial', 'Construcción',
+    'Comercio (Retail/Mayoreo)', 'Tecnología/TI', 'Servicios Financieros', 'Salud', 'Educación',
+    'Alimentos y Bebidas', 'Transporte y Logística', 'Turismo y Hospitalidad', 'Energía', 'Telecomunicaciones',
+    'Bienes Raíces', 'Gobierno/Sector Público', 'Servicios Profesionales', 'Medios y Entretenimiento',
+    'Automotriz', 'Textil y Moda', 'Otro'];
+
+  var RELIGIONES = ['Católica', 'Cristiana Evangélica', 'Judía', 'Musulmana', 'Budista', 'Testigos de Jehová', 'Mormona', 'Otra'];
+
   var COLOR_TIPO = {
     'Escuela': '#DCEAFB', 'Empresa': '#FCEAD6', 'Personal': '#E3F2D9', 'Religioso': '#EDE3F5', 'Otro': '#EEEEEE'
   };
@@ -205,6 +235,31 @@
   }
   llenarSelectFederativa(document.getElementById('zrg-alta-federativa'));
   llenarSelectFederativa(document.getElementById('zrg-f-federativa'));
+
+  function llenarSelectGenerico(el, lista, textoTodas) {
+    el.innerHTML = '<option value="">' + textoTodas + '</option>' +
+      lista.map(function(e) { return '<option value="' + e + '">' + e + '</option>'; }).join('');
+  }
+  llenarSelectGenerico(document.getElementById('zrg-alta-sector'), SECTORES_ECONOMICOS, 'Selecciona...');
+  llenarSelectGenerico(document.getElementById('zrg-alta-religion'), RELIGIONES, 'Selecciona...');
+  llenarSelectGenerico(document.getElementById('zrg-f-sector'), SECTORES_ECONOMICOS, 'Todos');
+
+  // Mostrar solo el campo que corresponde al Tipo elegido (Sector
+  // Económico para Empresa, Público/Privado para Escuela, Religión
+  // para Religioso) — tanto en "Dar de alta" como luego en "Editar".
+  function actualizarCamposPorTipo(tipo, sufijoSector, sufijoPubPriv, sufijoReligion) {
+    var elSector = document.getElementById(sufijoSector);
+    var elPubPriv = document.getElementById(sufijoPubPriv);
+    var elReligion = document.getElementById(sufijoReligion);
+    if (elSector) elSector.classList.toggle('zrg-oculto', tipo !== 'Empresa');
+    if (elPubPriv) elPubPriv.classList.toggle('zrg-oculto', tipo !== 'Escuela');
+    if (elReligion) elReligion.classList.toggle('zrg-oculto', tipo !== 'Religioso');
+  }
+
+  document.getElementById('zrg-alta-tipo').addEventListener('change', function() {
+    actualizarCamposPorTipo(this.value, 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap');
+  });
+  actualizarCamposPorTipo(document.getElementById('zrg-alta-tipo').value, 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap');
 
   // Chips de filtro: cada uno abre/cierra su propio campo.
   Array.prototype.forEach.call(document.querySelectorAll('.zrg-filtro-chip-btn'), function(btn) {
@@ -281,6 +336,9 @@
         ubicacion: document.getElementById('zrg-alta-ubicacion').value.trim(),
         entidadFederativa: document.getElementById('zrg-alta-federativa').value,
         empleadosElegibles: document.getElementById('zrg-alta-empleados').value.trim(),
+        sectorEconomico: document.getElementById('zrg-alta-sector').value,
+        publicoPrivado: document.getElementById('zrg-alta-pubpriv').value,
+        religion: document.getElementById('zrg-alta-religion').value,
         notas: document.getElementById('zrg-alta-notas').value.trim()
       })
     })
@@ -293,6 +351,11 @@
             document.getElementById(id).value = '';
           });
           document.getElementById('zrg-alta-federativa').value = '';
+          document.getElementById('zrg-alta-sector').value = '';
+          document.getElementById('zrg-alta-pubpriv').value = '';
+          document.getElementById('zrg-alta-religion').value = '';
+          document.getElementById('zrg-alta-tipo').value = 'Escuela';
+          actualizarCamposPorTipo('Escuela', 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap');
           elFormAlta.classList.add('zrg-oculto');
           elBtnMostrarAlta.classList.remove('zrg-oculto');
           todasMisEntidades = null;
@@ -343,7 +406,8 @@
       'zrg-f-etapa-campo': document.getElementById('zrg-f-etapa').value,
       'zrg-f-nombre-entidad-campo': document.getElementById('zrg-f-nombre-entidad').value.trim(),
       'zrg-f-nombre-contacto-campo': document.getElementById('zrg-f-nombre-contacto').value.trim(),
-      'zrg-f-federativa-campo': document.getElementById('zrg-f-federativa').value
+      'zrg-f-federativa-campo': document.getElementById('zrg-f-federativa').value,
+      'zrg-f-sector-campo': document.getElementById('zrg-f-sector').value
     };
     Array.prototype.forEach.call(document.querySelectorAll('.zrg-filtro-chip-btn'), function(btn) {
       btn.classList.toggle('zrg-filtro-activo', !!mapa[btn.dataset.campo]);
@@ -357,6 +421,7 @@
     var nombreEnt = document.getElementById('zrg-f-nombre-entidad').value.trim().toLowerCase();
     var nombreCon = document.getElementById('zrg-f-nombre-contacto').value.trim().toLowerCase();
     var federativa = document.getElementById('zrg-f-federativa').value;
+    var sector = document.getElementById('zrg-f-sector').value;
     var solo30dias = document.getElementById('zrg-f-30dias').checked;
     var hace30dias = Date.now() - (30 * 24 * 60 * 60 * 1000);
 
@@ -365,6 +430,7 @@
       if (etapa && etapaDe(ent) !== etapa) return false;
       if (nombreEnt && ent.nombre.toLowerCase().indexOf(nombreEnt) === -1) return false;
       if (federativa && ent.entidadFederativa !== federativa) return false;
+      if (sector && ent.sectorEconomico !== sector) return false;
       if (solo30dias && (!ent.fechaAlta || ent.fechaAlta < hace30dias)) return false;
       if (nombreCon) {
         var algunContactoCoincide = (ent.contactos || []).some(function(c) {
@@ -378,7 +444,7 @@
     pintarFranja(filtradas);
   }
 
-  ['zrg-f-tipo', 'zrg-f-etapa', 'zrg-f-federativa'].forEach(function(id) {
+  ['zrg-f-tipo', 'zrg-f-etapa', 'zrg-f-federativa', 'zrg-f-sector'].forEach(function(id) {
     document.getElementById(id).addEventListener('change', cargarYFiltrar);
   });
   document.getElementById('zrg-f-30dias').addEventListener('change', cargarYFiltrar);
@@ -440,6 +506,9 @@
     if (ent.empleadosElegibles) html += '<div class="zrg-linea"><b># Elegibles (estimado):</b> ' + ent.empleadosElegibles + '</div>';
     if (ent.empleadosConfirmados) html += '<div class="zrg-linea"><b># Elegibles (confirmado):</b> ' + ent.empleadosConfirmados + '</div>';
     if (ent.modulosComprometidos) html += '<div class="zrg-linea"><b>Módulos comprometidos (Convenio):</b> ' + ent.modulosComprometidos + '</div>';
+    if (ent.sectorEconomico) html += '<div class="zrg-linea"><b>Sector Económico:</b> ' + ent.sectorEconomico + '</div>';
+    if (ent.publicoPrivado) html += '<div class="zrg-linea"><b>Público/Privado:</b> ' + ent.publicoPrivado + '</div>';
+    if (ent.religion) html += '<div class="zrg-linea"><b>Religión:</b> ' + ent.religion + '</div>';
     var baseGrupos = ent.empleadosConfirmados || ent.empleadosElegibles;
     if (baseGrupos) {
       var gruposPotenciales = Math.round(Number(baseGrupos) / TAMANO_PROMEDIO_GRUPO) || 1;
@@ -452,7 +521,7 @@
 
     html += '<div id="zrg-form-editar-' + ent.idEntidad + '" class="zrg-oculto" style="margin-top:10px;">';
     html += '<label>Nombre de la Institución</label>';
-    html += '<input type="text" id="zrg-ed-nombre-' + ent.idEntidad + '" value="' + (ent.nombre || '').replace(/"/g, '&quot;') + '">';
+    html += '<input type="text" id="zrg-ed-nombre-' + ent.idEntidad + '" value="' + String(ent.nombre || '').replace(/"/g, '&quot;') + '">';
     html += '<label>Tipo</label>';
     html += '<select id="zrg-ed-tipo-' + ent.idEntidad + '">';
     ['Escuela', 'Empresa', 'Personal', 'Religioso', 'Otro'].forEach(function(t) {
@@ -460,16 +529,19 @@
     });
     html += '</select>';
     html += '<label>Ubicación/Plantel</label>';
-    html += '<input type="text" id="zrg-ed-ubicacion-' + ent.idEntidad + '" value="' + (ent.ubicacion || '').replace(/"/g, '&quot;') + '">';
+    html += '<input type="text" id="zrg-ed-ubicacion-' + ent.idEntidad + '" value="' + String(ent.ubicacion || '').replace(/"/g, '&quot;') + '">';
     html += '<label>Entidad Federativa</label>';
     html += '<select id="zrg-ed-federativa-' + ent.idEntidad + '"></select>';
+    html += '<div id="zrg-ed-sector-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Sector Económico</label><select id="zrg-ed-sector-' + ent.idEntidad + '"></select></div>';
+    html += '<div id="zrg-ed-pubpriv-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Público/Privado</label><select id="zrg-ed-pubpriv-' + ent.idEntidad + '"><option value="">Selecciona...</option><option value="Privada">Privada</option><option value="Pública">Pública</option></select></div>';
+    html += '<div id="zrg-ed-religion-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Religión</label><select id="zrg-ed-religion-' + ent.idEntidad + '"></select></div>';
     html += '<label># Empleados/Docentes Elegibles</label>';
-    html += '<input type="text" id="zrg-ed-empleados-' + ent.idEntidad + '" value="' + (ent.empleadosElegibles || '').replace(/"/g, '&quot;') + '">';
+    html += '<input type="text" id="zrg-ed-empleados-' + ent.idEntidad + '" value="' + String(ent.empleadosElegibles || '').replace(/"/g, '&quot;') + '">';
     if (ES_ADMIN) {
       html += '<label>Empleados Confirmados (MAXX) — solo tú</label>';
-      html += '<input type="text" id="zrg-ed-empleadosconf-' + ent.idEntidad + '" value="' + (ent.empleadosConfirmados || '').replace(/"/g, '&quot;') + '">';
+      html += '<input type="text" id="zrg-ed-empleadosconf-' + ent.idEntidad + '" value="' + String(ent.empleadosConfirmados || '').replace(/"/g, '&quot;') + '">';
       html += '<label>Módulos Comprometidos (Convenio) — solo tú</label>';
-      html += '<input type="text" id="zrg-ed-modulos-' + ent.idEntidad + '" value="' + (ent.modulosComprometidos || '').replace(/"/g, '&quot;') + '">';
+      html += '<input type="text" id="zrg-ed-modulos-' + ent.idEntidad + '" value="' + String(ent.modulosComprometidos || '').replace(/"/g, '&quot;') + '">';
     }
     html += '<label>Notas</label>';
     html += '<textarea id="zrg-ed-notas-' + ent.idEntidad + '">' + (ent.notas || '') + '</textarea>';
@@ -505,13 +577,26 @@
     llenarSelectFederativa(elSelectFed);
     elSelectFed.value = ent.entidadFederativa || '';
 
+    var elSelectSector = document.getElementById('zrg-ed-sector-' + ent.idEntidad);
+    llenarSelectGenerico(elSelectSector, SECTORES_ECONOMICOS, 'Selecciona...');
+    elSelectSector.value = ent.sectorEconomico || '';
+    var elSelectReligion = document.getElementById('zrg-ed-religion-' + ent.idEntidad);
+    llenarSelectGenerico(elSelectReligion, RELIGIONES, 'Selecciona...');
+    elSelectReligion.value = ent.religion || '';
+    document.getElementById('zrg-ed-pubpriv-' + ent.idEntidad).value = ent.publicoPrivado || '';
+
+    actualizarCamposPorTipo(ent.tipo, 'zrg-ed-sector-wrap-' + ent.idEntidad, 'zrg-ed-pubpriv-wrap-' + ent.idEntidad, 'zrg-ed-religion-wrap-' + ent.idEntidad);
+    document.getElementById('zrg-ed-tipo-' + ent.idEntidad).addEventListener('change', function() {
+      actualizarCamposPorTipo(this.value, 'zrg-ed-sector-wrap-' + ent.idEntidad, 'zrg-ed-pubpriv-wrap-' + ent.idEntidad, 'zrg-ed-religion-wrap-' + ent.idEntidad);
+    });
+
     var elBtnGuardarEd = document.getElementById('zrg-btn-guardar-ed-' + ent.idEntidad);
-    var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tipo-', 'zrg-ed-ubicacion-', 'zrg-ed-federativa-', 'zrg-ed-empleados-', 'zrg-ed-notas-'];
-    var valoresOriginales = { nombre: ent.nombre || '', tipo: ent.tipo || '', ubicacion: ent.ubicacion || '', federativa: ent.entidadFederativa || '', empleados: ent.empleadosElegibles || '', notas: ent.notas || '' };
+    var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tipo-', 'zrg-ed-ubicacion-', 'zrg-ed-federativa-', 'zrg-ed-empleados-', 'zrg-ed-sector-', 'zrg-ed-pubpriv-', 'zrg-ed-religion-', 'zrg-ed-notas-'];
+    var valoresOriginales = { nombre: String(ent.nombre || ''), tipo: String(ent.tipo || ''), ubicacion: String(ent.ubicacion || ''), federativa: String(ent.entidadFederativa || ''), empleados: String(ent.empleadosElegibles || ''), sector: String(ent.sectorEconomico || ''), pubpriv: String(ent.publicoPrivado || ''), religion: String(ent.religion || ''), notas: String(ent.notas || '') };
     if (ES_ADMIN) {
       camposEdicion.push('zrg-ed-empleadosconf-', 'zrg-ed-modulos-');
-      valoresOriginales.empleadosconf = ent.empleadosConfirmados || '';
-      valoresOriginales.modulos = ent.modulosComprometidos || '';
+      valoresOriginales.empleadosconf = String(ent.empleadosConfirmados || '');
+      valoresOriginales.modulos = String(ent.modulosComprometidos || '');
     }
     function revisarCambios() {
       var cambio =
@@ -520,6 +605,9 @@
         document.getElementById('zrg-ed-ubicacion-' + ent.idEntidad).value !== valoresOriginales.ubicacion ||
         document.getElementById('zrg-ed-federativa-' + ent.idEntidad).value !== valoresOriginales.federativa ||
         document.getElementById('zrg-ed-empleados-' + ent.idEntidad).value !== valoresOriginales.empleados ||
+        document.getElementById('zrg-ed-sector-' + ent.idEntidad).value !== valoresOriginales.sector ||
+        document.getElementById('zrg-ed-pubpriv-' + ent.idEntidad).value !== valoresOriginales.pubpriv ||
+        document.getElementById('zrg-ed-religion-' + ent.idEntidad).value !== valoresOriginales.religion ||
         document.getElementById('zrg-ed-notas-' + ent.idEntidad).value !== valoresOriginales.notas ||
         (ES_ADMIN && document.getElementById('zrg-ed-empleadosconf-' + ent.idEntidad).value !== valoresOriginales.empleadosconf) ||
         (ES_ADMIN && document.getElementById('zrg-ed-modulos-' + ent.idEntidad).value !== valoresOriginales.modulos);
@@ -558,6 +646,9 @@
         ubicacion: document.getElementById('zrg-ed-ubicacion-' + idEntidad).value.trim(),
         entidadFederativa: document.getElementById('zrg-ed-federativa-' + idEntidad).value,
         empleadosElegibles: document.getElementById('zrg-ed-empleados-' + idEntidad).value.trim(),
+        sectorEconomico: document.getElementById('zrg-ed-sector-' + idEntidad).value,
+        publicoPrivado: document.getElementById('zrg-ed-pubpriv-' + idEntidad).value,
+        religion: document.getElementById('zrg-ed-religion-' + idEntidad).value,
         empleadosConfirmados: elCampoConf ? elCampoConf.value.trim() : '',
         modulosComprometidos: elCampoMod ? elCampoMod.value.trim() : '',
         notas: document.getElementById('zrg-ed-notas-' + idEntidad).value.trim()
