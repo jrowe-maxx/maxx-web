@@ -236,6 +236,17 @@
     el.innerHTML = '<option value="">' + (el.id === 'zrg-f-federativa' ? 'Todas' : 'Selecciona...') + '</option>' +
       ENTIDADES_FEDERATIVAS.map(function(e) { return '<option value="' + e + '">' + e + '</option>'; }).join('');
   }
+
+  // Convierte el texto de "Notas" (con entradas "[fecha hora] texto"
+  // acumuladas) en HTML, resaltando cada marca de fecha/hora en azul
+  // — para que se vea de un vistazo cuándo se hizo cada seguimiento.
+  function formatearNotasConColor(texto) {
+    if (!texto) return '<span style="color:#999;">Ningún seguimiento todavía.</span>';
+    var escapado = String(texto).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return escapado
+      .replace(/\[(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2})\]/g, '<span style="color:#185FA5; font-weight:bold;">[$1]</span>')
+      .replace(/\n/g, '<br>');
+  }
   llenarSelectFederativa(document.getElementById('zrg-alta-federativa'));
   llenarSelectFederativa(document.getElementById('zrg-f-federativa'));
 
@@ -517,19 +528,12 @@
     if (ent.sectorEconomico) html += '<div class="zrg-linea"><b>Sector Económico:</b> ' + ent.sectorEconomico + '</div>';
     if (ent.publicoPrivado) html += '<div class="zrg-linea"><b>Público/Privado:</b> ' + ent.publicoPrivado + '</div>';
     if (ent.religion) html += '<div class="zrg-linea"><b>Religión:</b> ' + ent.religion + '</div>';
-    if (ent.proximoSeguimiento) {
-      var fechaSeg = new Date(ent.proximoSeguimiento);
-      var hoyLimpio = new Date(); hoyLimpio.setHours(0,0,0,0);
-      var esVencido = fechaSeg < hoyLimpio;
-      html += '<div class="zrg-linea" style="' + (esVencido ? 'color:#791F1F; font-weight:bold;' : '') + '"><b>Próximo Seguimiento:</b> ' + fechaSeg.toLocaleDateString('es-MX') + (esVencido ? ' (¡atrasado!)' : '') + '</div>';
-    }
     var baseGrupos = ent.empleadosConfirmados || ent.empleadosElegibles;
     if (baseGrupos) {
       var gruposPotenciales = Math.round(Number(baseGrupos) / TAMANO_PROMEDIO_GRUPO) || 1;
       var gruposFormados = ent.gruposFormados || 0;
       html += '<div class="zrg-linea"><b>Grupos potenciales:</b> ~' + gruposPotenciales + ' (base ' + TAMANO_PROMEDIO_GRUPO + '/grupo) — <b>formados:</b> ' + gruposFormados + '</div>';
     }
-    if (ent.notas) html += '<div class="zrg-linea"><b>Notas:</b> ' + ent.notas + '</div>';
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin-top:6px;" onclick="window.zrgMostrarFormEditar(\'' + ent.idEntidad + '\')">Editar</button>';
     html += '</div>';
 
@@ -549,8 +553,6 @@
     html += '<div id="zrg-ed-sector-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Sector Económico</label><select id="zrg-ed-sector-' + ent.idEntidad + '"></select></div>';
     html += '<div id="zrg-ed-pubpriv-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Público/Privado</label><select id="zrg-ed-pubpriv-' + ent.idEntidad + '"><option value="">Selecciona...</option><option value="Privada">Privada</option><option value="Pública">Pública</option></select></div>';
     html += '<div id="zrg-ed-religion-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Religión</label><select id="zrg-ed-religion-' + ent.idEntidad + '"></select></div>';
-    html += '<label>Próximo Seguimiento</label>';
-    html += '<input type="date" id="zrg-ed-seguimiento-' + ent.idEntidad + '" value="' + (ent.proximoSeguimiento ? new Date(ent.proximoSeguimiento).toISOString().slice(0,10) : '') + '">';
     html += '<label># Empleados/Docentes Elegibles</label>';
     html += '<input type="text" id="zrg-ed-empleados-' + ent.idEntidad + '" value="' + String(ent.empleadosElegibles || '').replace(/"/g, '&quot;') + '">';
     if (ES_ADMIN) {
@@ -559,11 +561,32 @@
       html += '<label>Módulos Comprometidos (Convenio) — solo tú</label>';
       html += '<input type="text" id="zrg-ed-modulos-' + ent.idEntidad + '" value="' + String(ent.modulosComprometidos || '').replace(/"/g, '&quot;') + '">';
     }
-    html += '<label>Notas</label>';
-    html += '<textarea id="zrg-ed-notas-' + ent.idEntidad + '">' + (ent.notas || '') + '</textarea>';
     html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-guardar-ed-' + ent.idEntidad + '" disabled onclick="window.zrgGuardarEdicion(\'' + ent.idEntidad + '\')">Sin cambios</button>';
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgMostrarFormEditar(\'' + ent.idEntidad + '\')">Cancelar</button>';
     html += '<div id="zrg-estado-ed-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
+    html += '</div>';
+
+    html += '<div class="zrg-contacto">';
+    html += '<b style="color:#042C53;">Seguimiento/Notas</b>';
+    html += '<div id="zrg-notas-historial-' + ent.idEntidad + '" style="font-size:13px; color:#444; margin:4px 0; max-height:160px; overflow-y:auto;">' + formatearNotasConColor(ent.notas) + '</div>';
+    html += '<textarea id="zrg-nota-nueva-' + ent.idEntidad + '" placeholder="Escribe TU seguimiento o nota..." style="min-height:44px;"></textarea>';
+    html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-guardar-nota-' + ent.idEntidad + '" onclick="window.zrgAgregarNota(\'' + ent.idEntidad + '\')">+ Agregar al historial</button>';
+    html += '<div id="zrg-estado-nota-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
+    html += '</div>';
+
+    html += '<div class="zrg-contacto">';
+    html += '<b style="color:#042C53;">Próximo Seguimiento</b>';
+    if (ent.proximoSeguimiento) {
+      var fechaSeg = new Date(ent.proximoSeguimiento);
+      var hoyLimpio = new Date(); hoyLimpio.setHours(0,0,0,0);
+      var esVencido = fechaSeg < hoyLimpio;
+      html += '<div class="zrg-linea" style="' + (esVencido ? 'color:#791F1F; font-weight:bold;' : '') + '">' + fechaSeg.toLocaleDateString('es-MX') + (esVencido ? ' (¡atrasado!)' : '') + '</div>';
+    } else {
+      html += '<div class="zrg-linea">Sin definir.</div>';
+    }
+    html += '<input type="date" id="zrg-ed-seguimiento-' + ent.idEntidad + '" value="' + (ent.proximoSeguimiento ? new Date(ent.proximoSeguimiento).toISOString().slice(0,10) : '') + '" style="margin-top:6px;">';
+    html += '<button class="zrg-btn zrg-btn-chico" onclick="window.zrgGuardarSeguimiento(\'' + ent.idEntidad + '\')">Guardar fecha</button>';
+    html += '<div id="zrg-estado-seg-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     html += '</div>';
 
     html += '<div class="zrg-contacto">';
@@ -607,8 +630,8 @@
     });
 
     var elBtnGuardarEd = document.getElementById('zrg-btn-guardar-ed-' + ent.idEntidad);
-    var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tipo-', 'zrg-ed-ubicacion-', 'zrg-ed-federativa-', 'zrg-ed-empleados-', 'zrg-ed-sector-', 'zrg-ed-pubpriv-', 'zrg-ed-religion-', 'zrg-ed-seguimiento-', 'zrg-ed-notas-'];
-    var valoresOriginales = { nombre: String(ent.nombre || ''), tipo: String(ent.tipo || ''), ubicacion: String(ent.ubicacion || ''), federativa: String(ent.entidadFederativa || ''), empleados: String(ent.empleadosElegibles || ''), sector: String(ent.sectorEconomico || ''), pubpriv: String(ent.publicoPrivado || ''), religion: String(ent.religion || ''), seguimiento: ent.proximoSeguimiento ? new Date(ent.proximoSeguimiento).toISOString().slice(0,10) : '', notas: String(ent.notas || '') };
+    var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tipo-', 'zrg-ed-ubicacion-', 'zrg-ed-federativa-', 'zrg-ed-empleados-', 'zrg-ed-sector-', 'zrg-ed-pubpriv-', 'zrg-ed-religion-'];
+    var valoresOriginales = { nombre: String(ent.nombre || ''), tipo: String(ent.tipo || ''), ubicacion: String(ent.ubicacion || ''), federativa: String(ent.entidadFederativa || ''), empleados: String(ent.empleadosElegibles || ''), sector: String(ent.sectorEconomico || ''), pubpriv: String(ent.publicoPrivado || ''), religion: String(ent.religion || '') };
     if (ES_ADMIN) {
       camposEdicion.push('zrg-ed-empleadosconf-', 'zrg-ed-modulos-');
       valoresOriginales.empleadosconf = String(ent.empleadosConfirmados || '');
@@ -624,8 +647,6 @@
         document.getElementById('zrg-ed-sector-' + ent.idEntidad).value !== valoresOriginales.sector ||
         document.getElementById('zrg-ed-pubpriv-' + ent.idEntidad).value !== valoresOriginales.pubpriv ||
         document.getElementById('zrg-ed-religion-' + ent.idEntidad).value !== valoresOriginales.religion ||
-        document.getElementById('zrg-ed-seguimiento-' + ent.idEntidad).value !== valoresOriginales.seguimiento ||
-        document.getElementById('zrg-ed-notas-' + ent.idEntidad).value !== valoresOriginales.notas ||
         (ES_ADMIN && document.getElementById('zrg-ed-empleadosconf-' + ent.idEntidad).value !== valoresOriginales.empleadosconf) ||
         (ES_ADMIN && document.getElementById('zrg-ed-modulos-' + ent.idEntidad).value !== valoresOriginales.modulos);
       elBtnGuardarEd.disabled = !cambio;
@@ -672,10 +693,8 @@
         sectorEconomico: document.getElementById('zrg-ed-sector-' + idEntidad).value,
         publicoPrivado: document.getElementById('zrg-ed-pubpriv-' + idEntidad).value,
         religion: document.getElementById('zrg-ed-religion-' + idEntidad).value,
-        proximoSeguimiento: document.getElementById('zrg-ed-seguimiento-' + idEntidad).value,
         empleadosConfirmados: elCampoConf ? elCampoConf.value.trim() : '',
-        modulosComprometidos: elCampoMod ? elCampoMod.value.trim() : '',
-        notas: document.getElementById('zrg-ed-notas-' + idEntidad).value.trim()
+        modulosComprometidos: elCampoMod ? elCampoMod.value.trim() : ''
       })
     })
       .then(function(res) { return res.json(); })
@@ -694,6 +713,63 @@
       .catch(function() {
         elBtn.disabled = false;
         elBtn.textContent = 'Guardar cambios';
+        elEstado.textContent = 'No se pudo conectar. Intenta de nuevo.';
+      });
+  };
+
+  window.zrgAgregarNota = function(idEntidad) {
+    var elTextarea = document.getElementById('zrg-nota-nueva-' + idEntidad);
+    var nota = elTextarea.value.trim();
+    var elEstado = document.getElementById('zrg-estado-nota-' + idEntidad);
+    var elBtn = document.getElementById('zrg-btn-guardar-nota-' + idEntidad);
+    if (!nota) { elEstado.textContent = 'Escribe algo antes de guardar.'; return; }
+    elEstado.textContent = '';
+    elBtn.disabled = true;
+    elBtn.textContent = 'Guardando...';
+
+    fetch(BASE_URL, {
+      method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: 'agregarNota', ref: REF, idEntidad: idEntidad, nota: nota })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.exito) {
+          elBtn.textContent = '✓ Guardado';
+          elBtn.classList.add('zrg-btn-guardado');
+          todasMisEntidades = null;
+          setTimeout(function() { cargarYFiltrar(); }, 700);
+        } else {
+          elBtn.disabled = false;
+          elBtn.textContent = '+ Agregar al historial';
+          elEstado.textContent = data.error || 'No se pudo guardar.';
+        }
+      })
+      .catch(function() {
+        elBtn.disabled = false;
+        elBtn.textContent = '+ Agregar al historial';
+        elEstado.textContent = 'No se pudo conectar. Intenta de nuevo.';
+      });
+  };
+
+  window.zrgGuardarSeguimiento = function(idEntidad) {
+    var fecha = document.getElementById('zrg-ed-seguimiento-' + idEntidad).value;
+    var elEstado = document.getElementById('zrg-estado-seg-' + idEntidad);
+    elEstado.textContent = '';
+
+    fetch(BASE_URL, {
+      method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: 'actualizarProximoSeguimiento', ref: REF, idEntidad: idEntidad, proximoSeguimiento: fecha })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.exito) {
+          todasMisEntidades = null;
+          cargarYFiltrar();
+        } else {
+          elEstado.textContent = data.error || 'No se pudo guardar.';
+        }
+      })
+      .catch(function() {
         elEstado.textContent = 'No se pudo conectar. Intenta de nuevo.';
       });
   };
