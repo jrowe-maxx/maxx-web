@@ -224,6 +224,8 @@
 
   var RELIGIONES = ['Católica', 'Cristiana Evangélica', 'Judía', 'Musulmana', 'Budista', 'Testigos de Jehová', 'Mormona', 'Otra'];
 
+  var MESES_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
   var COLOR_TIPO = {
     'Escuela': '#DCEAFB', 'Empresa': '#FCEAD6', 'Personal': '#E3F2D9', 'Religioso': '#EDE3F5', 'Otro': '#EEEEEE'
   };
@@ -584,8 +586,26 @@
     } else {
       html += '<div class="zrg-linea">Sin definir.</div>';
     }
-    html += '<input type="date" id="zrg-ed-seguimiento-' + ent.idEntidad + '" value="' + (ent.proximoSeguimiento ? new Date(ent.proximoSeguimiento).toISOString().slice(0,10) : '') + '" style="margin-top:6px;">';
-    html += '<button class="zrg-btn zrg-btn-chico" onclick="window.zrgGuardarSeguimiento(\'' + ent.idEntidad + '\')">Guardar fecha</button>';
+    var fechaActualIso = ent.proximoSeguimiento ? new Date(ent.proximoSeguimiento).toISOString().slice(0,10) : '';
+    var diaActual = fechaActualIso ? parseInt(fechaActualIso.slice(8,10), 10) : '';
+    var mesActual = fechaActualIso ? parseInt(fechaActualIso.slice(5,7), 10) : '';
+    var anioActual = fechaActualIso ? parseInt(fechaActualIso.slice(0,4), 10) : '';
+    html += '<div style="display:flex; gap:6px;">';
+    html += '<select id="zrg-ed-seg-dia-' + ent.idEntidad + '" style="flex:1;"><option value="">Día</option>';
+    for (var d = 1; d <= 31; d++) html += '<option value="' + d + '"' + (d === diaActual ? ' selected' : '') + '>' + d + '</option>';
+    html += '</select>';
+    html += '<select id="zrg-ed-seg-mes-' + ent.idEntidad + '" style="flex:1.4;"><option value="">Mes</option>';
+    MESES_ES.forEach(function(nombreMes, i) {
+      var numeroMes = i + 1;
+      html += '<option value="' + numeroMes + '"' + (numeroMes === mesActual ? ' selected' : '') + '>' + nombreMes + '</option>';
+    });
+    html += '</select>';
+    html += '<select id="zrg-ed-seg-anio-' + ent.idEntidad + '" style="flex:1;"><option value="">Año</option>';
+    var anioBase = new Date().getFullYear();
+    for (var a = anioBase; a <= anioBase + 1; a++) html += '<option value="' + a + '"' + (a === anioActual ? ' selected' : '') + '>' + a + '</option>';
+    html += '</select>';
+    html += '</div>';
+    html += '<button class="zrg-btn zrg-btn-chico" style="margin-top:8px;" onclick="window.zrgGuardarSeguimiento(\'' + ent.idEntidad + '\')">Guardar fecha</button>';
     html += '<div id="zrg-estado-seg-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     html += '</div>';
 
@@ -752,9 +772,19 @@
   };
 
   window.zrgGuardarSeguimiento = function(idEntidad) {
-    var fecha = document.getElementById('zrg-ed-seguimiento-' + idEntidad).value;
+    var dia = document.getElementById('zrg-ed-seg-dia-' + idEntidad).value;
+    var mes = document.getElementById('zrg-ed-seg-mes-' + idEntidad).value;
+    var anio = document.getElementById('zrg-ed-seg-anio-' + idEntidad).value;
     var elEstado = document.getElementById('zrg-estado-seg-' + idEntidad);
     elEstado.textContent = '';
+
+    var fecha = '';
+    if (dia && mes && anio) {
+      fecha = anio + '-' + ('0' + mes).slice(-2) + '-' + ('0' + dia).slice(-2);
+    } else if (dia || mes || anio) {
+      elEstado.textContent = 'Completa Día, Mes y Año, o deja los tres vacíos para quitar la fecha.';
+      return;
+    }
 
     fetch(BASE_URL, {
       method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
