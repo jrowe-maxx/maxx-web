@@ -1,12 +1,12 @@
 <style>
-#zrg-wrap { max-width: 760px; margin: 0 auto; font-family: Arial, sans-serif; padding: 20px 16px 60px; }
-#zrg-wrap h2 { color: #042C53; font-size: 17px; margin: 24px 0 10px 0; border-top: 1px solid #E6F1FB; padding-top: 20px; }
+#zrg-wrap { max-width: 760px; margin: 0 auto; font-family: Arial, sans-serif; padding: 14px 16px 40px; }
+#zrg-wrap h2 { color: #042C53; font-size: 16px; margin: 16px 0 8px 0; border-top: 1px solid #E6F1FB; padding-top: 14px; }
 #zrg-wrap input, #zrg-wrap select, #zrg-wrap textarea {
-  width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 10px;
+  width: 100%; box-sizing: border-box; padding: 8px 10px; margin-bottom: 8px;
   border: 2px solid #E6F1FB; border-radius: 8px; font-size: 15px; font-family: Arial, sans-serif;
 }
-#zrg-wrap textarea { min-height: 60px; resize: vertical; }
-#zrg-wrap label { display: block; font-size: 13px; color: #042C53; font-weight: bold; margin-bottom: 4px; }
+#zrg-wrap textarea { min-height: 50px; resize: vertical; }
+#zrg-wrap label { display: block; font-size: 12px; color: #042C53; font-weight: bold; margin-bottom: 3px; }
 .zrg-btn { background: #185FA5; color: white; border: none; border-radius: 8px; padding: 11px 18px; font-size: 14px; font-weight: bold; cursor: pointer; }
 .zrg-btn:hover { background: #378ADD; }
 .zrg-btn:disabled { background: #ccc; cursor: default; }
@@ -18,14 +18,14 @@
 .zrg-resultado-item { background: #FAECE7; border: 1px solid #F0997B; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 13px; color: #712B13; }
 .zrg-resultado-item strong { display: block; font-size: 14px; margin-bottom: 2px; }
 .zrg-sin-resultados { color: #639922; font-size: 13px; font-weight: bold; padding: 8px 0; }
-.zrg-card { background: #fff; border: 1px solid #E6F1FB; border-radius: 10px; padding: 16px; margin-bottom: 14px; }
-.zrg-card h3 { color: #042C53; font-size: 16px; margin: 0 0 6px 0; }
-.zrg-card .zrg-tag { display: inline-block; background: #E6F1FB; color: #0C447C; font-size: 11px; font-weight: bold; border-radius: 12px; padding: 3px 10px; margin-right: 6px; margin-bottom: 8px; }
+.zrg-card { background: #fff; border: 1px solid #E6F1FB; border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+.zrg-card h3 { color: #042C53; font-size: 15px; margin: 0 0 4px 0; }
+.zrg-card .zrg-tag { display: inline-block; background: #E6F1FB; color: #0C447C; font-size: 11px; font-weight: bold; border-radius: 12px; padding: 2px 9px; margin-right: 5px; margin-bottom: 6px; }
 .zrg-card .zrg-tag-etapa { background: #EAF3DE; color: #27500A; }
-.zrg-card .zrg-linea { font-size: 13px; color: #444; margin: 3px 0; }
+.zrg-card .zrg-linea { font-size: 13px; color: #444; margin: 2px 0; }
 .zrg-card .zrg-linea b { color: #042C53; }
-.zrg-contacto { border-top: 1px dashed #E6F1FB; padding-top: 8px; margin-top: 10px; font-size: 13px; }
-.zrg-contacto-fila { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; }
+.zrg-contacto { border-top: 1px dashed #E6F1FB; padding-top: 6px; margin-top: 8px; font-size: 13px; }
+.zrg-contacto-fila { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
 #zrg-estado { font-size: 13px; margin: 8px 0; min-height: 18px; }
 .zrg-estado-ok { color: #27500A; font-weight: bold; }
 .zrg-estado-error { color: #791F1F; font-weight: bold; }
@@ -33,24 +33,33 @@
 #zrg-cargando { text-align: center; color: #185FA5; padding: 20px; }
 
 /* Filtros */
-.zrg-filtros { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; margin-bottom: 4px; }
-.zrg-filtros .zrg-filtro-ancho { grid-column: 1 / -1; }
-.zrg-filtro-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #042C53; font-weight: bold; margin: 4px 0 14px; cursor: pointer; }
+.zrg-filtros { display: flex; flex-direction: column; align-items: center; gap: 6px; max-width: 340px; margin: 0 auto 4px; }
+.zrg-filtro-item { width: 100%; text-align: center; }
+.zrg-filtro-chip-btn {
+  display: inline-flex; align-items: center; gap: 6px; background: #E6F1FB; color: #0C447C;
+  border: none; border-radius: 16px; padding: 7px 14px; font-size: 13px; font-weight: bold;
+  cursor: pointer; font-family: Arial, sans-serif; margin: 0 auto;
+}
+.zrg-filtro-chip-btn.zrg-filtro-activo { background: #185FA5; color: white; }
+.zrg-filtro-campo { margin-top: 6px; }
+.zrg-filtro-campo input, .zrg-filtro-campo select { margin-bottom: 4px; }
+.zrg-filtro-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #042C53; font-weight: bold; cursor: pointer; }
 
 /* Franja horizontal tipo "Camino al Éxito" */
-.zrg-franja-wrap { position: relative; margin: 10px 0 20px; }
-.zrg-franja { display: flex; gap: 14px; overflow-x: auto; padding: 6px 4px 14px; scroll-behavior: smooth; }
-.zrg-chip-entidad { flex: 0 0 auto; width: 108px; text-align: center; cursor: pointer; background: none; border: none; font-family: Arial, sans-serif; }
-.zrg-chip-circulo { width: 76px; height: 76px; border-radius: 50%; background: #E6F1FB; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 8px; border: 3px solid transparent; position: relative; }
+.zrg-franja-wrap { position: relative; margin: 6px 0 12px; }
+.zrg-franja { display: flex; gap: 12px; overflow-x: auto; padding: 4px 4px 10px; scroll-behavior: smooth; }
+.zrg-chip-entidad { flex: 0 0 auto; width: 92px; text-align: center; cursor: pointer; background: none; border: none; font-family: Arial, sans-serif; }
+.zrg-chip-circulo { width: 62px; height: 62px; border-radius: 50%; background: #E6F1FB; display: flex; align-items: center; justify-content: center; margin: 0 auto 4px; border: 3px solid transparent; position: relative; }
+.zrg-chip-circulo svg { width: 30px; height: 30px; }
 .zrg-chip-entidad.zrg-chip-activo .zrg-chip-circulo { border-color: #185FA5; }
-.zrg-chip-nombre { font-size: 12px; font-weight: bold; color: #042C53; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.zrg-chip-punto { width: 10px; height: 10px; border-radius: 50%; position: absolute; bottom: 2px; right: 2px; border: 2px solid white; }
-.zrg-conteo-filtro { font-size: 13px; color: #666; margin: 0 0 6px; }
+.zrg-chip-nombre { font-size: 11px; font-weight: bold; color: #042C53; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.zrg-chip-punto { width: 9px; height: 9px; border-radius: 50%; position: absolute; bottom: 1px; right: 1px; border: 2px solid white; }
+.zrg-conteo-filtro { font-size: 12px; color: #666; margin: 0 0 4px; text-align: center; }
 </style>
 
 <div id="zrg-wrap">
 
-<h2>Antes de dar de alta — ¿ya existe?</h2>
+<h2>Antes de dar de Alta — revisemos si ya está registrada la Entidad</h2>
 <input type="text" id="zrg-buscar" placeholder="Escribe el nombre de la institución (mín. 2 letras)">
 <div id="zrg-resultados-busqueda"></div>
 <button class="zrg-btn" id="zrg-btn-mostrar-alta">+ Dar de alta Entidad nueva</button>
@@ -80,45 +89,55 @@
   <div id="zrg-estado-alta" class="zrg-estado-error"></div>
 </div>
 
-<h2>TUS Entidades</h2>
+<h2 id="zrg-titulo-entidades">TUS Entidades</h2>
 <div class="zrg-filtros">
-  <div>
-    <label>Tipo de Entidad</label>
-    <select id="zrg-f-tipo">
-      <option value="">Todos</option>
-      <option value="Escuela">Escuela</option>
-      <option value="Empresa">Empresa</option>
-      <option value="Personal">Personal</option>
-      <option value="Religioso">Religioso</option>
-      <option value="Otro">Otro</option>
-    </select>
+  <div class="zrg-filtro-item">
+    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-tipo-campo">Tipo de Entidad</button>
+    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-tipo-campo">
+      <select id="zrg-f-tipo">
+        <option value="">Todos</option>
+        <option value="Escuela">Escuela</option>
+        <option value="Empresa">Empresa</option>
+        <option value="Personal">Personal</option>
+        <option value="Religioso">Religioso</option>
+        <option value="Otro">Otro</option>
+      </select>
+    </div>
   </div>
-  <div>
-    <label>Etapa Actual de Pipeline</label>
-    <select id="zrg-f-etapa">
-      <option value="">Todas</option>
-      <option value="Registrado">Registrado</option>
-      <option value="Contactado">Contactado</option>
-      <option value="Cita Agendada">Cita Agendada</option>
-      <option value="Programa Cerrado">Programa Cerrado</option>
-      <option value="Pendiente">Pendiente</option>
-      <option value="No Interesado">No Interesado</option>
-    </select>
+  <div class="zrg-filtro-item">
+    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-etapa-campo">Etapa Actual de Pipeline</button>
+    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-etapa-campo">
+      <select id="zrg-f-etapa">
+        <option value="">Todas</option>
+        <option value="Registrado">Registrado</option>
+        <option value="Contactado">Contactado</option>
+        <option value="Cita Agendada">Cita Agendada</option>
+        <option value="Programa Cerrado">Programa Cerrado</option>
+        <option value="Pendiente">Pendiente</option>
+        <option value="No Interesado">No Interesado</option>
+      </select>
+    </div>
   </div>
-  <div>
-    <label>Buscar por Nombre de Entidad</label>
-    <input type="text" id="zrg-f-nombre-entidad" placeholder="Escribe para filtrar...">
+  <div class="zrg-filtro-item">
+    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-nombre-entidad-campo">Nombre de Entidad</button>
+    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-nombre-entidad-campo">
+      <input type="text" id="zrg-f-nombre-entidad" placeholder="Escribe para filtrar...">
+    </div>
   </div>
-  <div>
-    <label>Buscar por Nombre de Contacto</label>
-    <input type="text" id="zrg-f-nombre-contacto" placeholder="Escribe para filtrar...">
+  <div class="zrg-filtro-item">
+    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-nombre-contacto-campo">Nombre de Contacto</button>
+    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-nombre-contacto-campo">
+      <input type="text" id="zrg-f-nombre-contacto" placeholder="Escribe para filtrar...">
+    </div>
   </div>
-  <div class="zrg-filtro-ancho">
-    <label>Entidad Federativa</label>
-    <select id="zrg-f-federativa"></select>
+  <div class="zrg-filtro-item">
+    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-federativa-campo">Entidad Federativa</button>
+    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-federativa-campo">
+      <select id="zrg-f-federativa"></select>
+    </div>
   </div>
-  <div class="zrg-filtro-ancho">
-    <label class="zrg-filtro-chip"><input type="checkbox" id="zrg-f-30dias" style="width:auto; margin:0;"> Dadas de alta en los últimos 30 días</label>
+  <div class="zrg-filtro-item">
+    <label class="zrg-filtro-check"><input type="checkbox" id="zrg-f-30dias" style="width:auto; margin:0;"> Dadas de alta en los últimos 30 días</label>
   </div>
 </div>
 
@@ -162,6 +181,9 @@
   }
 
   var BASE_URL = 'https://script.google.com/macros/s/AKfycbxNl4ATBbC5fKm6SvIFwnApzEYt_qCkSSEcL-RXqoDucXSDcQjj_oOzWSL0oaGT5Qnn/exec';
+  var CODIGO_ADMIN = 'LGen_0003'; // mismo código que en el backend — solo para mostrar/ocultar campos
+  var ES_ADMIN = (REF === CODIGO_ADMIN);
+  var TAMANO_PROMEDIO_GRUPO = 15;
 
   var ENTIDADES_FEDERATIVAS = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas',
     'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Guanajuato', 'Guerrero', 'Hidalgo',
@@ -169,7 +191,13 @@
     'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz',
     'Yucatán', 'Zacatecas'];
 
-  var ICONO_TIPO = { 'Escuela': '🏫', 'Empresa': '🏢', 'Personal': '👤', 'Religioso': '⛪', 'Otro': '📁' };
+  var ICONO_TIPO = {
+    'Escuela': '<svg viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10L12 4l9 6"/><path d="M5 10v9h14v-9"/><path d="M10 19v-5h4v5"/></svg>',
+    'Empresa': '<svg viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="3" width="12" height="18" rx="0.5"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1"/></svg>',
+    'Personal': '<svg viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-4 3-6 7-6s7 2 7 6"/></svg>',
+    'Religioso': '<svg viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M6.5 9h11"/></svg>',
+    'Otro': '<svg viewBox="0 0 24 24" fill="none" stroke="#042C53" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h5l2 2h9v10H4z"/></svg>'
+  };
   var COLOR_ETAPA = {
     'Registrado': '#9AA0A6', 'Contactado': '#378ADD', 'Cita Agendada': '#EF9F27',
     'Programa Cerrado': '#639922', 'Pendiente': '#E0B400', 'No Interesado': '#C0392B'
@@ -181,6 +209,13 @@
   }
   llenarSelectFederativa(document.getElementById('zrg-alta-federativa'));
   llenarSelectFederativa(document.getElementById('zrg-f-federativa'));
+
+  // Chips de filtro: cada uno abre/cierra su propio campo.
+  Array.prototype.forEach.call(document.querySelectorAll('.zrg-filtro-chip-btn'), function(btn) {
+    btn.addEventListener('click', function() {
+      document.getElementById(btn.dataset.campo).classList.toggle('zrg-oculto');
+    });
+  });
 
   var elBuscar = document.getElementById('zrg-buscar');
   var elResultadosBusqueda = document.getElementById('zrg-resultados-busqueda');
@@ -290,6 +325,11 @@
           return;
         }
         todasMisEntidades = data.entidades;
+        var elTitulo = document.getElementById('zrg-titulo-entidades');
+        var n = todasMisEntidades.length;
+        elTitulo.textContent = n === 0
+          ? 'Todavía no tienes Entidades dadas de alta'
+          : (n === 1 ? 'Tienes 1 Entidad dada de alta, ¿deseas filtrarla?' : 'Tienes ' + n + ' Entidades dadas de alta, ¿deseas filtrarlas?');
         aplicarFiltros();
       })
       .catch(function() {
@@ -301,7 +341,21 @@
     return (ent.grupos && ent.grupos[0] && ent.grupos[0].etapaFunnel) || 'Registrado';
   }
 
+  function actualizarChipsActivos() {
+    var mapa = {
+      'zrg-f-tipo-campo': document.getElementById('zrg-f-tipo').value,
+      'zrg-f-etapa-campo': document.getElementById('zrg-f-etapa').value,
+      'zrg-f-nombre-entidad-campo': document.getElementById('zrg-f-nombre-entidad').value.trim(),
+      'zrg-f-nombre-contacto-campo': document.getElementById('zrg-f-nombre-contacto').value.trim(),
+      'zrg-f-federativa-campo': document.getElementById('zrg-f-federativa').value
+    };
+    Array.prototype.forEach.call(document.querySelectorAll('.zrg-filtro-chip-btn'), function(btn) {
+      btn.classList.toggle('zrg-filtro-activo', !!mapa[btn.dataset.campo]);
+    });
+  }
+
   function aplicarFiltros() {
+    actualizarChipsActivos();
     var tipo = document.getElementById('zrg-f-tipo').value;
     var etapa = document.getElementById('zrg-f-etapa').value;
     var nombreEnt = document.getElementById('zrg-f-nombre-entidad').value.trim().toLowerCase();
@@ -358,7 +412,7 @@
       var activo = (ent.idEntidad === idEntidadSeleccionada) ? ' zrg-chip-activo' : '';
       var color = COLOR_ETAPA[etapaDe(ent)] || '#9AA0A6';
       html += '<button class="zrg-chip-entidad' + activo + '" onclick="window.zrgSeleccionarEntidad(\'' + ent.idEntidad + '\')">' +
-        '<div class="zrg-chip-circulo">' + (ICONO_TIPO[ent.tipo] || '📌') +
+        '<div class="zrg-chip-circulo">' + (ICONO_TIPO[ent.tipo] || ICONO_TIPO['Otro']) +
         '<span class="zrg-chip-punto" style="background:' + color + ';"></span></div>' +
         '<div class="zrg-chip-nombre">' + ent.nombre + '</div></button>';
     });
@@ -385,7 +439,15 @@
     html += '<div id="zrg-vista-' + ent.idEntidad + '">';
     if (ent.ubicacion) html += '<div class="zrg-linea"><b>Ubicación:</b> ' + ent.ubicacion + '</div>';
     if (ent.entidadFederativa) html += '<div class="zrg-linea"><b>Entidad Federativa:</b> ' + ent.entidadFederativa + '</div>';
-    if (ent.empleadosElegibles) html += '<div class="zrg-linea"><b># Elegibles:</b> ' + ent.empleadosElegibles + '</div>';
+    if (ent.empleadosElegibles) html += '<div class="zrg-linea"><b># Elegibles (estimado):</b> ' + ent.empleadosElegibles + '</div>';
+    if (ent.empleadosConfirmados) html += '<div class="zrg-linea"><b># Elegibles (confirmado):</b> ' + ent.empleadosConfirmados + '</div>';
+    if (ent.modulosComprometidos) html += '<div class="zrg-linea"><b>Módulos comprometidos (Convenio):</b> ' + ent.modulosComprometidos + '</div>';
+    var baseGrupos = ent.empleadosConfirmados || ent.empleadosElegibles;
+    if (baseGrupos) {
+      var gruposPotenciales = Math.round(Number(baseGrupos) / TAMANO_PROMEDIO_GRUPO) || 1;
+      var gruposFormados = ent.gruposFormados || 0;
+      html += '<div class="zrg-linea"><b>Grupos potenciales:</b> ~' + gruposPotenciales + ' (base ' + TAMANO_PROMEDIO_GRUPO + '/grupo) — <b>formados:</b> ' + gruposFormados + '</div>';
+    }
     if (ent.notas) html += '<div class="zrg-linea"><b>Notas:</b> ' + ent.notas + '</div>';
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin-top:6px;" onclick="window.zrgMostrarFormEditar(\'' + ent.idEntidad + '\')">Editar</button>';
     html += '</div>';
@@ -405,6 +467,12 @@
     html += '<select id="zrg-ed-federativa-' + ent.idEntidad + '"></select>';
     html += '<label># Empleados/Docentes Elegibles</label>';
     html += '<input type="text" id="zrg-ed-empleados-' + ent.idEntidad + '" value="' + (ent.empleadosElegibles || '').replace(/"/g, '&quot;') + '">';
+    if (ES_ADMIN) {
+      html += '<label>Empleados Confirmados (MAXX) — solo tú</label>';
+      html += '<input type="text" id="zrg-ed-empleadosconf-' + ent.idEntidad + '" value="' + (ent.empleadosConfirmados || '').replace(/"/g, '&quot;') + '">';
+      html += '<label>Módulos Comprometidos (Convenio) — solo tú</label>';
+      html += '<input type="text" id="zrg-ed-modulos-' + ent.idEntidad + '" value="' + (ent.modulosComprometidos || '').replace(/"/g, '&quot;') + '">';
+    }
     html += '<label>Notas</label>';
     html += '<textarea id="zrg-ed-notas-' + ent.idEntidad + '">' + (ent.notas || '') + '</textarea>';
     html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-guardar-ed-' + ent.idEntidad + '" disabled onclick="window.zrgGuardarEdicion(\'' + ent.idEntidad + '\')">Sin cambios</button>';
@@ -442,6 +510,11 @@
     var elBtnGuardarEd = document.getElementById('zrg-btn-guardar-ed-' + ent.idEntidad);
     var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tipo-', 'zrg-ed-ubicacion-', 'zrg-ed-federativa-', 'zrg-ed-empleados-', 'zrg-ed-notas-'];
     var valoresOriginales = { nombre: ent.nombre || '', tipo: ent.tipo || '', ubicacion: ent.ubicacion || '', federativa: ent.entidadFederativa || '', empleados: ent.empleadosElegibles || '', notas: ent.notas || '' };
+    if (ES_ADMIN) {
+      camposEdicion.push('zrg-ed-empleadosconf-', 'zrg-ed-modulos-');
+      valoresOriginales.empleadosconf = ent.empleadosConfirmados || '';
+      valoresOriginales.modulos = ent.modulosComprometidos || '';
+    }
     function revisarCambios() {
       var cambio =
         document.getElementById('zrg-ed-nombre-' + ent.idEntidad).value !== valoresOriginales.nombre ||
@@ -449,7 +522,9 @@
         document.getElementById('zrg-ed-ubicacion-' + ent.idEntidad).value !== valoresOriginales.ubicacion ||
         document.getElementById('zrg-ed-federativa-' + ent.idEntidad).value !== valoresOriginales.federativa ||
         document.getElementById('zrg-ed-empleados-' + ent.idEntidad).value !== valoresOriginales.empleados ||
-        document.getElementById('zrg-ed-notas-' + ent.idEntidad).value !== valoresOriginales.notas;
+        document.getElementById('zrg-ed-notas-' + ent.idEntidad).value !== valoresOriginales.notas ||
+        (ES_ADMIN && document.getElementById('zrg-ed-empleadosconf-' + ent.idEntidad).value !== valoresOriginales.empleadosconf) ||
+        (ES_ADMIN && document.getElementById('zrg-ed-modulos-' + ent.idEntidad).value !== valoresOriginales.modulos);
       elBtnGuardarEd.disabled = !cambio;
       elBtnGuardarEd.textContent = cambio ? 'Guardar cambios' : 'Sin cambios';
       elBtnGuardarEd.classList.remove('zrg-btn-guardado');
@@ -474,6 +549,9 @@
     elBtn.disabled = true;
     elBtn.textContent = 'Guardando...';
 
+    var elCampoConf = document.getElementById('zrg-ed-empleadosconf-' + idEntidad);
+    var elCampoMod = document.getElementById('zrg-ed-modulos-' + idEntidad);
+
     fetch(BASE_URL, {
       method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
@@ -482,6 +560,8 @@
         ubicacion: document.getElementById('zrg-ed-ubicacion-' + idEntidad).value.trim(),
         entidadFederativa: document.getElementById('zrg-ed-federativa-' + idEntidad).value,
         empleadosElegibles: document.getElementById('zrg-ed-empleados-' + idEntidad).value.trim(),
+        empleadosConfirmados: elCampoConf ? elCampoConf.value.trim() : '',
+        modulosComprometidos: elCampoMod ? elCampoMod.value.trim() : '',
         notas: document.getElementById('zrg-ed-notas-' + idEntidad).value.trim()
       })
     })
