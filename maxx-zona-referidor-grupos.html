@@ -532,6 +532,34 @@
     if (ent) pintarDetalle(ent);
   };
 
+  // Genera 3 selects (Día/Mes en español/Año) para un campo de
+  // fecha — reemplaza los <input type="date"> nativos, que muestran
+  // mm/dd/aaaa según el navegador, sin importar la configuración.
+  function htmlSelectorFecha(prefijoId) {
+    var html = '<div style="display:flex; gap:6px;">';
+    html += '<select id="' + prefijoId + '-dia" style="flex:1;"><option value="">Día</option>';
+    for (var d = 1; d <= 31; d++) html += '<option value="' + d + '">' + d + '</option>';
+    html += '</select>';
+    html += '<select id="' + prefijoId + '-mes" style="flex:1.4;"><option value="">Mes</option>';
+    MESES_ES.forEach(function(nombreMes, i) { html += '<option value="' + (i + 1) + '">' + nombreMes + '</option>'; });
+    html += '</select>';
+    var anioBase = new Date().getFullYear();
+    html += '<select id="' + prefijoId + '-anio" style="flex:1;"><option value="">Año</option>';
+    for (var a = anioBase; a <= anioBase + 1; a++) html += '<option value="' + a + '">' + a + '</option>';
+    html += '</select>';
+    html += '</div>';
+    return html;
+  }
+
+  // Lee los 3 selects de vuelta a "YYYY-MM-DD" (o '' si falta algo).
+  function leerFechaDeSelectores(prefijoId) {
+    var dia = document.getElementById(prefijoId + '-dia').value;
+    var mes = document.getElementById(prefijoId + '-mes').value;
+    var anio = document.getElementById(prefijoId + '-anio').value;
+    if (!dia || !mes || !anio) return '';
+    return anio + '-' + ('0' + mes).slice(-2) + '-' + ('0' + dia).slice(-2);
+  }
+
   function pintarDetalle(ent) {
     var html = '<div class="zrg-card" data-id-entidad="' + ent.idEntidad + '">';
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="float:right;" onclick="window.zrgCerrarDetalle()">✕ Cerrar</button>';
@@ -668,10 +696,10 @@
 
         html += '<div id="zrg-form-agendar-' + g.codigoGrupo + '" class="zrg-oculto" style="margin-top:8px;">';
         html += '<label>Módulo</label><select id="zrg-hor-modulo-' + g.codigoGrupo + '"></select>';
-        html += '<label>Fecha</label><input type="date" id="zrg-hor-fecha-' + g.codigoGrupo + '">';
+        html += '<label>Fecha</label>' + htmlSelectorFecha('zrg-hor-fecha-' + g.codigoGrupo);
         html += '<label>Hora</label><input type="time" id="zrg-hor-hora-' + g.codigoGrupo + '">';
         html += '<label>Cupo Máximo</label><input type="text" id="zrg-hor-cupo-' + g.codigoGrupo + '" value="30">';
-        html += '<label>Fecha Límite de Registro</label><input type="date" id="zrg-hor-limite-' + g.codigoGrupo + '">';
+        html += '<label>Fecha Límite de Registro</label>' + htmlSelectorFecha('zrg-hor-limite-' + g.codigoGrupo);
         html += '<button class="zrg-btn zrg-btn-chico" onclick="window.zrgGuardarHorario(\'' + ent.idEntidad + '\', \'' + g.codigoGrupo + '\')">Guardar Horario</button> ';
         html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgMostrarFormAgendar(\'' + ent.idEntidad + '\', \'' + g.codigoGrupo + '\', 0)">Cancelar</button>';
         html += '<div id="zrg-estado-hor-' + g.codigoGrupo + '" class="zrg-estado-error" style="font-size:12px;"></div>';
@@ -919,10 +947,10 @@
   window.zrgGuardarHorario = function(idEntidad, codigoGrupo) {
     var elEstado = document.getElementById('zrg-estado-hor-' + codigoGrupo);
     var numeroModulo = document.getElementById('zrg-hor-modulo-' + codigoGrupo).value;
-    var fecha = document.getElementById('zrg-hor-fecha-' + codigoGrupo).value;
+    var fecha = leerFechaDeSelectores('zrg-hor-fecha-' + codigoGrupo);
     var hora = document.getElementById('zrg-hor-hora-' + codigoGrupo).value;
     var cupoMaximo = document.getElementById('zrg-hor-cupo-' + codigoGrupo).value;
-    var fechaLimiteFinal = document.getElementById('zrg-hor-limite-' + codigoGrupo).value;
+    var fechaLimiteFinal = leerFechaDeSelectores('zrg-hor-limite-' + codigoGrupo);
 
     if (!fecha || !hora) { elEstado.textContent = 'Fecha y hora son obligatorias.'; return; }
     elEstado.textContent = 'Guardando...';
