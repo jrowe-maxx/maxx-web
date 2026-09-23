@@ -206,8 +206,8 @@
   }
 
   var BASE_URL = 'https://script.google.com/macros/s/AKfycbxNl4ATBbC5fKm6SvIFwnApzEYt_qCkSSEcL-RXqoDucXSDcQjj_oOzWSL0oaGT5Qnn/exec';
-  var CODIGO_ADMIN = 'LGen_0003'; // mismo código que en el backend — solo para mostrar/ocultar campos
-  var ES_ADMIN = (REF === CODIGO_ADMIN);
+  var CODIGOS_ADMIN = ['LGen_9997', 'LGen_9998', 'LGen_9999']; // mismos 3 códigos que en el backend — solo para mostrar/ocultar campos
+  var ES_ADMIN = (CODIGOS_ADMIN.indexOf(REF) !== -1);
   var TAMANO_PROMEDIO_GRUPO = 15;
 
   var ENTIDADES_FEDERATIVAS = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas',
