@@ -514,9 +514,14 @@
     elFranja.classList.toggle('zrg-franja-centrada', entidades.length < 7);
     elFranja.innerHTML = html;
 
-    if (idEntidadSeleccionada && !entidades.some(function(e) { return e.idEntidad === idEntidadSeleccionada; })) {
-      idEntidadSeleccionada = null;
-      elDetalle.innerHTML = '';
+    if (idEntidadSeleccionada) {
+      var entSeleccionada = entidades.filter(function(e) { return e.idEntidad === idEntidadSeleccionada; })[0];
+      if (entSeleccionada) {
+        pintarDetalle(entSeleccionada); // sigue abierta — se repinta con los datos frescos
+      } else {
+        idEntidadSeleccionada = null;
+        elDetalle.innerHTML = '';
+      }
     }
   }
 
