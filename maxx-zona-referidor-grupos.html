@@ -583,6 +583,7 @@
     var html = '<div class="zrg-card" data-id-entidad="' + ent.idEntidad + '">';
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="float:right;" onclick="window.zrgCerrarDetalle()">✕ Cerrar</button>';
     html += '<h3>' + ent.nombre + '</h3>';
+    html += '<div class="zrg-linea" style="color:#999;">ID Entidad: <b style="color:#185FA5;">' + ent.idEntidad + '</b> (para armar el link de registro: <code style="font-size:11px;">?entidad=' + ent.idEntidad + '</code>)</div>';
     html += '<span class="zrg-tag">' + ent.tipo + '</span>';
     html += '<span class="zrg-tag zrg-tag-etapa">' + etapaDe(ent) + '</span>';
     html += '<div id="zrg-vista-' + ent.idEntidad + '">';
