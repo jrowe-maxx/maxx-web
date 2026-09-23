@@ -536,18 +536,37 @@
   // fecha — reemplaza los <input type="date"> nativos, que muestran
   // mm/dd/aaaa según el navegador, sin importar la configuración.
   function htmlSelectorFecha(prefijoId) {
+    var hoy = new Date();
+    var mesActual = hoy.getMonth() + 1;
+    var anioActual = hoy.getFullYear();
     var html = '<div style="display:flex; gap:6px;">';
     html += '<select id="' + prefijoId + '-dia" style="flex:1;"><option value="">Día</option>';
     for (var d = 1; d <= 31; d++) html += '<option value="' + d + '">' + d + '</option>';
     html += '</select>';
-    html += '<select id="' + prefijoId + '-mes" style="flex:1.4;"><option value="">Mes</option>';
-    MESES_ES.forEach(function(nombreMes, i) { html += '<option value="' + (i + 1) + '">' + nombreMes + '</option>'; });
+    html += '<select id="' + prefijoId + '-mes" style="flex:1.4;">';
+    MESES_ES.forEach(function(nombreMes, i) {
+      html += '<option value="' + (i + 1) + '"' + ((i + 1) === mesActual ? ' selected' : '') + '>' + nombreMes + '</option>';
+    });
     html += '</select>';
-    var anioBase = new Date().getFullYear();
-    html += '<select id="' + prefijoId + '-anio" style="flex:1;"><option value="">Año</option>';
-    for (var a = anioBase; a <= anioBase + 1; a++) html += '<option value="' + a + '">' + a + '</option>';
+    html += '<select id="' + prefijoId + '-anio" style="flex:1;">';
+    for (var a = anioActual; a <= anioActual + 1; a++) html += '<option value="' + a + '"' + (a === anioActual ? ' selected' : '') + '>' + a + '</option>';
     html += '</select>';
     html += '</div>';
+    return html;
+  }
+
+  // Genera un select de horas en pasos de 15 minutos (00:00 a
+  // 23:45) — reemplaza el <input type="time"> nativo, que deja
+  // elegir minuto por minuto (más precisión de la que se necesita).
+  function htmlSelectorHora(idCampo) {
+    var html = '<select id="' + idCampo + '"><option value="">Hora</option>';
+    for (var h = 0; h < 24; h++) {
+      for (var m = 0; m < 60; m += 15) {
+        var valor = ('0' + h).slice(-2) + ':' + ('0' + m).slice(-2);
+        html += '<option value="' + valor + '">' + valor + '</option>';
+      }
+    }
+    html += '</select>';
     return html;
   }
 
@@ -697,7 +716,7 @@
         html += '<div id="zrg-form-agendar-' + g.codigoGrupo + '" class="zrg-oculto" style="margin-top:8px;">';
         html += '<label>Módulo</label><select id="zrg-hor-modulo-' + g.codigoGrupo + '"></select>';
         html += '<label>Fecha</label>' + htmlSelectorFecha('zrg-hor-fecha-' + g.codigoGrupo);
-        html += '<label>Hora</label><input type="time" id="zrg-hor-hora-' + g.codigoGrupo + '">';
+        html += '<label>Hora</label>' + htmlSelectorHora('zrg-hor-hora-' + g.codigoGrupo);
         html += '<label>Cupo Máximo</label><input type="text" id="zrg-hor-cupo-' + g.codigoGrupo + '" value="30">';
         html += '<label>Fecha Límite de Registro</label>' + htmlSelectorFecha('zrg-hor-limite-' + g.codigoGrupo);
         html += '<button class="zrg-btn zrg-btn-chico" onclick="window.zrgGuardarHorario(\'' + ent.idEntidad + '\', \'' + g.codigoGrupo + '\')">Guardar Horario</button> ';
