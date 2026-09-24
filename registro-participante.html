@@ -203,7 +203,12 @@
     .then(function(data) {
       elCargando.style.display = 'none';
       if (!data.exito || data.horarios.length === 0) {
-        mostrarModoSugerencia();
+        if (data.esGrupoAfin) {
+          mostrarModoSugerencia();
+        } else {
+          elSinHorarios.style.display = 'block';
+          elSinHorarios.textContent = 'Todavía no hay horarios abiertos — vuelve a intentarlo más tarde, o contacta a quien te compartió este link.';
+        }
         return;
       }
       if (data.horarios.length === 1) {
