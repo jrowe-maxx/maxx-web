@@ -91,8 +91,10 @@
     <div id="zrg-alta-planteles-lista"></div>
     <button type="button" class="zrg-btn zrg-btn-secundario zrg-btn-chico" id="zrg-alta-btn-agregar-plantel" style="margin:4px 0 14px; display:block;">+ Agregar plantel</button>
   </div>
-  <label>Entidad Federativa</label>
-  <select id="zrg-alta-federativa"></select>
+  <div id="zrg-alta-federativa-wrap">
+    <label>Entidad Federativa</label>
+    <select id="zrg-alta-federativa"></select>
+  </div>
   <div id="zrg-alta-sector-wrap" class="zrg-oculto">
     <label>Sector Económico</label>
     <select id="zrg-alta-sector"></select>
@@ -109,7 +111,7 @@
     <label>Religión</label>
     <select id="zrg-alta-religion"></select>
   </div>
-  <label># Empleados/Docentes Elegibles (estimado)</label>
+  <label># Potencial de Participantes Elegibles (estimado)</label>
   <input type="text" id="zrg-alta-empleados" placeholder="Opcional">
   <label>Notas</label>
   <textarea id="zrg-alta-notas" placeholder="Opcional"></textarea>
@@ -249,13 +251,15 @@
   var TIPOS_GRUPO_AFIN = ['Personal', 'Religioso', 'Grupo de Facebook', 'Grupo de Instagram', 'Grupo de WhatsApp', 'Grupo en Otra Red Social', 'Otro'];
   function esTipoGrupoAfin(tipo) { return TIPOS_GRUPO_AFIN.indexOf(tipo) !== -1; }
   // Distinto de TIPOS_GRUPO_AFIN (que rige sugerencias/horarios): esto
-  // rige si el Tipo tiene sentido de tener Planteles/Ubicaciones
-  // físicas. Escuela/Empresa/Religioso/Otro sí pueden tenerlos;
-  // Personal y los 4 tipos de Redes Sociales NO (vienen de un grupo
-  // sin ubicación institucional detrás — el participante que llega
-  // desde ahí ya captura su Código Postal en su registro).
-  var TIPOS_CON_PLANTELES = ['Escuela', 'Empresa', 'Religioso', 'Otro'];
-  function tipoTienePlanteles(tipo) { return TIPOS_CON_PLANTELES.indexOf(tipo) !== -1; }
+  // rige qué Tipos son "institucionales" — tienen una ubicación física
+  // propia (Escuela/Empresa/Religioso/Otro) y por lo tanto tiene
+  // sentido pedirles Planteles/Ubicaciones Y Entidad Federativa (dónde
+  // vive ESA institución). Personal y los 4 tipos de Redes Sociales NO
+  // son institucionales — son un grupo de personas sin domicilio
+  // propio; ahí es cada PARTICIPANTE quien captura su propio Código
+  // Postal y Entidad Federativa al registrarse, no la Entidad.
+  var TIPOS_INSTITUCIONALES = ['Escuela', 'Empresa', 'Religioso', 'Otro'];
+  function tipoEsInstitucional(tipo) { return TIPOS_INSTITUCIONALES.indexOf(tipo) !== -1; }
   var COLOR_ETAPA = {
     'Registrado': '#9AA0A6', 'Contactado': '#378ADD', 'Cita Agendada': '#EF9F27',
     'Programa Cerrado': '#639922', 'Pendiente': '#E0B400', 'No Interesado': '#C0392B'
@@ -290,29 +294,39 @@
   // Mostrar solo el campo que corresponde al Tipo elegido (Sector
   // Económico para Empresa, Público/Privado para Escuela, Religión
   // para Religioso) — tanto en "Dar de alta" como luego en "Editar".
-  function actualizarCamposPorTipo(tipo, sufijoSector, sufijoPubPriv, sufijoReligion, sufijoPlanteles, idListaPlanteles) {
+  function actualizarCamposPorTipo(tipo, sufijoSector, sufijoPubPriv, sufijoReligion, sufijoPlanteles, idListaPlanteles, sufijoFederativa, idSelectFederativa) {
     var elSector = document.getElementById(sufijoSector);
     var elPubPriv = document.getElementById(sufijoPubPriv);
     var elReligion = document.getElementById(sufijoReligion);
     if (elSector) elSector.classList.toggle('zrg-oculto', tipo !== 'Empresa');
     if (elPubPriv) elPubPriv.classList.toggle('zrg-oculto', tipo !== 'Escuela');
     if (elReligion) elReligion.classList.toggle('zrg-oculto', tipo !== 'Religioso');
-    // Planteles/Ubicaciones: Escuela/Empresa/Religioso/Otro SÍ pueden
-    // tenerlos. Personal y los 4 tipos de Redes Sociales (Facebook,
-    // Instagram, WhatsApp, Otra Red Social) NO — ahí el participante
-    // ya captura su propio Código Postal en su registro.
+    // Planteles/Ubicaciones Y Entidad Federativa: solo aplican a Tipos
+    // institucionales (Escuela/Empresa/Religioso/Otro) — Personal y
+    // los 4 tipos de Redes Sociales (Facebook, Instagram, WhatsApp,
+    // Otra Red Social) NO tienen domicilio propio como Entidad; ahí
+    // es cada participante quien captura su propio Código Postal y
+    // Entidad Federativa al registrarse.
+    var esInstitucional = tipoEsInstitucional(tipo);
     if (sufijoPlanteles) {
       var elPlanteles = document.getElementById(sufijoPlanteles);
-      var tienePlanteles = tipoTienePlanteles(tipo);
-      if (elPlanteles) elPlanteles.classList.toggle('zrg-oculto', !tienePlanteles);
-      if (!tienePlanteles && idListaPlanteles) zrgLimpiarPlanteles(idListaPlanteles);
+      if (elPlanteles) elPlanteles.classList.toggle('zrg-oculto', !esInstitucional);
+      if (!esInstitucional && idListaPlanteles) zrgLimpiarPlanteles(idListaPlanteles);
+    }
+    if (sufijoFederativa) {
+      var elFederativaWrap = document.getElementById(sufijoFederativa);
+      if (elFederativaWrap) elFederativaWrap.classList.toggle('zrg-oculto', !esInstitucional);
+      if (!esInstitucional && idSelectFederativa) {
+        var elSelect = document.getElementById(idSelectFederativa);
+        if (elSelect) elSelect.value = '';
+      }
     }
   }
 
   document.getElementById('zrg-alta-tipo').addEventListener('change', function() {
-    actualizarCamposPorTipo(this.value, 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap', 'zrg-alta-planteles-wrap', 'zrg-alta-planteles-lista');
+    actualizarCamposPorTipo(this.value, 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap', 'zrg-alta-planteles-wrap', 'zrg-alta-planteles-lista', 'zrg-alta-federativa-wrap', 'zrg-alta-federativa');
   });
-  actualizarCamposPorTipo(document.getElementById('zrg-alta-tipo').value, 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap', 'zrg-alta-planteles-wrap', 'zrg-alta-planteles-lista');
+  actualizarCamposPorTipo(document.getElementById('zrg-alta-tipo').value, 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap', 'zrg-alta-planteles-wrap', 'zrg-alta-planteles-lista', 'zrg-alta-federativa-wrap', 'zrg-alta-federativa');
 
   // Chips de filtro: cada uno abre/cierra su propio campo.
   Array.prototype.forEach.call(document.querySelectorAll('.zrg-filtro-chip-btn'), function(btn) {
@@ -474,7 +488,7 @@
           document.getElementById('zrg-alta-pubpriv').value = '';
           document.getElementById('zrg-alta-religion').value = '';
           document.getElementById('zrg-alta-tipo').value = 'Escuela';
-          actualizarCamposPorTipo('Escuela', 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap', 'zrg-alta-planteles-wrap', 'zrg-alta-planteles-lista');
+          actualizarCamposPorTipo('Escuela', 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap', 'zrg-alta-planteles-wrap', 'zrg-alta-planteles-lista', 'zrg-alta-federativa-wrap', 'zrg-alta-federativa');
           elFormAlta.classList.add('zrg-oculto');
           elBtnMostrarAlta.classList.remove('zrg-oculto');
           todasMisEntidades = null;
@@ -682,8 +696,8 @@
       }).join('; ') + '</div>';
     }
     if (ent.entidadFederativa) html += '<div class="zrg-linea"><b>Entidad Federativa:</b> ' + ent.entidadFederativa + '</div>';
-    if (ent.empleadosElegibles) html += '<div class="zrg-linea"><b># Elegibles (estimado):</b> ' + ent.empleadosElegibles + '</div>';
-    if (ent.empleadosConfirmados) html += '<div class="zrg-linea"><b># Elegibles (confirmado):</b> ' + ent.empleadosConfirmados + '</div>';
+    if (ent.empleadosElegibles) html += '<div class="zrg-linea"><b># Potencial de Participantes (estimado):</b> ' + ent.empleadosElegibles + '</div>';
+    if (ent.empleadosConfirmados) html += '<div class="zrg-linea"><b># Participantes Confirmados:</b> ' + ent.empleadosConfirmados + '</div>';
     if (ent.modulosComprometidos) html += '<div class="zrg-linea"><b>Módulos comprometidos (Convenio):</b> ' + ent.modulosComprometidos + '</div>';
     if (ent.sectorEconomico) html += '<div class="zrg-linea"><b>Sector Económico:</b> ' + ent.sectorEconomico + '</div>';
     if (ent.publicoPrivado) html += '<div class="zrg-linea"><b>Público/Privado:</b> ' + ent.publicoPrivado + '</div>';
@@ -711,15 +725,17 @@
     html += '<div id="zrg-ed-planteles-' + ent.idEntidad + '"></div>';
     html += '<button type="button" class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin:4px 0 14px; display:block;" onclick="window.zrgAgregarFilaPlantel(\'zrg-ed-planteles-' + ent.idEntidad + '\')">+ Agregar plantel</button>';
     html += '</div>';
+    html += '<div id="zrg-ed-federativa-wrap-' + ent.idEntidad + '">';
     html += '<label>Entidad Federativa</label>';
     html += '<select id="zrg-ed-federativa-' + ent.idEntidad + '"></select>';
+    html += '</div>';
     html += '<div id="zrg-ed-sector-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Sector Económico</label><select id="zrg-ed-sector-' + ent.idEntidad + '"></select></div>';
     html += '<div id="zrg-ed-pubpriv-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Público/Privado</label><select id="zrg-ed-pubpriv-' + ent.idEntidad + '"><option value="">Selecciona...</option><option value="Privada">Privada</option><option value="Pública">Pública</option></select></div>';
     html += '<div id="zrg-ed-religion-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Religión</label><select id="zrg-ed-religion-' + ent.idEntidad + '"></select></div>';
-    html += '<label># Empleados/Docentes Elegibles</label>';
+    html += '<label># Potencial de Participantes Elegibles</label>';
     html += '<input type="text" id="zrg-ed-empleados-' + ent.idEntidad + '" value="' + String(ent.empleadosElegibles || '').replace(/"/g, '&quot;') + '">';
     if (ES_ADMIN) {
-      html += '<label>Empleados Confirmados (MAXX) — solo tú</label>';
+      html += '<label>Participantes Confirmados (MAXX) — solo tú</label>';
       html += '<input type="text" id="zrg-ed-empleadosconf-' + ent.idEntidad + '" value="' + String(ent.empleadosConfirmados || '').replace(/"/g, '&quot;') + '">';
       html += '<label>Módulos Comprometidos (Convenio) — solo tú</label>';
       html += '<input type="text" id="zrg-ed-modulos-' + ent.idEntidad + '" value="' + String(ent.modulosComprometidos || '').replace(/"/g, '&quot;') + '">';
@@ -861,9 +877,9 @@
       window.zrgAgregarFilaPlantel(elContenedorPlantelesEd.id, p.nombre, p.direccion);
     });
 
-    actualizarCamposPorTipo(ent.tipo, 'zrg-ed-sector-wrap-' + ent.idEntidad, 'zrg-ed-pubpriv-wrap-' + ent.idEntidad, 'zrg-ed-religion-wrap-' + ent.idEntidad, 'zrg-ed-planteles-wrap-' + ent.idEntidad, 'zrg-ed-planteles-' + ent.idEntidad);
+    actualizarCamposPorTipo(ent.tipo, 'zrg-ed-sector-wrap-' + ent.idEntidad, 'zrg-ed-pubpriv-wrap-' + ent.idEntidad, 'zrg-ed-religion-wrap-' + ent.idEntidad, 'zrg-ed-planteles-wrap-' + ent.idEntidad, 'zrg-ed-planteles-' + ent.idEntidad, 'zrg-ed-federativa-wrap-' + ent.idEntidad, 'zrg-ed-federativa-' + ent.idEntidad);
     document.getElementById('zrg-ed-tipo-' + ent.idEntidad).addEventListener('change', function() {
-      actualizarCamposPorTipo(this.value, 'zrg-ed-sector-wrap-' + ent.idEntidad, 'zrg-ed-pubpriv-wrap-' + ent.idEntidad, 'zrg-ed-religion-wrap-' + ent.idEntidad, 'zrg-ed-planteles-wrap-' + ent.idEntidad, 'zrg-ed-planteles-' + ent.idEntidad);
+      actualizarCamposPorTipo(this.value, 'zrg-ed-sector-wrap-' + ent.idEntidad, 'zrg-ed-pubpriv-wrap-' + ent.idEntidad, 'zrg-ed-religion-wrap-' + ent.idEntidad, 'zrg-ed-planteles-wrap-' + ent.idEntidad, 'zrg-ed-planteles-' + ent.idEntidad, 'zrg-ed-federativa-wrap-' + ent.idEntidad, 'zrg-ed-federativa-' + ent.idEntidad);
     });
 
     var elBtnGuardarEd = document.getElementById('zrg-btn-guardar-ed-' + ent.idEntidad);
