@@ -568,7 +568,7 @@
   // elegir minuto por minuto (más precisión de la que se necesita).
   function htmlSelectorHora(idCampo) {
     var html = '<select id="' + idCampo + '"><option value="">Hora</option>';
-    for (var h = 0; h < 24; h++) {
+    for (var h = 7; h <= 19; h++) {
       var valor = ('0' + h).slice(-2) + ':00';
       html += '<option value="' + valor + '">' + valor + '</option>';
     }
