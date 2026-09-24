@@ -41,6 +41,9 @@
 .rp-dias-checks label { display: inline-flex; align-items: center; gap: 5px; background: white; border: 2px solid #E6F1FB; border-radius: 20px; padding: 7px 14px; font-size: 13px; font-weight: normal; cursor: pointer; margin: 0; }
 .rp-dias-checks input:checked + span { color: #185FA5; font-weight: bold; }
 .rp-nota-sugerencia { font-size: 12px; color: #666; margin: -6px 0 14px; }
+.rp-hora-por-dia-fila { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.rp-hora-por-dia-fila .rp-hpd-etiqueta { flex: 0 0 90px; font-size: 13px; font-weight: bold; color: #042C53; }
+.rp-hora-por-dia-fila select { flex: 1; margin-bottom: 0; }
 </style>
 
 <div id="rp-wrap">
@@ -83,8 +86,10 @@
         </select>
       </div>
     </div>
-    <label>Rol/Puesto en la Entidad <span class="rp-obligatorio">*</span></label>
-    <input type="text" id="rp-rol">
+    <div id="rp-bloque-rol">
+      <label>Rol/Puesto en la Entidad <span class="rp-obligatorio">*</span></label>
+      <input type="text" id="rp-rol">
+    </div>
     <div class="rp-fila-doble">
       <div><label>Código Postal <span class="rp-obligatorio">*</span></label><input type="text" id="rp-cp"></div>
       <div><label>País <span class="rp-obligatorio">*</span></label><input type="text" id="rp-pais" value="México"></div>
@@ -93,7 +98,7 @@
     <select id="rp-entidad-federativa"></select>
 
     <div id="rp-bloque-sugerencia" style="display:none;">
-      <label>¿Qué días TE acomodan mejor? (elige hasta 3) <span class="rp-obligatorio">*</span></label>
+      <label>¿Qué días TE acomodan mejor? (elige hasta 3, y la hora que TE acomode para CADA uno) <span class="rp-obligatorio">*</span></label>
       <div class="rp-dias-checks">
         <label><input type="checkbox" value="Lunes" class="rp-dia-check"><span>Lunes</span></label>
         <label><input type="checkbox" value="Martes" class="rp-dia-check"><span>Martes</span></label>
@@ -101,23 +106,7 @@
         <label><input type="checkbox" value="Jueves" class="rp-dia-check"><span>Jueves</span></label>
         <label><input type="checkbox" value="Viernes" class="rp-dia-check"><span>Viernes</span></label>
       </div>
-      <label>¿Qué hora TE acomoda mejor? <span class="rp-obligatorio">*</span></label>
-      <select id="rp-hora-sugerida">
-        <option value="">Selecciona...</option>
-        <option value="07:00">7:00 AM</option>
-        <option value="08:00">8:00 AM</option>
-        <option value="09:00">9:00 AM</option>
-        <option value="10:00">10:00 AM</option>
-        <option value="11:00">11:00 AM</option>
-        <option value="12:00">12:00 PM</option>
-        <option value="13:00">1:00 PM</option>
-        <option value="14:00">2:00 PM</option>
-        <option value="15:00">3:00 PM</option>
-        <option value="16:00">4:00 PM</option>
-        <option value="17:00">5:00 PM</option>
-        <option value="18:00">6:00 PM</option>
-        <option value="19:00">7:00 PM</option>
-      </select>
+      <div id="rp-horas-por-dia"></div>
       <p class="rp-nota-sugerencia">En cuanto se reúnan suficientes personas, te avisamos por correo la fecha y hora final, según lo que la mayoría prefirió.</p>
     </div>
 
@@ -178,11 +167,43 @@
   var idHorarioElegido = null;
   var codigoGrupoElegido = null;
   var modoActual = 'horario'; // 'horario' | 'sugerencia'
+  var TIPO_ENTIDAD_ACTUAL = '';
+  var TIPOS_SIN_ROL = ['Grupo de Facebook', 'Grupo de Instagram', 'Grupo de WhatsApp', 'Grupo en Otra Red Social'];
 
+  var OPCIONES_HORA = [
+    ['07:00', '7:00 AM'], ['08:00', '8:00 AM'], ['09:00', '9:00 AM'], ['10:00', '10:00 AM'],
+    ['11:00', '11:00 AM'], ['12:00', '12:00 PM'], ['13:00', '1:00 PM'], ['14:00', '2:00 PM'],
+    ['15:00', '3:00 PM'], ['16:00', '4:00 PM'], ['17:00', '5:00 PM'], ['18:00', '6:00 PM'], ['19:00', '7:00 PM']
+  ];
+  var elHorasPorDia = document.getElementById('rp-horas-por-dia');
+
+  function opcionesHoraHtml() {
+    return '<option value="">Hora...</option>' + OPCIONES_HORA.map(function(o) {
+      return '<option value="' + o[0] + '">' + o[1] + '</option>';
+    }).join('');
+  }
+
+  // Por cada día que se marca, aparece SU PROPIO selector de hora —
+  // a una persona le puede acomodar el martes a las 10am y el jueves
+  // a las 6pm, no la misma hora para todos los días elegidos.
   Array.prototype.forEach.call(document.querySelectorAll('.rp-dia-check'), function(chk) {
     chk.addEventListener('change', function() {
       var marcados = document.querySelectorAll('.rp-dia-check:checked');
-      if (marcados.length > 3) { this.checked = false; }
+      if (marcados.length > 3) { this.checked = false; return; }
+      var dia = this.value;
+      var idFilaHora = 'rp-hora-dia-' + dia;
+      if (this.checked) {
+        if (!document.getElementById(idFilaHora)) {
+          var fila = document.createElement('div');
+          fila.className = 'rp-hora-por-dia-fila';
+          fila.id = idFilaHora;
+          fila.innerHTML = '<span class="rp-hpd-etiqueta">' + dia + '</span><select class="rp-hora-dia-select" data-dia="' + dia + '">' + opcionesHoraHtml() + '</select>';
+          elHorasPorDia.appendChild(fila);
+        }
+      } else {
+        var elFila = document.getElementById(idFilaHora);
+        if (elFila) elFila.remove();
+      }
     });
   });
 
@@ -206,6 +227,14 @@
     .then(function(res) { return res.json(); })
     .then(function(data) {
       elCargando.style.display = 'none';
+      TIPO_ENTIDAD_ACTUAL = data.tipoEntidad || '';
+      // Rol/Puesto en la Entidad solo aplica a Tipos que NO son de
+      // Redes Sociales (Escuela/Empresa/Personal/Religioso/Otro) —
+      // un Grupo de Facebook/Instagram/WhatsApp/Otra Red Social no
+      // tiene un "puesto" institucional que preguntar.
+      if (TIPOS_SIN_ROL.indexOf(TIPO_ENTIDAD_ACTUAL) !== -1) {
+        document.getElementById('rp-bloque-rol').style.display = 'none';
+      }
       if (!data.exito || data.horarios.length === 0) {
         if (data.esGrupoAfin) {
           mostrarModoSugerencia();
@@ -302,18 +331,22 @@
     if (!telefono) { elEstado.textContent = 'Escribe TU teléfono.'; return; }
     if (telefono !== telefonoConfirma) { elEstado.textContent = 'Los dos teléfonos no coinciden.'; return; }
     if (!edad) { elEstado.textContent = 'Escribe TU edad.'; return; }
-    if (!rol) { elEstado.textContent = 'Escribe TU Rol/Puesto en la Entidad.'; return; }
+    var requiereRol = TIPOS_SIN_ROL.indexOf(TIPO_ENTIDAD_ACTUAL) === -1;
+    if (requiereRol && !rol) { elEstado.textContent = 'Escribe TU Rol/Puesto en la Entidad.'; return; }
     if (!codigoPostal) { elEstado.textContent = 'Escribe TU Código Postal.'; return; }
     if (!pais) { elEstado.textContent = 'Escribe TU País.'; return; }
     if (!entidadFederativa) { elEstado.textContent = 'Elige TU Entidad Federativa.'; return; }
 
-    var diasSugeridos = [];
-    var horaSugerida = '';
+    var diasHoras = [];
     if (modoActual === 'sugerencia') {
-      diasSugeridos = Array.prototype.map.call(document.querySelectorAll('.rp-dia-check:checked'), function(c) { return c.value; });
-      horaSugerida = document.getElementById('rp-hora-sugerida').value;
-      if (diasSugeridos.length === 0) { elEstado.textContent = 'Elige al menos 1 día que TE acomode.'; return; }
-      if (!horaSugerida) { elEstado.textContent = 'Elige la hora que TE acomode.'; return; }
+      var diasMarcados = Array.prototype.map.call(document.querySelectorAll('.rp-dia-check:checked'), function(c) { return c.value; });
+      if (diasMarcados.length === 0) { elEstado.textContent = 'Elige al menos 1 día que TE acomode.'; return; }
+      for (var d = 0; d < diasMarcados.length; d++) {
+        var elSelectHoraDia = document.querySelector('.rp-hora-dia-select[data-dia="' + diasMarcados[d] + '"]');
+        var horaDeEseDia = elSelectHoraDia ? elSelectHoraDia.value : '';
+        if (!horaDeEseDia) { elEstado.textContent = 'Elige la hora que TE acomoda el ' + diasMarcados[d] + '.'; return; }
+        diasHoras.push({ dia: diasMarcados[d], hora: horaDeEseDia });
+      }
     } else {
       if (!idHorarioElegido) { elEstado.textContent = 'Elige un horario arriba.'; return; }
     }
@@ -330,7 +363,7 @@
         idEntidad: ID_ENTIDAD,
         nombres: nombres, apellidos: apellidos, correo: correo, telefono: telefono,
         edad: edad, genero: genero, rol: rol, codigoPostal: codigoPostal, pais: pais,
-        entidadFederativa: entidadFederativa, diasSugeridos: diasSugeridos, horaSugerida: horaSugerida
+        entidadFederativa: entidadFederativa, diasHoras: diasHoras
       };
     } else {
       accionEnvio = 'registrarParticipante';
