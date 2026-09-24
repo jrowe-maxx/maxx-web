@@ -47,6 +47,7 @@
 .rp-recuperar-link { display: block; width: 100%; text-align: center; font-size: 13px; color: #185FA5; font-weight: bold; text-decoration: underline; cursor: pointer; margin: 0 0 18px; background: none; border: none; padding: 0; font-family: Arial, sans-serif; }
 #rp-recuperar-caja { display: none; background: #F5F9FE; border: 2px solid #E6F1FB; border-radius: 10px; padding: 14px 16px; margin: 0 0 20px; }
 #rp-recuperar-caja label { display: block; font-size: 13px; color: #042C53; font-weight: bold; margin-bottom: 4px; }
+.rp-recuperar-explicacion { font-size: 12px; color: #185FA5; font-weight: bold; margin: 0 0 12px; line-height: 1.4; }
 #rp-recuperar-caja input { width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 10px; border: 2px solid #E6F1FB; border-radius: 8px; font-size: 15px; font-family: Arial, sans-serif; }
 .rp-btn-secundario { background: #185FA5; color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; }
 .rp-btn-secundario:hover { background: #378ADD; }
@@ -57,6 +58,7 @@
 <div id="rp-wrap">
   <button type="button" class="rp-recuperar-link" id="rp-recuperar-link">¿Ya te registraste antes y perdiste TU código? Haz clic aquí</button>
   <div id="rp-recuperar-caja">
+    <p class="rp-recuperar-explicacion">Usar siempre TU MISMO código nos permite llevar TU historial de Módulos ya cursados. Antes de registrarte de nuevo, busca aquí si ya tienes uno.</p>
     <label>Escribe TU correo</label>
     <input type="email" id="rp-recuperar-correo" placeholder="tucorreo@ejemplo.com">
     <button type="button" class="rp-btn-secundario" id="rp-btn-recuperar">Enviarme mi código</button>
@@ -189,11 +191,18 @@
       body: JSON.stringify({ accion: 'recuperarCodigoPersonal', correo: correo })
     })
       .then(function(res) { return res.json(); })
-      .then(function() {
-        elRecuperarMsg.textContent = 'Si ese correo está registrado, en unos momentos te va a llegar TU código.';
+      .then(function(data) {
+        if (data.encontrado) {
+          elRecuperarMsg.style.color = '#27500A';
+          elRecuperarMsg.textContent = '¡Sí! Ese correo SÍ está registrado — en unos momentos te va a llegar TU código (revisa también SPAM).';
+        } else {
+          elRecuperarMsg.style.color = '#791F1F';
+          elRecuperarMsg.textContent = 'Ese correo NO está registrado. Si ya te habías registrado antes, intenta con otro correo que hayas usado — usar TU MISMO código nos permite llevar TU historial de Módulos. Si de plano no tienes uno, ciérra esto y regístrate abajo.';
+        }
       })
       .catch(function() {
-        elRecuperarMsg.textContent = 'Si ese correo está registrado, en unos momentos te va a llegar TU código.';
+        elRecuperarMsg.style.color = '#791F1F';
+        elRecuperarMsg.textContent = 'No se pudo checar en este momento. Intenta de nuevo en unos minutos.';
       })
       .finally(function() {
         elBtnRecuperar.disabled = false;
