@@ -24,6 +24,10 @@
 .zrg-card .zrg-tag-etapa { background: #EAF3DE; color: #27500A; }
 .zrg-card .zrg-linea { font-size: 13px; color: #444; margin: 2px 0; }
 .zrg-card .zrg-linea b { color: #042C53; }
+.zrg-tooltip { display: inline-block; width: 16px; height: 16px; line-height: 16px; text-align: center; border-radius: 50%; background: #185FA5; color: #fff; font-size: 11px; font-weight: bold; cursor: help; margin-left: 5px; }
+.zrg-plantel-fila { display: flex; gap: 6px; align-items: flex-start; margin-bottom: 6px; }
+.zrg-plantel-fila input { margin-bottom: 0; }
+.zrg-plantel-fila .zrg-btn-quitar-plantel { flex: 0 0 auto; background: #FAECE7; color: #C0392B; border: 1px solid #F0997B; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: bold; cursor: pointer; }
 .zrg-contacto { border-top: 1px dashed #E6F1FB; padding-top: 6px; margin-top: 8px; font-size: 13px; }
 .zrg-contacto-fila { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
 #zrg-estado { font-size: 13px; margin: 8px 0; min-height: 18px; }
@@ -66,7 +70,9 @@
 
 <div id="zrg-form-alta" class="zrg-oculto">
   <h2>Dar de alta Entidad nueva</h2>
-  <label>Nombre de la Institución</label>
+  <label>Nombre de Entidad
+    <span class="zrg-tooltip" title="Una Entidad puede ser una Escuela, Empresa, Institución, o el nombre del Grupo en el que participan personas afines (Grupo Personal, Religioso, o de una Red Social).">?</span>
+  </label>
   <input type="text" id="zrg-alta-nombre">
   <label>Tipo</label>
   <select id="zrg-alta-tipo">
@@ -80,8 +86,9 @@
     <option value="Grupo en Otra Red Social">Grupo en Otra Red Social</option>
     <option value="Otro">Otro</option>
   </select>
-  <label>Ubicación/Plantel</label>
-  <input type="text" id="zrg-alta-ubicacion" placeholder="Opcional">
+  <label>Planteles / Ubicaciones (opcional)</label>
+  <div id="zrg-alta-planteles-lista"></div>
+  <button type="button" class="zrg-btn zrg-btn-secundario zrg-btn-chico" id="zrg-alta-btn-agregar-plantel" style="margin:4px 0 14px; display:block;">+ Agregar plantel</button>
   <label>Entidad Federativa</label>
   <select id="zrg-alta-federativa"></select>
   <div id="zrg-alta-sector-wrap" class="zrg-oculto">
@@ -348,6 +355,58 @@
       .catch(function() { elResultadosBusqueda.innerHTML = ''; });
   }
 
+  // --- Helpers de "Planteles / Ubicaciones" (lista dinámica, se
+  // usan tanto en "Dar de alta" como en "Editar") ---
+  window.zrgAgregarFilaPlantel = function(contenedorId, nombre, direccion) {
+    var contenedor = document.getElementById(contenedorId);
+    if (!contenedor) return;
+    var fila = document.createElement('div');
+    fila.className = 'zrg-plantel-fila';
+    var elNombre = document.createElement('input');
+    elNombre.type = 'text';
+    elNombre.placeholder = 'Nombre del plantel (ej. "Campus Norte")';
+    elNombre.className = 'zrg-plantel-nombre';
+    elNombre.value = nombre || '';
+    var elDireccion = document.createElement('input');
+    elDireccion.type = 'text';
+    elDireccion.placeholder = 'Dirección';
+    elDireccion.className = 'zrg-plantel-direccion';
+    elDireccion.value = direccion || '';
+    var elQuitar = document.createElement('button');
+    elQuitar.type = 'button';
+    elQuitar.className = 'zrg-btn-quitar-plantel';
+    elQuitar.textContent = 'Quitar';
+    elQuitar.addEventListener('click', function() {
+      fila.remove();
+      contenedor.dispatchEvent(new Event('input'));
+    });
+    fila.appendChild(elNombre);
+    fila.appendChild(elDireccion);
+    fila.appendChild(elQuitar);
+    contenedor.appendChild(fila);
+  };
+
+  function zrgLeerPlanteles(contenedorId) {
+    var contenedor = document.getElementById(contenedorId);
+    if (!contenedor) return [];
+    var planteles = [];
+    contenedor.querySelectorAll('.zrg-plantel-fila').forEach(function(fila) {
+      var nombre = fila.querySelector('.zrg-plantel-nombre').value.trim();
+      var direccion = fila.querySelector('.zrg-plantel-direccion').value.trim();
+      if (nombre || direccion) planteles.push({ nombre: nombre, direccion: direccion });
+    });
+    return planteles;
+  }
+
+  function zrgLimpiarPlanteles(contenedorId) {
+    var contenedor = document.getElementById(contenedorId);
+    if (contenedor) contenedor.innerHTML = '';
+  }
+
+  document.getElementById('zrg-alta-btn-agregar-plantel').addEventListener('click', function() {
+    window.zrgAgregarFilaPlantel('zrg-alta-planteles-lista');
+  });
+
   elBtnMostrarAlta.addEventListener('click', function() {
     elFormAlta.classList.remove('zrg-oculto');
     elBtnMostrarAlta.classList.add('zrg-oculto');
@@ -356,11 +415,12 @@
     elFormAlta.classList.add('zrg-oculto');
     elBtnMostrarAlta.classList.remove('zrg-oculto');
     elEstadoAlta.textContent = '';
+    zrgLimpiarPlanteles('zrg-alta-planteles-lista');
   });
 
   elBtnGuardarAlta.addEventListener('click', function() {
     var nombre = document.getElementById('zrg-alta-nombre').value.trim();
-    if (!nombre) { elEstadoAlta.textContent = 'Escribe el nombre de la institución.'; return; }
+    if (!nombre) { elEstadoAlta.textContent = 'Escribe el nombre de la Entidad.'; return; }
 
     elBtnGuardarAlta.disabled = true;
     elBtnGuardarAlta.textContent = 'Guardando...';
@@ -371,7 +431,7 @@
       body: JSON.stringify({
         accion: 'darDeAltaEntidad', ref: REF, nombre: nombre,
         tipo: document.getElementById('zrg-alta-tipo').value,
-        ubicacion: document.getElementById('zrg-alta-ubicacion').value.trim(),
+        planteles: zrgLeerPlanteles('zrg-alta-planteles-lista'),
         entidadFederativa: document.getElementById('zrg-alta-federativa').value,
         empleadosElegibles: document.getElementById('zrg-alta-empleados').value.trim(),
         sectorEconomico: document.getElementById('zrg-alta-sector').value,
@@ -385,9 +445,10 @@
         elBtnGuardarAlta.disabled = false;
         elBtnGuardarAlta.textContent = 'Guardar Entidad';
         if (data.exito) {
-          ['zrg-alta-nombre', 'zrg-alta-ubicacion', 'zrg-alta-empleados', 'zrg-alta-notas'].forEach(function(id) {
+          ['zrg-alta-nombre', 'zrg-alta-empleados', 'zrg-alta-notas'].forEach(function(id) {
             document.getElementById(id).value = '';
           });
+          zrgLimpiarPlanteles('zrg-alta-planteles-lista');
           document.getElementById('zrg-alta-federativa').value = '';
           document.getElementById('zrg-alta-sector').value = '';
           document.getElementById('zrg-alta-pubpriv').value = '';
@@ -595,7 +656,11 @@
     html += '<span class="zrg-tag">' + ent.tipo + '</span>';
     html += '<span class="zrg-tag zrg-tag-etapa">' + etapaDe(ent) + '</span>';
     html += '<div id="zrg-vista-' + ent.idEntidad + '">';
-    if (ent.ubicacion) html += '<div class="zrg-linea"><b>Ubicación:</b> ' + ent.ubicacion + '</div>';
+    if (ent.planteles && ent.planteles.length > 0) {
+      html += '<div class="zrg-linea"><b>Planteles:</b> ' + ent.planteles.map(function(p) {
+        return p.nombre + (p.direccion ? ' — ' + p.direccion : '');
+      }).join('; ') + '</div>';
+    }
     if (ent.entidadFederativa) html += '<div class="zrg-linea"><b>Entidad Federativa:</b> ' + ent.entidadFederativa + '</div>';
     if (ent.empleadosElegibles) html += '<div class="zrg-linea"><b># Elegibles (estimado):</b> ' + ent.empleadosElegibles + '</div>';
     if (ent.empleadosConfirmados) html += '<div class="zrg-linea"><b># Elegibles (confirmado):</b> ' + ent.empleadosConfirmados + '</div>';
@@ -613,7 +678,7 @@
     html += '</div>';
 
     html += '<div id="zrg-form-editar-' + ent.idEntidad + '" class="zrg-oculto" style="margin-top:10px;">';
-    html += '<label>Nombre de la Institución</label>';
+    html += '<label>Nombre de Entidad <span class="zrg-tooltip" title="Una Entidad puede ser una Escuela, Empresa, Institución, o el nombre del Grupo en el que participan personas afines (Grupo Personal, Religioso, o de una Red Social).">?</span></label>';
     html += '<input type="text" id="zrg-ed-nombre-' + ent.idEntidad + '" value="' + String(ent.nombre || '').replace(/"/g, '&quot;') + '">';
     html += '<label>Tipo</label>';
     html += '<select id="zrg-ed-tipo-' + ent.idEntidad + '">';
@@ -621,8 +686,9 @@
       html += '<option value="' + opcion.v + '"' + (ent.tipo === opcion.v ? ' selected' : '') + '>' + opcion.t + '</option>';
     });
     html += '</select>';
-    html += '<label>Ubicación/Plantel</label>';
-    html += '<input type="text" id="zrg-ed-ubicacion-' + ent.idEntidad + '" value="' + String(ent.ubicacion || '').replace(/"/g, '&quot;') + '">';
+    html += '<label>Planteles / Ubicaciones (opcional)</label>';
+    html += '<div id="zrg-ed-planteles-' + ent.idEntidad + '"></div>';
+    html += '<button type="button" class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin:4px 0 14px; display:block;" onclick="window.zrgAgregarFilaPlantel(\'zrg-ed-planteles-' + ent.idEntidad + '\')">+ Agregar plantel</button>';
     html += '<label>Entidad Federativa</label>';
     html += '<select id="zrg-ed-federativa-' + ent.idEntidad + '"></select>';
     html += '<div id="zrg-ed-sector-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Sector Económico</label><select id="zrg-ed-sector-' + ent.idEntidad + '"></select></div>';
@@ -768,14 +834,19 @@
     elSelectReligion.value = ent.religion || '';
     document.getElementById('zrg-ed-pubpriv-' + ent.idEntidad).value = ent.publicoPrivado || '';
 
+    var elContenedorPlantelesEd = document.getElementById('zrg-ed-planteles-' + ent.idEntidad);
+    (ent.planteles || []).forEach(function(p) {
+      window.zrgAgregarFilaPlantel(elContenedorPlantelesEd.id, p.nombre, p.direccion);
+    });
+
     actualizarCamposPorTipo(ent.tipo, 'zrg-ed-sector-wrap-' + ent.idEntidad, 'zrg-ed-pubpriv-wrap-' + ent.idEntidad, 'zrg-ed-religion-wrap-' + ent.idEntidad);
     document.getElementById('zrg-ed-tipo-' + ent.idEntidad).addEventListener('change', function() {
       actualizarCamposPorTipo(this.value, 'zrg-ed-sector-wrap-' + ent.idEntidad, 'zrg-ed-pubpriv-wrap-' + ent.idEntidad, 'zrg-ed-religion-wrap-' + ent.idEntidad);
     });
 
     var elBtnGuardarEd = document.getElementById('zrg-btn-guardar-ed-' + ent.idEntidad);
-    var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tipo-', 'zrg-ed-ubicacion-', 'zrg-ed-federativa-', 'zrg-ed-empleados-', 'zrg-ed-sector-', 'zrg-ed-pubpriv-', 'zrg-ed-religion-'];
-    var valoresOriginales = { nombre: String(ent.nombre || ''), tipo: String(ent.tipo || ''), ubicacion: String(ent.ubicacion || ''), federativa: String(ent.entidadFederativa || ''), empleados: String(ent.empleadosElegibles || ''), sector: String(ent.sectorEconomico || ''), pubpriv: String(ent.publicoPrivado || ''), religion: String(ent.religion || '') };
+    var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tipo-', 'zrg-ed-federativa-', 'zrg-ed-empleados-', 'zrg-ed-sector-', 'zrg-ed-pubpriv-', 'zrg-ed-religion-'];
+    var valoresOriginales = { nombre: String(ent.nombre || ''), tipo: String(ent.tipo || ''), federativa: String(ent.entidadFederativa || ''), empleados: String(ent.empleadosElegibles || ''), sector: String(ent.sectorEconomico || ''), pubpriv: String(ent.publicoPrivado || ''), religion: String(ent.religion || ''), planteles: JSON.stringify(ent.planteles || []) };
     if (ES_ADMIN) {
       camposEdicion.push('zrg-ed-empleadosconf-', 'zrg-ed-modulos-');
       valoresOriginales.empleadosconf = String(ent.empleadosConfirmados || '');
@@ -785,12 +856,12 @@
       var cambio =
         document.getElementById('zrg-ed-nombre-' + ent.idEntidad).value !== valoresOriginales.nombre ||
         document.getElementById('zrg-ed-tipo-' + ent.idEntidad).value !== valoresOriginales.tipo ||
-        document.getElementById('zrg-ed-ubicacion-' + ent.idEntidad).value !== valoresOriginales.ubicacion ||
         document.getElementById('zrg-ed-federativa-' + ent.idEntidad).value !== valoresOriginales.federativa ||
         document.getElementById('zrg-ed-empleados-' + ent.idEntidad).value !== valoresOriginales.empleados ||
         document.getElementById('zrg-ed-sector-' + ent.idEntidad).value !== valoresOriginales.sector ||
         document.getElementById('zrg-ed-pubpriv-' + ent.idEntidad).value !== valoresOriginales.pubpriv ||
         document.getElementById('zrg-ed-religion-' + ent.idEntidad).value !== valoresOriginales.religion ||
+        JSON.stringify(zrgLeerPlanteles('zrg-ed-planteles-' + ent.idEntidad)) !== valoresOriginales.planteles ||
         (ES_ADMIN && document.getElementById('zrg-ed-empleadosconf-' + ent.idEntidad).value !== valoresOriginales.empleadosconf) ||
         (ES_ADMIN && document.getElementById('zrg-ed-modulos-' + ent.idEntidad).value !== valoresOriginales.modulos);
       elBtnGuardarEd.disabled = !cambio;
@@ -801,6 +872,7 @@
       document.getElementById(prefijo + ent.idEntidad).addEventListener('input', revisarCambios);
       document.getElementById(prefijo + ent.idEntidad).addEventListener('change', revisarCambios);
     });
+    elContenedorPlantelesEd.addEventListener('input', revisarCambios);
   }
 
   window.zrgCerrarDetalle = function() {
@@ -831,7 +903,7 @@
       body: JSON.stringify({
         accion: 'editarEntidad', ref: REF, idEntidad: idEntidad, nombre: nombre,
         tipo: document.getElementById('zrg-ed-tipo-' + idEntidad).value,
-        ubicacion: document.getElementById('zrg-ed-ubicacion-' + idEntidad).value.trim(),
+        planteles: zrgLeerPlanteles('zrg-ed-planteles-' + idEntidad),
         entidadFederativa: document.getElementById('zrg-ed-federativa-' + idEntidad).value,
         empleadosElegibles: document.getElementById('zrg-ed-empleados-' + idEntidad).value.trim(),
         sectorEconomico: document.getElementById('zrg-ed-sector-' + idEntidad).value,
