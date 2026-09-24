@@ -44,9 +44,25 @@
 .rp-hora-por-dia-fila { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
 .rp-hora-por-dia-fila .rp-hpd-etiqueta { flex: 0 0 90px; font-size: 13px; font-weight: bold; color: #042C53; }
 .rp-hora-por-dia-fila select { flex: 1; margin-bottom: 0; }
+.rp-recuperar-link { display: block; width: 100%; text-align: center; font-size: 13px; color: #185FA5; font-weight: bold; text-decoration: underline; cursor: pointer; margin: 0 0 18px; background: none; border: none; padding: 0; font-family: Arial, sans-serif; }
+#rp-recuperar-caja { display: none; background: #F5F9FE; border: 2px solid #E6F1FB; border-radius: 10px; padding: 14px 16px; margin: 0 0 20px; }
+#rp-recuperar-caja label { display: block; font-size: 13px; color: #042C53; font-weight: bold; margin-bottom: 4px; }
+#rp-recuperar-caja input { width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 10px; border: 2px solid #E6F1FB; border-radius: 8px; font-size: 15px; font-family: Arial, sans-serif; }
+.rp-btn-secundario { background: #185FA5; color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; }
+.rp-btn-secundario:hover { background: #378ADD; }
+.rp-btn-secundario:disabled { background: #ccc; cursor: default; }
+#rp-recuperar-msg { font-size: 13px; margin-top: 10px; color: #042C53; }
 </style>
 
 <div id="rp-wrap">
+  <button type="button" class="rp-recuperar-link" id="rp-recuperar-link">¿Ya te registraste antes y perdiste TU código? Haz clic aquí</button>
+  <div id="rp-recuperar-caja">
+    <label>Escribe TU correo</label>
+    <input type="email" id="rp-recuperar-correo" placeholder="tucorreo@ejemplo.com">
+    <button type="button" class="rp-btn-secundario" id="rp-btn-recuperar">Enviarme mi código</button>
+    <div id="rp-recuperar-msg"></div>
+  </div>
+
   <div id="rp-modulo-contenido">
     <div class="rp-mc-eyebrow">Lo que verás en esta sesión</div>
     <h3 id="rp-mc-titulo"></h3>
@@ -145,6 +161,44 @@
   }
 
   var BASE_URL = 'https://script.google.com/macros/s/AKfycbxNl4ATBbC5fKm6SvIFwnApzEYt_qCkSSEcL-RXqoDucXSDcQjj_oOzWSL0oaGT5Qnn/exec';
+
+  var elRecuperarLink = document.getElementById('rp-recuperar-link');
+  var elRecuperarCaja = document.getElementById('rp-recuperar-caja');
+  var elRecuperarCorreo = document.getElementById('rp-recuperar-correo');
+  var elBtnRecuperar = document.getElementById('rp-btn-recuperar');
+  var elRecuperarMsg = document.getElementById('rp-recuperar-msg');
+
+  elRecuperarLink.addEventListener('click', function() {
+    var visible = elRecuperarCaja.style.display === 'block';
+    elRecuperarCaja.style.display = visible ? 'none' : 'block';
+    elRecuperarMsg.textContent = '';
+  });
+
+  elBtnRecuperar.addEventListener('click', function() {
+    var correo = (elRecuperarCorreo.value || '').trim();
+    if (!correo || correo.indexOf('@') === -1) {
+      elRecuperarMsg.textContent = 'Escribe un correo válido.';
+      elRecuperarMsg.style.color = '#791F1F';
+      return;
+    }
+    elBtnRecuperar.disabled = true;
+    elRecuperarMsg.style.color = '#042C53';
+    elRecuperarMsg.textContent = 'Enviando...';
+    fetch(BASE_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'recuperarCodigoPersonal', correo: correo })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function() {
+        elRecuperarMsg.textContent = 'Si ese correo está registrado, en unos momentos te va a llegar TU código.';
+      })
+      .catch(function() {
+        elRecuperarMsg.textContent = 'Si ese correo está registrado, en unos momentos te va a llegar TU código.';
+      })
+      .finally(function() {
+        elBtnRecuperar.disabled = false;
+      });
+  });
 
   var ENTIDADES_FEDERATIVAS = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas',
     'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Guanajuato', 'Guerrero', 'Hidalgo',
@@ -260,7 +314,10 @@
 
   function mostrarModoSugerencia() {
     modoActual = 'sugerencia';
-    mostrarContenidoModulo(1); // Grupos Afines siempre arranca en Módulo 1
+    // Normalmente es Módulo 1 (arranque de un Grupo Afín), pero si es
+    // una reinvitación a un Módulo posterior que todavía no tiene
+    // Horario, se debe mostrar el contenido de ESE Módulo, no del 1.
+    mostrarContenidoModulo(Number(MODULO_SOLICITADO) || 1);
     document.getElementById('rp-bloque-sugerencia').style.display = 'block';
     elFormDatos.style.display = 'block';
   }
@@ -361,6 +418,7 @@
       payloadEnvio = {
         accion: accionEnvio,
         idEntidad: ID_ENTIDAD,
+        moduloSugerido: Number(MODULO_SOLICITADO) || 1,
         nombres: nombres, apellidos: apellidos, correo: correo, telefono: telefono,
         edad: edad, genero: genero, rol: rol, codigoPostal: codigoPostal, pais: pais,
         entidadFederativa: entidadFederativa, diasHoras: diasHoras
