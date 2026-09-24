@@ -237,6 +237,8 @@
   var COLOR_TIPO = {
     'Escuela': '#DCEAFB', 'Empresa': '#FCEAD6', 'Personal': '#E3F2D9', 'Religioso': '#EDE3F5', 'Otro': '#EEEEEE'
   };
+  var TIPOS_GRUPO_AFIN = ['Personal', 'Religioso', 'Grupo de Facebook', 'Grupo de Instagram', 'Grupo de WhatsApp', 'Grupo en Otra Red Social', 'Otro'];
+  function esTipoGrupoAfin(tipo) { return TIPOS_GRUPO_AFIN.indexOf(tipo) !== -1; }
   var COLOR_ETAPA = {
     'Registrado': '#9AA0A6', 'Contactado': '#378ADD', 'Cita Agendada': '#EF9F27',
     'Programa Cerrado': '#639922', 'Pendiente': '#E0B400', 'No Interesado': '#C0392B'
@@ -698,7 +700,7 @@
         } else {
           g.horarios.slice().sort(function(a, b) { return a.numeroModulo - b.numeroModulo; }).forEach(function(h) {
             html += '<div class="zrg-linea">📅 Módulo ' + h.numeroModulo + ' — ' + h.tituloModulo + ': ' + h.fecha + ' ' + h.hora + ' · ' + h.registrados + '/' + h.cupoMaximo + ' registrados · <b>' + h.estadoSesion + '</b>' +
-              ' <button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgConvertirSugerencias(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Convertir sugerencias</button></div>';
+              (esTipoGrupoAfin(ent.tipo) ? ' <button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgConvertirSugerencias(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Convertir sugerencias</button>' : '') + '</div>';
           });
         }
         if (siguienteModulo === null) {
@@ -724,8 +726,10 @@
       });
     }
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin-top:8px;" onclick="window.zrgAgregarGrupo(\'' + ent.idEntidad + '\')">+ Agregar Grupo nuevo</button> ';
-    html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin-top:8px;" onclick="window.zrgVerSugerencias(\'' + ent.idEntidad + '\')">Ver sugerencias de horario pendientes</button>';
-    html += '<div id="zrg-sugerencias-' + ent.idEntidad + '" class="zrg-oculto" style="margin-top:8px;"></div>';
+    if (esTipoGrupoAfin(ent.tipo)) {
+      html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin-top:8px;" onclick="window.zrgVerSugerencias(\'' + ent.idEntidad + '\')">Ver sugerencias de horario pendientes</button>';
+      html += '<div id="zrg-sugerencias-' + ent.idEntidad + '" class="zrg-oculto" style="margin-top:8px;"></div>';
+    }
     html += '<div id="zrg-estado-grupo-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     html += '</div>';
 
