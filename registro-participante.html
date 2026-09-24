@@ -1,0 +1,369 @@
+<style>
+#rp-wrap { max-width: 640px; margin: 0 auto; font-family: Arial, sans-serif; padding: 24px 16px 60px; }
+#rp-wrap h1 { color: #042C53; font-size: 22px; margin: 0 0 6px 0; }
+#rp-wrap .rp-sub { color: #185FA5; font-size: 14px; margin: 0 0 20px 0; }
+#rp-wrap .rp-obligatorio { color: #791F1F; }
+#rp-wrap .rp-nota-obligatorio { font-size: 12px; color: #666; margin: -4px 0 16px; }
+#rp-wrap input, #rp-wrap select {
+  width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 10px;
+  border: 2px solid #E6F1FB; border-radius: 8px; font-size: 15px; font-family: Arial, sans-serif;
+}
+#rp-wrap label { display: block; font-size: 13px; color: #042C53; font-weight: bold; margin-bottom: 4px; }
+.rp-btn { background: #185FA5; color: white; border: none; border-radius: 8px; padding: 12px 20px; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%; }
+.rp-btn:hover { background: #378ADD; }
+.rp-btn:disabled { background: #ccc; cursor: default; }
+.rp-horario { display: block; width: 100%; text-align: left; background: white; border: 2px solid #E6F1FB; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; font-family: Arial, sans-serif; }
+.rp-horario:hover { border-color: #185FA5; background: #F5F9FE; }
+.rp-horario.rp-horario-activo { border-color: #185FA5; background: #E6F1FB; }
+.rp-horario .rp-h-modulo { font-size: 12px; color: #185FA5; font-weight: bold; text-transform: uppercase; }
+.rp-horario .rp-h-fecha { font-size: 16px; font-weight: bold; color: #042C53; }
+.rp-horario .rp-h-cupo { font-size: 13px; color: #639922; margin-top: 2px; }
+#rp-cargando { text-align: center; color: #185FA5; padding: 30px 0; }
+#rp-sin-horarios { text-align: center; color: #666; padding: 30px 16px; background: #FAECE7; border-radius: 10px; }
+#rp-horario-unico { background: #E6F1FB; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; display: none; }
+#rp-horario-unico .rp-hu-fecha { font-size: 16px; font-weight: bold; color: #042C53; }
+#rp-horario-unico .rp-hu-cupo { font-size: 13px; color: #185FA5; margin-top: 2px; }
+#rp-modulo-contenido { display: none; background: white; border: 2px solid #E6F1FB; border-radius: 12px; padding: 18px; margin: 0 0 20px; }
+#rp-modulo-contenido .rp-mc-eyebrow { font-size: 12px; font-weight: bold; color: #EF9F27; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+#rp-modulo-contenido h3 { color: #042C53; font-size: 19px; margin: 0 0 10px 0; }
+#rp-modulo-contenido .rp-mc-desc { color: #185FA5; font-size: 14px; font-weight: bold; margin-bottom: 12px; line-height: 1.4; }
+#rp-modulo-contenido ul { margin: 0; padding-left: 18px; }
+#rp-modulo-contenido li { font-size: 13px; color: #444; margin-bottom: 8px; line-height: 1.45; }
+#rp-form-datos { display: none; margin-top: 8px; padding-top: 20px; border-top: 1px solid #E6F1FB; }
+#rp-form-datos h2 { color: #042C53; font-size: 16px; margin-bottom: 4px; }
+#rp-estado { font-size: 13px; margin: 10px 0; min-height: 18px; }
+.rp-estado-error { color: #791F1F; font-weight: bold; }
+#rp-exito { display: none; text-align: center; padding: 30px 16px; background: #EAF3DE; border-radius: 10px; }
+#rp-exito .rp-codigo { font-size: 28px; font-weight: bold; color: #27500A; letter-spacing: 2px; margin: 10px 0; }
+.rp-fila-doble { display: flex; gap: 10px; }
+.rp-fila-doble > div { flex: 1; }
+.rp-dias-checks { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.rp-dias-checks label { display: inline-flex; align-items: center; gap: 5px; background: white; border: 2px solid #E6F1FB; border-radius: 20px; padding: 7px 14px; font-size: 13px; font-weight: normal; cursor: pointer; margin: 0; }
+.rp-dias-checks input:checked + span { color: #185FA5; font-weight: bold; }
+.rp-nota-sugerencia { font-size: 12px; color: #666; margin: -6px 0 14px; }
+</style>
+
+<div id="rp-wrap">
+  <div id="rp-modulo-contenido">
+    <div class="rp-mc-eyebrow">Lo que verás en esta sesión</div>
+    <h3 id="rp-mc-titulo"></h3>
+    <div class="rp-mc-desc" id="rp-mc-desc"></div>
+    <ul id="rp-mc-temas"></ul>
+  </div>
+
+  <div id="rp-cargando">Cargando horarios disponibles...</div>
+  <div id="rp-sin-horarios" style="display:none;"></div>
+
+  <div id="rp-lista-horarios"></div>
+  <div id="rp-horario-unico"></div>
+
+  <div id="rp-form-datos">
+    <h2>TUS datos</h2>
+    <p class="rp-nota-obligatorio"><span class="rp-obligatorio">*</span> Campo obligatorio</p>
+    <div class="rp-fila-doble">
+      <div><label>Nombre(s) <span class="rp-obligatorio">*</span></label><input type="text" id="rp-nombres"></div>
+      <div><label>Apellido(s) <span class="rp-obligatorio">*</span></label><input type="text" id="rp-apellidos"></div>
+    </div>
+    <label>Correo <span class="rp-obligatorio">*</span></label>
+    <input type="email" id="rp-correo">
+    <label>Confirma TU Correo <span class="rp-obligatorio">*</span></label>
+    <input type="email" id="rp-correo-confirma">
+    <label>Teléfono (10 dígitos) <span class="rp-obligatorio">*</span></label>
+    <input type="tel" id="rp-telefono">
+    <label>Confirma TU Teléfono <span class="rp-obligatorio">*</span></label>
+    <input type="tel" id="rp-telefono-confirma">
+    <div class="rp-fila-doble">
+      <div><label>Edad <span class="rp-obligatorio">*</span></label><input type="text" id="rp-edad"></div>
+      <div><label>Género (opcional)</label>
+        <select id="rp-genero">
+          <option value="">Prefiero no decirlo</option>
+          <option value="Femenino">Femenino</option>
+          <option value="Masculino">Masculino</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+    </div>
+    <label>Rol/Puesto en la Entidad <span class="rp-obligatorio">*</span></label>
+    <input type="text" id="rp-rol">
+    <div class="rp-fila-doble">
+      <div><label>Código Postal <span class="rp-obligatorio">*</span></label><input type="text" id="rp-cp"></div>
+      <div><label>País <span class="rp-obligatorio">*</span></label><input type="text" id="rp-pais" value="México"></div>
+    </div>
+    <label>Entidad Federativa <span class="rp-obligatorio">*</span></label>
+    <select id="rp-entidad-federativa"></select>
+
+    <div id="rp-bloque-sugerencia" style="display:none;">
+      <label>¿Qué días TE acomodan mejor? (elige hasta 3) <span class="rp-obligatorio">*</span></label>
+      <div class="rp-dias-checks">
+        <label><input type="checkbox" value="Lunes" class="rp-dia-check"><span>Lunes</span></label>
+        <label><input type="checkbox" value="Martes" class="rp-dia-check"><span>Martes</span></label>
+        <label><input type="checkbox" value="Miércoles" class="rp-dia-check"><span>Miércoles</span></label>
+        <label><input type="checkbox" value="Jueves" class="rp-dia-check"><span>Jueves</span></label>
+        <label><input type="checkbox" value="Viernes" class="rp-dia-check"><span>Viernes</span></label>
+      </div>
+      <label>¿Qué hora TE acomoda mejor? <span class="rp-obligatorio">*</span></label>
+      <select id="rp-hora-sugerida">
+        <option value="">Selecciona...</option>
+        <option value="07:00">7:00 AM</option>
+        <option value="08:00">8:00 AM</option>
+        <option value="09:00">9:00 AM</option>
+        <option value="10:00">10:00 AM</option>
+        <option value="11:00">11:00 AM</option>
+        <option value="12:00">12:00 PM</option>
+        <option value="13:00">1:00 PM</option>
+        <option value="14:00">2:00 PM</option>
+        <option value="15:00">3:00 PM</option>
+        <option value="16:00">4:00 PM</option>
+        <option value="17:00">5:00 PM</option>
+        <option value="18:00">6:00 PM</option>
+        <option value="19:00">7:00 PM</option>
+      </select>
+      <p class="rp-nota-sugerencia">En cuanto se reúnan suficientes personas, te avisamos por correo la fecha y hora final, según lo que la mayoría prefirió.</p>
+    </div>
+
+    <button class="rp-btn" id="rp-btn-registrar">Confirmar mi registro</button>
+    <div id="rp-estado" class="rp-estado-error"></div>
+  </div>
+
+  <div id="rp-exito">
+    <div style="color:#042C53; font-size:16px; font-weight:bold;" id="rp-exito-titulo">¡Listo! Ya quedaste registrado.</div>
+    <div class="rp-codigo" id="rp-codigo-personal"></div>
+    <div style="color:#444; font-size:13px;" id="rp-exito-nota">Guarda este código — te lo vamos a pedir el día de la sesión. También te llegó por correo.</div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var hashActual = '';
+  try {
+    hashActual = window.top.location.hash || '';
+  } catch (e) {
+    hashActual = window.location.hash || '';
+  }
+  if (hashActual.indexOf('#registro-participante') !== 0) {
+    return;
+  }
+
+  var ID_ENTIDAD;
+  try {
+    ID_ENTIDAD = new URLSearchParams(window.top.location.search).get('entidad') || '';
+  } catch (e) {
+    ID_ENTIDAD = new URLSearchParams(window.location.search).get('entidad') || '';
+  }
+
+  var BASE_URL = 'https://script.google.com/macros/s/AKfycbxNl4ATBbC5fKm6SvIFwnApzEYt_qCkSSEcL-RXqoDucXSDcQjj_oOzWSL0oaGT5Qnn/exec';
+
+  var ENTIDADES_FEDERATIVAS = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas',
+    'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Guanajuato', 'Guerrero', 'Hidalgo',
+    'Jalisco', 'México', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro',
+    'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz',
+    'Yucatán', 'Zacatecas'];
+  var elSelectFed = document.getElementById('rp-entidad-federativa');
+  elSelectFed.innerHTML = '<option value="">Selecciona...</option>' + ENTIDADES_FEDERATIVAS.map(function(e) { return '<option value="' + e + '">' + e + '</option>'; }).join('');
+
+  var elCargando = document.getElementById('rp-cargando');
+  var elSinHorarios = document.getElementById('rp-sin-horarios');
+  var elListaHorarios = document.getElementById('rp-lista-horarios');
+  var elHorarioUnico = document.getElementById('rp-horario-unico');
+  var elModuloContenido = document.getElementById('rp-modulo-contenido');
+  var elFormDatos = document.getElementById('rp-form-datos');
+  var elBtnRegistrar = document.getElementById('rp-btn-registrar');
+  var elEstado = document.getElementById('rp-estado');
+  var elExito = document.getElementById('rp-exito');
+
+  var idHorarioElegido = null;
+  var codigoGrupoElegido = null;
+  var modoActual = 'horario'; // 'horario' | 'sugerencia'
+
+  Array.prototype.forEach.call(document.querySelectorAll('.rp-dia-check'), function(chk) {
+    chk.addEventListener('change', function() {
+      var marcados = document.querySelectorAll('.rp-dia-check:checked');
+      if (marcados.length > 3) { this.checked = false; }
+    });
+  });
+
+  if (!ID_ENTIDAD) {
+    elCargando.style.display = 'none';
+    elSinHorarios.style.display = 'block';
+    elSinHorarios.textContent = 'Este link no trae una Entidad válida. Pide al remitente que te comparta el link completo.';
+    return;
+  }
+
+  var modulosCache = null;
+  function obtenerModulos(callback) {
+    if (modulosCache) { callback(modulosCache); return; }
+    fetch(BASE_URL + '?accion=modulos')
+      .then(function(res) { return res.json(); })
+      .then(function(data) { modulosCache = (data.exito ? data.modulos : []); callback(modulosCache); })
+      .catch(function() { callback([]); });
+  }
+
+  fetch(BASE_URL + '?accion=horariosPorEntidad&entidad=' + encodeURIComponent(ID_ENTIDAD))
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      elCargando.style.display = 'none';
+      if (!data.exito || data.horarios.length === 0) {
+        mostrarModoSugerencia();
+        return;
+      }
+      if (data.horarios.length === 1) {
+        mostrarHorarioUnico(data.horarios[0]);
+      } else {
+        var todosMismoModulo = data.horarios.every(function(h) { return h.numeroModulo === data.horarios[0].numeroModulo; });
+        if (todosMismoModulo) {
+          mostrarContenidoModulo(data.horarios[0].numeroModulo);
+        }
+        pintarHorarios(data.horarios);
+      }
+    })
+    .catch(function() {
+      elCargando.textContent = 'No se pudo cargar. Recarga la página.';
+    });
+
+  function mostrarModoSugerencia() {
+    modoActual = 'sugerencia';
+    mostrarContenidoModulo(1); // Grupos Afines siempre arranca en Módulo 1
+    document.getElementById('rp-bloque-sugerencia').style.display = 'block';
+    elFormDatos.style.display = 'block';
+  }
+
+  function mostrarHorarioUnico(h) {
+    elHorarioUnico.innerHTML =
+      '<div class="rp-hu-fecha">' + h.fecha + ' — ' + h.hora + '</div>' +
+      '<div class="rp-hu-cupo">' + h.cupoDisponible + ' lugares disponibles</div>';
+    elHorarioUnico.style.display = 'block';
+    seleccionarHorario(h.idHorario, h.codigoGrupo, h.numeroModulo);
+  }
+
+  function pintarHorarios(horarios) {
+    var html = '<label>Elige el horario que más TE convenga:</label>';
+    horarios.forEach(function(h) {
+      html += '<button type="button" class="rp-horario" data-id-horario="' + h.idHorario + '" onclick="window.rpElegirHorario(\'' + h.idHorario + '\', \'' + h.codigoGrupo + '\', ' + h.numeroModulo + ')">' +
+        '<div class="rp-h-modulo">Módulo ' + h.numeroModulo + (h.tituloModulo ? ' — ' + h.tituloModulo : '') + '</div>' +
+        '<div class="rp-h-fecha">' + h.fecha + ' — ' + h.hora + '</div>' +
+        '<div class="rp-h-cupo">' + h.cupoDisponible + ' lugares disponibles</div></button>';
+    });
+    elListaHorarios.innerHTML = html;
+  }
+
+  window.rpElegirHorario = function(idHorario, codigoGrupo, numeroModulo) {
+    Array.prototype.forEach.call(document.querySelectorAll('.rp-horario'), function(btn) {
+      btn.classList.toggle('rp-horario-activo', btn.dataset.idHorario === idHorario);
+    });
+    seleccionarHorario(idHorario, codigoGrupo, numeroModulo);
+  };
+
+  function mostrarContenidoModulo(numeroModulo) {
+    obtenerModulos(function(modulos) {
+      var modulo = modulos.filter(function(m) { return m.numero === numeroModulo; })[0];
+      if (modulo) {
+        document.getElementById('rp-mc-titulo').textContent = 'Módulo ' + modulo.numero + ' — ' + modulo.titulo;
+        document.getElementById('rp-mc-desc').textContent = modulo.descripcion;
+        document.getElementById('rp-mc-temas').innerHTML = (modulo.temas || []).map(function(t) { return '<li>' + t + '</li>'; }).join('');
+        elModuloContenido.style.display = 'block';
+      }
+    });
+  }
+
+  function seleccionarHorario(idHorario, codigoGrupo, numeroModulo) {
+    idHorarioElegido = idHorario;
+    codigoGrupoElegido = codigoGrupo;
+    mostrarContenidoModulo(numeroModulo);
+    elFormDatos.style.display = 'block';
+    elEstado.textContent = '';
+  }
+
+  elBtnRegistrar.addEventListener('click', function() {
+    var nombres = document.getElementById('rp-nombres').value.trim();
+    var apellidos = document.getElementById('rp-apellidos').value.trim();
+    var correo = document.getElementById('rp-correo').value.trim();
+    var correoConfirma = document.getElementById('rp-correo-confirma').value.trim();
+    var telefono = document.getElementById('rp-telefono').value.trim();
+    var telefonoConfirma = document.getElementById('rp-telefono-confirma').value.trim();
+    var edad = document.getElementById('rp-edad').value.trim();
+    var genero = document.getElementById('rp-genero').value;
+    var rol = document.getElementById('rp-rol').value.trim();
+    var codigoPostal = document.getElementById('rp-cp').value.trim();
+    var pais = document.getElementById('rp-pais').value.trim();
+    var entidadFederativa = document.getElementById('rp-entidad-federativa').value;
+
+    if (!nombres || !apellidos) { elEstado.textContent = 'Escribe TU nombre y apellido.'; return; }
+    if (!correo) { elEstado.textContent = 'Escribe TU correo.'; return; }
+    if (correo !== correoConfirma) { elEstado.textContent = 'Los dos correos no coinciden.'; return; }
+    if (!telefono) { elEstado.textContent = 'Escribe TU teléfono.'; return; }
+    if (telefono !== telefonoConfirma) { elEstado.textContent = 'Los dos teléfonos no coinciden.'; return; }
+    if (!edad) { elEstado.textContent = 'Escribe TU edad.'; return; }
+    if (!rol) { elEstado.textContent = 'Escribe TU Rol/Puesto en la Entidad.'; return; }
+    if (!codigoPostal) { elEstado.textContent = 'Escribe TU Código Postal.'; return; }
+    if (!pais) { elEstado.textContent = 'Escribe TU País.'; return; }
+    if (!entidadFederativa) { elEstado.textContent = 'Elige TU Entidad Federativa.'; return; }
+
+    var diasSugeridos = [];
+    var horaSugerida = '';
+    if (modoActual === 'sugerencia') {
+      diasSugeridos = Array.prototype.map.call(document.querySelectorAll('.rp-dia-check:checked'), function(c) { return c.value; });
+      horaSugerida = document.getElementById('rp-hora-sugerida').value;
+      if (diasSugeridos.length === 0) { elEstado.textContent = 'Elige al menos 1 día que TE acomode.'; return; }
+      if (!horaSugerida) { elEstado.textContent = 'Elige la hora que TE acomode.'; return; }
+    } else {
+      if (!idHorarioElegido) { elEstado.textContent = 'Elige un horario arriba.'; return; }
+    }
+
+    elBtnRegistrar.disabled = true;
+    elBtnRegistrar.textContent = 'Registrando...';
+    elEstado.textContent = '';
+
+    var accionEnvio, payloadEnvio;
+    if (modoActual === 'sugerencia') {
+      accionEnvio = 'registrarSugerenciaParticipante';
+      payloadEnvio = {
+        accion: accionEnvio,
+        idEntidad: ID_ENTIDAD,
+        nombres: nombres, apellidos: apellidos, correo: correo, telefono: telefono,
+        edad: edad, genero: genero, rol: rol, codigoPostal: codigoPostal, pais: pais,
+        entidadFederativa: entidadFederativa, diasSugeridos: diasSugeridos, horaSugerida: horaSugerida
+      };
+    } else {
+      accionEnvio = 'registrarParticipante';
+      payloadEnvio = {
+        accion: accionEnvio,
+        idHorario: idHorarioElegido, codigoGrupo: codigoGrupoElegido,
+        nombres: nombres, apellidos: apellidos, correo: correo, telefono: telefono,
+        edad: edad, genero: genero, rol: rol, codigoPostal: codigoPostal, pais: pais,
+        entidadFederativa: entidadFederativa
+      };
+    }
+
+    fetch(BASE_URL, {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payloadEnvio)
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.exito) {
+          elFormDatos.style.display = 'none';
+          elListaHorarios.style.display = 'none';
+          elHorarioUnico.style.display = 'none';
+          elModuloContenido.style.display = 'none';
+          elExito.style.display = 'block';
+          document.getElementById('rp-codigo-personal').textContent = data.codigoPersonal;
+          if (modoActual === 'sugerencia') {
+            document.getElementById('rp-exito-titulo').textContent = '¡Listo! Ya quedaste PRE-registrado.';
+            document.getElementById('rp-exito-nota').textContent = 'Guarda este código. En cuanto se reúnan suficientes personas, te avisamos por correo la fecha y hora final de TU sesión.';
+          }
+        } else {
+          elBtnRegistrar.disabled = false;
+          elBtnRegistrar.textContent = 'Confirmar mi registro';
+          elEstado.textContent = data.error || 'No se pudo registrar. Intenta de nuevo.';
+        }
+      })
+      .catch(function() {
+        elBtnRegistrar.disabled = false;
+        elBtnRegistrar.textContent = 'Confirmar mi registro';
+        elEstado.textContent = 'No se pudo conectar. Intenta de nuevo.';
+      });
+  });
+})();
+</script>
