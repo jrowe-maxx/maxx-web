@@ -248,6 +248,14 @@
   };
   var TIPOS_GRUPO_AFIN = ['Personal', 'Religioso', 'Grupo de Facebook', 'Grupo de Instagram', 'Grupo de WhatsApp', 'Grupo en Otra Red Social', 'Otro'];
   function esTipoGrupoAfin(tipo) { return TIPOS_GRUPO_AFIN.indexOf(tipo) !== -1; }
+  // Distinto de TIPOS_GRUPO_AFIN (que rige sugerencias/horarios): esto
+  // rige si el Tipo tiene sentido de tener Planteles/Ubicaciones
+  // físicas. Escuela/Empresa/Religioso/Otro sí pueden tenerlos;
+  // Personal y los 4 tipos de Redes Sociales NO (vienen de un grupo
+  // sin ubicación institucional detrás — el participante que llega
+  // desde ahí ya captura su Código Postal en su registro).
+  var TIPOS_CON_PLANTELES = ['Escuela', 'Empresa', 'Religioso', 'Otro'];
+  function tipoTienePlanteles(tipo) { return TIPOS_CON_PLANTELES.indexOf(tipo) !== -1; }
   var COLOR_ETAPA = {
     'Registrado': '#9AA0A6', 'Contactado': '#378ADD', 'Cita Agendada': '#EF9F27',
     'Programa Cerrado': '#639922', 'Pendiente': '#E0B400', 'No Interesado': '#C0392B'
@@ -289,14 +297,15 @@
     if (elSector) elSector.classList.toggle('zrg-oculto', tipo !== 'Empresa');
     if (elPubPriv) elPubPriv.classList.toggle('zrg-oculto', tipo !== 'Escuela');
     if (elReligion) elReligion.classList.toggle('zrg-oculto', tipo !== 'Religioso');
-    // Planteles/Ubicaciones: SOLO aplica a Escuela/Empresa/Institución —
-    // un Grupo Afín (Personal, Religioso, Redes Sociales, Otro) no
-    // tiene plantel físico que registrar.
+    // Planteles/Ubicaciones: Escuela/Empresa/Religioso/Otro SÍ pueden
+    // tenerlos. Personal y los 4 tipos de Redes Sociales (Facebook,
+    // Instagram, WhatsApp, Otra Red Social) NO — ahí el participante
+    // ya captura su propio Código Postal en su registro.
     if (sufijoPlanteles) {
       var elPlanteles = document.getElementById(sufijoPlanteles);
-      var esAfin = esTipoGrupoAfin(tipo);
-      if (elPlanteles) elPlanteles.classList.toggle('zrg-oculto', esAfin);
-      if (esAfin && idListaPlanteles) zrgLimpiarPlanteles(idListaPlanteles);
+      var tienePlanteles = tipoTienePlanteles(tipo);
+      if (elPlanteles) elPlanteles.classList.toggle('zrg-oculto', !tienePlanteles);
+      if (!tienePlanteles && idListaPlanteles) zrgLimpiarPlanteles(idListaPlanteles);
     }
   }
 
@@ -465,7 +474,7 @@
           document.getElementById('zrg-alta-pubpriv').value = '';
           document.getElementById('zrg-alta-religion').value = '';
           document.getElementById('zrg-alta-tipo').value = 'Escuela';
-          actualizarCamposPorTipo('Escuela', 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap');
+          actualizarCamposPorTipo('Escuela', 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap', 'zrg-alta-planteles-wrap', 'zrg-alta-planteles-lista');
           elFormAlta.classList.add('zrg-oculto');
           elBtnMostrarAlta.classList.remove('zrg-oculto');
           todasMisEntidades = null;
