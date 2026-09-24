@@ -86,9 +86,11 @@
     <option value="Grupo en Otra Red Social">Grupo en Otra Red Social</option>
     <option value="Otro">Otro</option>
   </select>
-  <label>Planteles / Ubicaciones (opcional)</label>
-  <div id="zrg-alta-planteles-lista"></div>
-  <button type="button" class="zrg-btn zrg-btn-secundario zrg-btn-chico" id="zrg-alta-btn-agregar-plantel" style="margin:4px 0 14px; display:block;">+ Agregar plantel</button>
+  <div id="zrg-alta-planteles-wrap">
+    <label>Planteles / Ubicaciones (opcional)</label>
+    <div id="zrg-alta-planteles-lista"></div>
+    <button type="button" class="zrg-btn zrg-btn-secundario zrg-btn-chico" id="zrg-alta-btn-agregar-plantel" style="margin:4px 0 14px; display:block;">+ Agregar plantel</button>
+  </div>
   <label>Entidad Federativa</label>
   <select id="zrg-alta-federativa"></select>
   <div id="zrg-alta-sector-wrap" class="zrg-oculto">
@@ -280,19 +282,28 @@
   // Mostrar solo el campo que corresponde al Tipo elegido (Sector
   // Económico para Empresa, Público/Privado para Escuela, Religión
   // para Religioso) — tanto en "Dar de alta" como luego en "Editar".
-  function actualizarCamposPorTipo(tipo, sufijoSector, sufijoPubPriv, sufijoReligion) {
+  function actualizarCamposPorTipo(tipo, sufijoSector, sufijoPubPriv, sufijoReligion, sufijoPlanteles, idListaPlanteles) {
     var elSector = document.getElementById(sufijoSector);
     var elPubPriv = document.getElementById(sufijoPubPriv);
     var elReligion = document.getElementById(sufijoReligion);
     if (elSector) elSector.classList.toggle('zrg-oculto', tipo !== 'Empresa');
     if (elPubPriv) elPubPriv.classList.toggle('zrg-oculto', tipo !== 'Escuela');
     if (elReligion) elReligion.classList.toggle('zrg-oculto', tipo !== 'Religioso');
+    // Planteles/Ubicaciones: SOLO aplica a Escuela/Empresa/Institución —
+    // un Grupo Afín (Personal, Religioso, Redes Sociales, Otro) no
+    // tiene plantel físico que registrar.
+    if (sufijoPlanteles) {
+      var elPlanteles = document.getElementById(sufijoPlanteles);
+      var esAfin = esTipoGrupoAfin(tipo);
+      if (elPlanteles) elPlanteles.classList.toggle('zrg-oculto', esAfin);
+      if (esAfin && idListaPlanteles) zrgLimpiarPlanteles(idListaPlanteles);
+    }
   }
 
   document.getElementById('zrg-alta-tipo').addEventListener('change', function() {
-    actualizarCamposPorTipo(this.value, 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap');
+    actualizarCamposPorTipo(this.value, 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap', 'zrg-alta-planteles-wrap', 'zrg-alta-planteles-lista');
   });
-  actualizarCamposPorTipo(document.getElementById('zrg-alta-tipo').value, 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap');
+  actualizarCamposPorTipo(document.getElementById('zrg-alta-tipo').value, 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap', 'zrg-alta-planteles-wrap', 'zrg-alta-planteles-lista');
 
   // Chips de filtro: cada uno abre/cierra su propio campo.
   Array.prototype.forEach.call(document.querySelectorAll('.zrg-filtro-chip-btn'), function(btn) {
@@ -686,9 +697,11 @@
       html += '<option value="' + opcion.v + '"' + (ent.tipo === opcion.v ? ' selected' : '') + '>' + opcion.t + '</option>';
     });
     html += '</select>';
+    html += '<div id="zrg-ed-planteles-wrap-' + ent.idEntidad + '">';
     html += '<label>Planteles / Ubicaciones (opcional)</label>';
     html += '<div id="zrg-ed-planteles-' + ent.idEntidad + '"></div>';
     html += '<button type="button" class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin:4px 0 14px; display:block;" onclick="window.zrgAgregarFilaPlantel(\'zrg-ed-planteles-' + ent.idEntidad + '\')">+ Agregar plantel</button>';
+    html += '</div>';
     html += '<label>Entidad Federativa</label>';
     html += '<select id="zrg-ed-federativa-' + ent.idEntidad + '"></select>';
     html += '<div id="zrg-ed-sector-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Sector Económico</label><select id="zrg-ed-sector-' + ent.idEntidad + '"></select></div>';
@@ -839,9 +852,9 @@
       window.zrgAgregarFilaPlantel(elContenedorPlantelesEd.id, p.nombre, p.direccion);
     });
 
-    actualizarCamposPorTipo(ent.tipo, 'zrg-ed-sector-wrap-' + ent.idEntidad, 'zrg-ed-pubpriv-wrap-' + ent.idEntidad, 'zrg-ed-religion-wrap-' + ent.idEntidad);
+    actualizarCamposPorTipo(ent.tipo, 'zrg-ed-sector-wrap-' + ent.idEntidad, 'zrg-ed-pubpriv-wrap-' + ent.idEntidad, 'zrg-ed-religion-wrap-' + ent.idEntidad, 'zrg-ed-planteles-wrap-' + ent.idEntidad, 'zrg-ed-planteles-' + ent.idEntidad);
     document.getElementById('zrg-ed-tipo-' + ent.idEntidad).addEventListener('change', function() {
-      actualizarCamposPorTipo(this.value, 'zrg-ed-sector-wrap-' + ent.idEntidad, 'zrg-ed-pubpriv-wrap-' + ent.idEntidad, 'zrg-ed-religion-wrap-' + ent.idEntidad);
+      actualizarCamposPorTipo(this.value, 'zrg-ed-sector-wrap-' + ent.idEntidad, 'zrg-ed-pubpriv-wrap-' + ent.idEntidad, 'zrg-ed-religion-wrap-' + ent.idEntidad, 'zrg-ed-planteles-wrap-' + ent.idEntidad, 'zrg-ed-planteles-' + ent.idEntidad);
     });
 
     var elBtnGuardarEd = document.getElementById('zrg-btn-guardar-ed-' + ent.idEntidad);
