@@ -144,11 +144,15 @@
     return;
   }
 
-  var ID_ENTIDAD;
+  var ID_ENTIDAD, MODULO_SOLICITADO;
   try {
-    ID_ENTIDAD = new URLSearchParams(window.top.location.search).get('entidad') || '';
+    var paramsUrl = new URLSearchParams(window.top.location.search);
+    ID_ENTIDAD = paramsUrl.get('entidad') || '';
+    MODULO_SOLICITADO = paramsUrl.get('modulo') || '';
   } catch (e) {
-    ID_ENTIDAD = new URLSearchParams(window.location.search).get('entidad') || '';
+    var paramsUrlLocal = new URLSearchParams(window.location.search);
+    ID_ENTIDAD = paramsUrlLocal.get('entidad') || '';
+    MODULO_SOLICITADO = paramsUrlLocal.get('modulo') || '';
   }
 
   var BASE_URL = 'https://script.google.com/macros/s/AKfycbxNl4ATBbC5fKm6SvIFwnApzEYt_qCkSSEcL-RXqoDucXSDcQjj_oOzWSL0oaGT5Qnn/exec';
@@ -198,7 +202,7 @@
       .catch(function() { callback([]); });
   }
 
-  fetch(BASE_URL + '?accion=horariosPorEntidad&entidad=' + encodeURIComponent(ID_ENTIDAD))
+  fetch(BASE_URL + '?accion=horariosPorEntidad&entidad=' + encodeURIComponent(ID_ENTIDAD) + (MODULO_SOLICITADO ? '&modulo=' + encodeURIComponent(MODULO_SOLICITADO) : ''))
     .then(function(res) { return res.json(); })
     .then(function(data) {
       elCargando.style.display = 'none';
