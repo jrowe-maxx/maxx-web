@@ -72,8 +72,12 @@
   <select id="zrg-alta-tipo">
     <option value="Escuela">Escuela</option>
     <option value="Empresa">Empresa</option>
-    <option value="Personal">Personal</option>
-    <option value="Religioso">Religioso</option>
+    <option value="Personal">Grupo Personal</option>
+    <option value="Religioso">Grupo Religioso</option>
+    <option value="Grupo de Facebook">Grupo de Facebook</option>
+    <option value="Grupo de Instagram">Grupo de Instagram</option>
+    <option value="Grupo de WhatsApp">Grupo de WhatsApp</option>
+    <option value="Grupo en Otra Red Social">Grupo en Otra Red Social</option>
     <option value="Otro">Otro</option>
   </select>
   <label>Ubicación/Plantel</label>
@@ -114,8 +118,12 @@
         <option value="">Todos</option>
         <option value="Escuela">Escuela</option>
         <option value="Empresa">Empresa</option>
-        <option value="Personal">Personal</option>
-        <option value="Religioso">Religioso</option>
+        <option value="Personal">Grupo Personal</option>
+        <option value="Religioso">Grupo Religioso</option>
+        <option value="Grupo de Facebook">Grupo de Facebook</option>
+        <option value="Grupo de Instagram">Grupo de Instagram</option>
+        <option value="Grupo de WhatsApp">Grupo de WhatsApp</option>
+        <option value="Grupo en Otra Red Social">Grupo en Otra Red Social</option>
         <option value="Otro">Otro</option>
       </select>
     </div>
@@ -609,8 +617,8 @@
     html += '<input type="text" id="zrg-ed-nombre-' + ent.idEntidad + '" value="' + String(ent.nombre || '').replace(/"/g, '&quot;') + '">';
     html += '<label>Tipo</label>';
     html += '<select id="zrg-ed-tipo-' + ent.idEntidad + '">';
-    ['Escuela', 'Empresa', 'Personal', 'Religioso', 'Otro'].forEach(function(t) {
-      html += '<option value="' + t + '"' + (ent.tipo === t ? ' selected' : '') + '>' + t + '</option>';
+    [{v:'Escuela',t:'Escuela'},{v:'Empresa',t:'Empresa'},{v:'Personal',t:'Grupo Personal'},{v:'Religioso',t:'Grupo Religioso'},{v:'Grupo de Facebook',t:'Grupo de Facebook'},{v:'Grupo de Instagram',t:'Grupo de Instagram'},{v:'Grupo de WhatsApp',t:'Grupo de WhatsApp'},{v:'Grupo en Otra Red Social',t:'Grupo en Otra Red Social'},{v:'Otro',t:'Otro'}].forEach(function(opcion) {
+      html += '<option value="' + opcion.v + '"' + (ent.tipo === opcion.v ? ' selected' : '') + '>' + opcion.t + '</option>';
     });
     html += '</select>';
     html += '<label>Ubicación/Plantel</label>';
