@@ -48,6 +48,9 @@
 #rp-recuperar-caja { display: none; background: #F5F9FE; border: 2px solid #E6F1FB; border-radius: 10px; padding: 14px 16px; margin: 0 0 20px; }
 #rp-recuperar-caja label { display: block; font-size: 13px; color: #042C53; font-weight: bold; margin-bottom: 4px; }
 .rp-recuperar-explicacion { font-size: 12px; color: #185FA5; font-weight: bold; margin: 0 0 12px; line-height: 1.4; }
+.rp-recuperar-alerta { font-size: 15px; color: #185FA5; font-weight: bold; line-height: 1.5; background: #FFE58A; border: 1px solid #F4B400; border-radius: 8px; padding: 14px 16px; margin: 12px 0; }
+#rp-recuperar-no-encontrado .rp-btn-secundario { background: #EF9F27; }
+#rp-recuperar-no-encontrado .rp-btn-secundario:hover { background: #F5B34F; }
 #rp-recuperar-caja input { width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 10px; border: 2px solid #E6F1FB; border-radius: 8px; font-size: 15px; font-family: Arial, sans-serif; }
 .rp-btn-secundario { background: #185FA5; color: white; border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; }
 .rp-btn-secundario:hover { background: #378ADD; }
@@ -59,10 +62,19 @@
   <button type="button" class="rp-recuperar-link" id="rp-recuperar-link">¿Ya te registraste antes y perdiste TU código? Haz clic aquí</button>
   <div id="rp-recuperar-caja">
     <p class="rp-recuperar-explicacion">Usar siempre TU MISMO código nos permite llevar TU historial de Módulos ya cursados. Antes de registrarte de nuevo, busca aquí si ya tienes uno.</p>
-    <label>Escribe TU correo</label>
+    <label>TU correo (si lo tienes)</label>
     <input type="email" id="rp-recuperar-correo" placeholder="tucorreo@ejemplo.com">
-    <button type="button" class="rp-btn-secundario" id="rp-btn-recuperar">Enviarme mi código</button>
+    <label>TU teléfono (si lo tienes)</label>
+    <input type="tel" id="rp-recuperar-telefono" placeholder="10 dígitos">
+    <button type="button" class="rp-btn-secundario" id="rp-btn-recuperar">Buscar mi código</button>
     <div id="rp-recuperar-msg"></div>
+    <div id="rp-recuperar-no-encontrado" style="display:none;">
+      <p class="rp-recuperar-alerta">El correo y/o teléfono que has escrito NO están registrados.<br><br>
+      Si ya te habías registrado antes, intenta con algún otro correo y/o teléfono que tengas.<br><br>
+      — Usar TU MISMO código nos permite llevar TU historial de Módulos.<br><br>
+      Si de plano no tienes uno, oprime el botón siguiente...</p>
+      <button type="button" class="rp-btn-secundario" id="rp-btn-nuevo-registro">Nuevo Registro</button>
+    </div>
   </div>
 
   <div id="rp-modulo-contenido">
@@ -167,37 +179,49 @@
   var elRecuperarLink = document.getElementById('rp-recuperar-link');
   var elRecuperarCaja = document.getElementById('rp-recuperar-caja');
   var elRecuperarCorreo = document.getElementById('rp-recuperar-correo');
+  var elRecuperarTelefono = document.getElementById('rp-recuperar-telefono');
   var elBtnRecuperar = document.getElementById('rp-btn-recuperar');
   var elRecuperarMsg = document.getElementById('rp-recuperar-msg');
+  var elRecuperarNoEncontrado = document.getElementById('rp-recuperar-no-encontrado');
+  var elBtnNuevoRegistro = document.getElementById('rp-btn-nuevo-registro');
+  var banderaPosibleDuplicado = false;
 
   elRecuperarLink.addEventListener('click', function() {
     var visible = elRecuperarCaja.style.display === 'block';
     elRecuperarCaja.style.display = visible ? 'none' : 'block';
     elRecuperarMsg.textContent = '';
+    elRecuperarNoEncontrado.style.display = 'none';
   });
 
   elBtnRecuperar.addEventListener('click', function() {
     var correo = (elRecuperarCorreo.value || '').trim();
-    if (!correo || correo.indexOf('@') === -1) {
-      elRecuperarMsg.textContent = 'Escribe un correo válido.';
+    var telefono = (elRecuperarTelefono.value || '').trim();
+    if (!correo && !telefono) {
+      elRecuperarMsg.textContent = 'Escribe TU correo o TU teléfono.';
+      elRecuperarMsg.style.color = '#791F1F';
+      return;
+    }
+    if (correo && correo.indexOf('@') === -1) {
+      elRecuperarMsg.textContent = 'Ese correo no se ve válido.';
       elRecuperarMsg.style.color = '#791F1F';
       return;
     }
     elBtnRecuperar.disabled = true;
     elRecuperarMsg.style.color = '#042C53';
-    elRecuperarMsg.textContent = 'Enviando...';
+    elRecuperarMsg.textContent = 'Buscando...';
+    elRecuperarNoEncontrado.style.display = 'none';
     fetch(BASE_URL, {
       method: 'POST',
-      body: JSON.stringify({ accion: 'recuperarCodigoPersonal', correo: correo })
+      body: JSON.stringify({ accion: 'recuperarCodigoPersonal', correo: correo, telefono: telefono })
     })
       .then(function(res) { return res.json(); })
       .then(function(data) {
         if (data.encontrado) {
           elRecuperarMsg.style.color = '#27500A';
-          elRecuperarMsg.textContent = '¡Sí! Ese correo SÍ está registrado — en unos momentos te va a llegar TU código (revisa también SPAM).';
+          elRecuperarMsg.textContent = '¡Sí! Encontramos TU registro — en unos momentos te va a llegar TU código a TU correo registrado (revisa también SPAM).';
         } else {
-          elRecuperarMsg.style.color = '#791F1F';
-          elRecuperarMsg.textContent = 'Ese correo NO está registrado. Si ya te habías registrado antes, intenta con otro correo que hayas usado — usar TU MISMO código nos permite llevar TU historial de Módulos. Si de plano no tienes uno, ciérra esto y regístrate abajo.';
+          elRecuperarMsg.textContent = '';
+          elRecuperarNoEncontrado.style.display = 'block';
         }
       })
       .catch(function() {
@@ -207,6 +231,17 @@
       .finally(function() {
         elBtnRecuperar.disabled = false;
       });
+  });
+
+  elBtnNuevoRegistro.addEventListener('click', function() {
+    // La persona confirmó que NO la encontramos ni por correo ni por
+    // teléfono, y aun así decide registrarse de nuevo. No la
+    // bloqueamos — pero marcamos su futuro registro para que Javier
+    // lo revise después a mano (buscando coincidencias por nombre) y
+    // mantenga limpia la base de datos.
+    banderaPosibleDuplicado = true;
+    elRecuperarCaja.style.display = 'none';
+    elRecuperarLink.style.display = 'none';
   });
 
   var ENTIDADES_FEDERATIVAS = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas',
@@ -430,7 +465,8 @@
         moduloSugerido: Number(MODULO_SOLICITADO) || 1,
         nombres: nombres, apellidos: apellidos, correo: correo, telefono: telefono,
         edad: edad, genero: genero, rol: rol, codigoPostal: codigoPostal, pais: pais,
-        entidadFederativa: entidadFederativa, diasHoras: diasHoras
+        entidadFederativa: entidadFederativa, diasHoras: diasHoras,
+        posibleDuplicado: banderaPosibleDuplicado
       };
     } else {
       accionEnvio = 'registrarParticipante';
@@ -439,7 +475,8 @@
         idHorario: idHorarioElegido, codigoGrupo: codigoGrupoElegido,
         nombres: nombres, apellidos: apellidos, correo: correo, telefono: telefono,
         edad: edad, genero: genero, rol: rol, codigoPostal: codigoPostal, pais: pais,
-        entidadFederativa: entidadFederativa
+        entidadFederativa: entidadFederativa,
+        posibleDuplicado: banderaPosibleDuplicado
       };
     }
 
