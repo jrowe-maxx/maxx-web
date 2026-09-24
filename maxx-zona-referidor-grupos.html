@@ -687,39 +687,27 @@
     } else {
       ent.grupos.forEach(function(g, indiceGrupo) {
         var maxModuloAgendado = 0;
-        var horarioMasAlto = null;
-        (g.horarios || []).forEach(function(h) {
-          if (h.numeroModulo > maxModuloAgendado) { maxModuloAgendado = h.numeroModulo; horarioMasAlto = h; }
-        });
+        (g.horarios || []).forEach(function(h) { if (h.numeroModulo > maxModuloAgendado) maxModuloAgendado = h.numeroModulo; });
         var siguienteModulo = maxModuloAgendado < 7 ? maxModuloAgendado + 1 : null;
 
         html += '<div class="zrg-linea" style="border-top:1px dashed #E6F1FB; padding-top:8px; margin-top:8px;">';
         html += '<b>Grupo ' + (indiceGrupo + 1) + '</b> <span style="color:#999; font-size:11px;">(' + g.codigoGrupo + ')</span> <span class="zrg-tag zrg-tag-etapa" style="margin-left:4px;">' + (g.etapaFunnel || 'Registrado') + '</span>';
 
-        if (horarioMasAlto) {
-          html += '<div class="zrg-linea">📅 Módulo ' + horarioMasAlto.numeroModulo + ' — ' + horarioMasAlto.tituloModulo + ': ' + horarioMasAlto.fecha + ' ' + horarioMasAlto.hora + ' · ' + horarioMasAlto.registrados + '/' + horarioMasAlto.cupoMaximo + ' registrados</div>';
-        } else {
+        if (!g.horarios || g.horarios.length === 0) {
           html += '<div class="zrg-linea" style="color:#639922;">Módulo 1 pendiente de agendar — sin horario todavía.</div>';
+        } else {
+          g.horarios.slice().sort(function(a, b) { return a.numeroModulo - b.numeroModulo; }).forEach(function(h) {
+            html += '<div class="zrg-linea">📅 Módulo ' + h.numeroModulo + ' — ' + h.tituloModulo + ': ' + h.fecha + ' ' + h.hora + ' · ' + h.registrados + '/' + h.cupoMaximo + ' registrados · <b>' + h.estadoSesion + '</b>' +
+              ' <button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgConvertirSugerencias(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Convertir sugerencias</button></div>';
+          });
         }
         if (siguienteModulo === null) {
           html += '<div class="zrg-linea" style="color:#639922;">✓ Los 7 Módulos ya tienen horario.</div>';
         }
 
-        html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgVerHistorialHorarios(\'' + g.codigoGrupo + '\')">Ver historial completo</button> ';
         if (siguienteModulo !== null) {
           html += '<button class="zrg-btn zrg-btn-chico" onclick="window.zrgMostrarFormAgendar(\'' + ent.idEntidad + '\', \'' + g.codigoGrupo + '\', ' + siguienteModulo + ')">+ Agendar próxima sesión</button>';
         }
-
-        html += '<div id="zrg-historial-' + g.codigoGrupo + '" class="zrg-oculto" style="margin-top:6px;">';
-        if (!g.horarios || g.horarios.length === 0) {
-          html += '<div class="zrg-linea">Ningún horario todavía.</div>';
-        } else {
-          g.horarios.slice().sort(function(a, b) { return a.numeroModulo - b.numeroModulo; }).forEach(function(h) {
-            html += '<div class="zrg-linea">Módulo ' + h.numeroModulo + ' — ' + h.tituloModulo + ': ' + h.fecha + ' ' + h.hora + ' · ' + h.registrados + '/' + h.cupoMaximo + (h.estado ? ' · ' + h.estado : '') +
-              ' <button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgConvertirSugerencias(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Convertir sugerencias</button></div>';
-          });
-        }
-        html += '</div>';
 
         html += '<div id="zrg-form-agendar-' + g.codigoGrupo + '" class="zrg-oculto" style="margin-top:8px;">';
         html += '<label>Módulo</label><select id="zrg-hor-modulo-' + g.codigoGrupo + '"></select>';
@@ -1001,10 +989,6 @@
         }
       })
       .catch(function() { alert('No se pudo conectar.'); });
-  };
-
-  window.zrgVerHistorialHorarios = function(codigoGrupo) {
-    document.getElementById('zrg-historial-' + codigoGrupo).classList.toggle('zrg-oculto');
   };
 
   window.zrgMostrarFormAgendar = function(idEntidad, codigoGrupo, moduloDefault) {
