@@ -14,6 +14,8 @@
 .zrg-btn-secundario:hover { background: #E6F1FB; }
 .zrg-btn-chico { padding: 6px 12px; font-size: 12px; }
 .zrg-btn-guardado { background: #639922 !important; }
+.zrg-btn-destacado { background: #EF9F27 !important; color: white !important; border: none !important; }
+.zrg-btn-destacado:hover { background: #D98A15 !important; }
 #zrg-resultados-busqueda { margin-top: -4px; }
 .zrg-resultado-item { background: #FAECE7; border: 1px solid #F0997B; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 13px; color: #712B13; }
 .zrg-resultado-item strong { display: block; font-size: 14px; margin-bottom: 2px; }
@@ -835,7 +837,7 @@
         } else {
           g.horarios.slice().sort(function(a, b) { return a.numeroModulo - b.numeroModulo; }).forEach(function(h) {
             html += '<div class="zrg-linea">📅 Módulo ' + h.numeroModulo + ' — ' + h.tituloModulo + ': ' + h.fecha + ' ' + h.hora + ' · ' + h.registrados + '/' + h.cupoMaximo + ' registrados · <b>' + h.estadoSesion + '</b>' +
-              (esTipoGrupoAfin(ent.tipo) ? ' <button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgConvertirSugerencias(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Convertir sugerencias</button>' : '') + '</div>';
+              (esTipoGrupoAfin(ent.tipo) ? ' <button class="zrg-btn zrg-btn-destacado zrg-btn-chico" onclick="window.zrgConvertirSugerencias(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Asigna y Envía Horario a Participantes</button>' : '') + '</div>';
           });
         }
         if (siguienteModulo === null) {
@@ -1107,14 +1109,14 @@
             html += '<div class="zrg-linea">' + (i + 1) + '. <b>' + c.dia + ' a las ' + c.hora + '</b> — ' + c.cantidad + ' persona(s) le sirve' + '</div>';
           });
         }
-        html += '<div class="zrg-linea" style="color:#666; margin-top:4px;">Crea el Horario ganador arriba con "+ Agendar próxima sesión", y luego haz clic en "Convertir sugerencias" — el botón que aparece junto a ese Horario en la lista de "Grupos y Horarios" — para pasarles el horario a todos y mandarles la invitación.</div>';
+        html += '<div class="zrg-linea" style="color:#666; margin-top:4px;">Crea el Horario ganador arriba con "+ Agendar próxima sesión", y luego haz clic en "Asigna y Envía Horario a Participantes" — el botón naranja que aparece junto a ese Horario en la lista de "Grupos y Horarios".</div>';
         elBloque.innerHTML = html;
       })
       .catch(function() { elBloque.innerHTML = '<div class="zrg-linea">No se pudo cargar.</div>'; });
   };
 
   window.zrgConvertirSugerencias = function(idEntidad, idHorario) {
-    if (!confirm('¿Convertir todas las sugerencias pendientes de esta Entidad al Horario ' + idHorario + ' y mandarles la invitación?')) return;
+    if (!confirm('¿Asignar este Horario (' + idHorario + ') a todos los participantes que estaban esperando, y mandarles la invitación por correo?')) return;
     fetch(BASE_URL, {
       method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ accion: 'convertirSugerenciasAHorario', ref: REF, idEntidad: idEntidad, idHorario: idHorario })
