@@ -33,6 +33,9 @@
 #rp-form-datos h2 { color: #042C53; font-size: 16px; margin-bottom: 4px; }
 #rp-estado { font-size: 13px; margin: 10px 0; min-height: 18px; }
 .rp-estado-error { color: #791F1F; font-weight: bold; }
+.rp-aviso-check { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #042C53; font-weight: normal; margin: 4px 0 14px; cursor: pointer; }
+.rp-aviso-check input { width: auto; margin: 3px 0 0; flex: 0 0 auto; }
+.rp-aviso-check a { color: #185FA5; font-weight: bold; }
 #rp-exito { display: none; text-align: center; padding: 30px 16px; background: #EAF3DE; border-radius: 10px; }
 #rp-exito .rp-codigo { font-size: 28px; font-weight: bold; color: #27500A; letter-spacing: 2px; margin: 10px 0; }
 .rp-fila-doble { display: flex; gap: 10px; }
@@ -56,9 +59,69 @@
 .rp-btn-secundario:hover { background: #378ADD; }
 .rp-btn-secundario:disabled { background: #ccc; cursor: default; }
 #rp-recuperar-msg { font-size: 13px; margin-top: 10px; color: #042C53; }
+#rp-gate-modulo { display: none; background: #F5F9FE; border: 2px solid #E6F1FB; border-radius: 12px; padding: 20px 18px; margin-bottom: 20px; }
+#rp-gate-modulo h2 { color: #042C53; font-size: 18px; margin: 0 0 6px; }
+#rp-gate-modulo .rp-gate-sub { color: #185FA5; font-size: 14px; margin: 0 0 16px; line-height: 1.4; }
+#rp-gate-modulo label { display: block; font-size: 13px; color: #042C53; font-weight: bold; margin-bottom: 4px; }
+#rp-gate-modulo input, #rp-gate-modulo select { width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 10px; border: 2px solid #E6F1FB; border-radius: 8px; font-size: 15px; font-family: Arial, sans-serif; }
+#rp-gate-codigo-input { text-transform: uppercase; font-size: 20px; letter-spacing: 3px; text-align: center; font-weight: bold; }
+#rp-gate-estado { font-size: 13px; margin: 4px 0 14px; min-height: 16px; }
+.rp-gate-olvide-link { display: block; width: 100%; text-align: center; font-size: 13px; color: #185FA5; font-weight: bold; text-decoration: underline; cursor: pointer; background: none; border: none; padding: 0; margin: 4px 0 0; font-family: Arial, sans-serif; }
+#rp-gate-recuperar-caja { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid #E6F1FB; }
+#rp-gate-apoyo-caja { display: none; margin-top: 12px; }
+.rp-gate-apoyo-nota { font-size: 13px; color: #185FA5; font-weight: bold; margin: 0 0 12px; line-height: 1.4; }
 </style>
 
 <div id="rp-wrap">
+  <div id="rp-gate-modulo">
+    <h2>Ingresa TU Código Personal</h2>
+    <p class="rp-gate-sub" id="rp-gate-sub-texto">Para continuar con este Módulo, necesitamos verificar TU código personal (el que te mandamos por correo cuando te registraste).</p>
+    <input type="text" id="rp-gate-codigo-input" placeholder="Ej. AB12CD" maxlength="6">
+    <button type="button" class="rp-btn" id="rp-btn-gate-continuar">Continuar</button>
+    <div id="rp-gate-estado"></div>
+    <button type="button" class="rp-gate-olvide-link" id="rp-gate-olvide-link">¿No tienes o no encuentras TU código?</button>
+
+    <div id="rp-gate-recuperar-caja">
+      <p class="rp-recuperar-explicacion">Busca TU código por correo y/o teléfono.</p>
+      <label>TU correo (si lo tienes)</label>
+      <input type="email" id="rp-gate-recuperar-correo" placeholder="tucorreo@ejemplo.com">
+      <label>TU teléfono (si lo tienes)</label>
+      <input type="tel" id="rp-gate-recuperar-telefono" placeholder="10 dígitos">
+      <button type="button" class="rp-btn-secundario" id="rp-btn-gate-recuperar">Buscar mi código</button>
+      <div id="rp-gate-recuperar-msg"></div>
+
+      <div id="rp-gate-no-encontrado" style="display:none;">
+        <p class="rp-recuperar-alerta">El correo y/o teléfono que has escrito NO están registrados.<br><br>
+        Si ya te habías registrado antes, intenta con algún otro correo y/o teléfono que tengas.<br><br>
+        — Usar TU MISMO código nos permite llevar TU historial de Módulos.<br><br>
+        Si de plano no lo encuentras, llena tus datos abajo y manda una Solicitud de Apoyo — nosotros lo revisamos a mano.</p>
+        <button type="button" class="rp-btn-secundario" id="rp-btn-mostrar-apoyo" style="background:#EF9F27;">Llenar Solicitud de Apoyo</button>
+      </div>
+
+      <div id="rp-gate-apoyo-caja">
+        <p class="rp-gate-apoyo-nota">Cuéntanos TUS datos y en breve te contactamos.</p>
+        <div class="rp-fila-doble">
+          <div><label>Nombre(s) <span class="rp-obligatorio">*</span></label><input type="text" id="rp-apoyo-nombres"></div>
+          <div><label>Apellido(s) <span class="rp-obligatorio">*</span></label><input type="text" id="rp-apoyo-apellidos"></div>
+        </div>
+        <label>Correo <span class="rp-obligatorio">*</span></label>
+        <input type="email" id="rp-apoyo-correo">
+        <label>Teléfono (10 dígitos) <span class="rp-obligatorio">*</span></label>
+        <input type="tel" id="rp-apoyo-telefono">
+        <div class="rp-fila-doble">
+          <div><label>Edad</label><input type="text" id="rp-apoyo-edad"></div>
+          <div><label>Código Postal</label><input type="text" id="rp-apoyo-cp"></div>
+        </div>
+        <label class="rp-aviso-check">
+          <input type="checkbox" id="rp-apoyo-acepto-aviso">
+          <span>He leído y acepto el <a href="https://maxx.mx/#aviso" target="_blank" rel="noopener">Aviso de Privacidad</a> de MAXX. <span class="rp-obligatorio">*</span></span>
+        </label>
+        <button type="button" class="rp-btn-secundario" id="rp-btn-enviar-apoyo" style="background:#EF9F27;">Enviar Solicitud de Apoyo</button>
+        <div id="rp-apoyo-msg"></div>
+      </div>
+    </div>
+  </div>
+
   <button type="button" class="rp-recuperar-link" id="rp-recuperar-link">¿Ya te registraste antes y perdiste TU código? Haz clic aquí</button>
   <div id="rp-recuperar-caja">
     <p class="rp-recuperar-explicacion">Usar siempre TU MISMO código nos permite llevar TU historial de Módulos ya cursados. Antes de registrarte de nuevo, busca aquí si ya tienes uno.</p>
@@ -139,6 +202,11 @@
       <div id="rp-horas-por-dia"></div>
       <p class="rp-nota-sugerencia">En cuanto se reúnan suficientes personas, te avisamos por correo la fecha y hora final, según lo que la mayoría prefirió.</p>
     </div>
+
+    <label class="rp-aviso-check">
+      <input type="checkbox" id="rp-acepto-aviso">
+      <span>He leído y acepto el <a href="https://maxx.mx/#aviso" target="_blank" rel="noopener">Aviso de Privacidad</a> de MAXX. <span class="rp-obligatorio">*</span></span>
+    </label>
 
     <button class="rp-btn" id="rp-btn-registrar">Confirmar mi registro</button>
     <div id="rp-estado" class="rp-estado-error"></div>
@@ -305,6 +373,176 @@
     });
   });
 
+  // ---- Módulo 2+: candado de Código Personal ("como contraseña") ----
+  var elGateModulo = document.getElementById('rp-gate-modulo');
+  var elGateCodigoInput = document.getElementById('rp-gate-codigo-input');
+  var elBtnGateContinuar = document.getElementById('rp-btn-gate-continuar');
+  var elGateEstado = document.getElementById('rp-gate-estado');
+  var elGateOlvideLink = document.getElementById('rp-gate-olvide-link');
+  var elGateRecuperarCaja = document.getElementById('rp-gate-recuperar-caja');
+  var elGateRecuperarCorreo = document.getElementById('rp-gate-recuperar-correo');
+  var elGateRecuperarTelefono = document.getElementById('rp-gate-recuperar-telefono');
+  var elBtnGateRecuperar = document.getElementById('rp-btn-gate-recuperar');
+  var elGateRecuperarMsg = document.getElementById('rp-gate-recuperar-msg');
+  var elGateNoEncontrado = document.getElementById('rp-gate-no-encontrado');
+  var elBtnMostrarApoyo = document.getElementById('rp-btn-mostrar-apoyo');
+  var elGateApoyoCaja = document.getElementById('rp-gate-apoyo-caja');
+  var elBtnEnviarApoyo = document.getElementById('rp-btn-enviar-apoyo');
+  var elApoyoMsg = document.getElementById('rp-apoyo-msg');
+  var apoyoYaEnviado = false;
+
+  elBtnGateContinuar.addEventListener('click', function() {
+    var codigo = (elGateCodigoInput.value || '').trim();
+    if (!codigo) {
+      elGateEstado.style.color = '#791F1F';
+      elGateEstado.textContent = 'Escribe TU código personal.';
+      return;
+    }
+    elBtnGateContinuar.disabled = true;
+    elGateEstado.style.color = '#042C53';
+    elGateEstado.textContent = 'Verificando...';
+    fetch(BASE_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'verificarCodigoPersonal', codigoPersonal: codigo, idEntidad: ID_ENTIDAD })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.valido) {
+          var d = data.datos || {};
+          document.getElementById('rp-nombres').value = d.nombres || '';
+          document.getElementById('rp-apellidos').value = d.apellidos || '';
+          document.getElementById('rp-correo').value = d.correo || '';
+          document.getElementById('rp-correo-confirma').value = d.correo || '';
+          document.getElementById('rp-telefono').value = d.telefono || '';
+          document.getElementById('rp-telefono-confirma').value = d.telefono || '';
+          document.getElementById('rp-edad').value = d.edad || '';
+          document.getElementById('rp-genero').value = d.genero || '';
+          document.getElementById('rp-rol').value = d.rol || '';
+          document.getElementById('rp-cp').value = d.codigoPostal || '';
+          document.getElementById('rp-pais').value = d.pais || 'México';
+          document.getElementById('rp-entidad-federativa').value = d.entidadFederativa || '';
+          elGateEstado.textContent = '';
+          elGateModulo.style.display = 'none';
+          iniciarFlujoDeRegistro();
+        } else {
+          elGateEstado.style.color = '#791F1F';
+          elGateEstado.textContent = 'Ese código no es válido para esta Entidad. Revísalo, o busca TU código abajo.';
+        }
+      })
+      .catch(function() {
+        elGateEstado.style.color = '#791F1F';
+        elGateEstado.textContent = 'No se pudo verificar en este momento. Intenta de nuevo en unos minutos.';
+      })
+      .finally(function() {
+        elBtnGateContinuar.disabled = false;
+      });
+  });
+
+  elGateOlvideLink.addEventListener('click', function() {
+    var visible = elGateRecuperarCaja.style.display === 'block';
+    elGateRecuperarCaja.style.display = visible ? 'none' : 'block';
+    elGateRecuperarMsg.textContent = '';
+    elGateNoEncontrado.style.display = 'none';
+    elGateApoyoCaja.style.display = 'none';
+  });
+
+  elBtnGateRecuperar.addEventListener('click', function() {
+    var correo = (elGateRecuperarCorreo.value || '').trim();
+    var telefono = (elGateRecuperarTelefono.value || '').trim();
+    if (!correo && !telefono) {
+      elGateRecuperarMsg.style.color = '#791F1F';
+      elGateRecuperarMsg.textContent = 'Escribe TU correo o TU teléfono.';
+      return;
+    }
+    if (correo && correo.indexOf('@') === -1) {
+      elGateRecuperarMsg.style.color = '#791F1F';
+      elGateRecuperarMsg.textContent = 'Ese correo no se ve válido.';
+      return;
+    }
+    elBtnGateRecuperar.disabled = true;
+    elGateRecuperarMsg.style.color = '#042C53';
+    elGateRecuperarMsg.textContent = 'Buscando...';
+    elGateNoEncontrado.style.display = 'none';
+    fetch(BASE_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'recuperarCodigoPersonal', correo: correo, telefono: telefono })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.encontrado) {
+          elGateRecuperarMsg.style.color = '#27500A';
+          elGateRecuperarMsg.textContent = '¡Sí! Encontramos TU registro — en unos momentos te va a llegar TU código a TU correo registrado (revisa también SPAM).';
+        } else {
+          elGateRecuperarMsg.textContent = '';
+          elGateNoEncontrado.style.display = 'block';
+        }
+      })
+      .catch(function() {
+        elGateRecuperarMsg.style.color = '#791F1F';
+        elGateRecuperarMsg.textContent = 'No se pudo checar en este momento. Intenta de nuevo en unos minutos.';
+      })
+      .finally(function() {
+        elBtnGateRecuperar.disabled = false;
+      });
+  });
+
+  elBtnMostrarApoyo.addEventListener('click', function() {
+    elGateApoyoCaja.style.display = 'block';
+  });
+
+  elBtnEnviarApoyo.addEventListener('click', function() {
+    if (apoyoYaEnviado) return;
+    var nombresApoyo = document.getElementById('rp-apoyo-nombres').value.trim();
+    var apellidosApoyo = document.getElementById('rp-apoyo-apellidos').value.trim();
+    var correoApoyo = document.getElementById('rp-apoyo-correo').value.trim();
+    var telefonoApoyo = document.getElementById('rp-apoyo-telefono').value.trim();
+    var edadApoyo = document.getElementById('rp-apoyo-edad').value.trim();
+    var cpApoyo = document.getElementById('rp-apoyo-cp').value.trim();
+
+    if (!nombresApoyo || !apellidosApoyo) { elApoyoMsg.style.color = '#791F1F'; elApoyoMsg.textContent = 'Escribe TU nombre y apellido.'; return; }
+    if (!correoApoyo) { elApoyoMsg.style.color = '#791F1F'; elApoyoMsg.textContent = 'Escribe TU correo.'; return; }
+    if (!telefonoApoyo) { elApoyoMsg.style.color = '#791F1F'; elApoyoMsg.textContent = 'Escribe TU teléfono.'; return; }
+    if (!document.getElementById('rp-apoyo-acepto-aviso').checked) {
+      elApoyoMsg.style.color = '#791F1F';
+      elApoyoMsg.textContent = 'Debes aceptar el Aviso de Privacidad para continuar.';
+      return;
+    }
+
+    elBtnEnviarApoyo.disabled = true;
+    elApoyoMsg.style.color = '#042C53';
+    elApoyoMsg.textContent = 'Enviando...';
+
+    fetch(BASE_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        accion: 'solicitarApoyo',
+        idEntidad: ID_ENTIDAD,
+        moduloSolicitado: Number(MODULO_SOLICITADO) || 0,
+        nombres: nombresApoyo, apellidos: apellidosApoyo, correo: correoApoyo, telefono: telefonoApoyo,
+        edad: edadApoyo, genero: '', rol: '', codigoPostal: cpApoyo, pais: 'México', entidadFederativa: ''
+      })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.exito) {
+          apoyoYaEnviado = true;
+          elApoyoMsg.style.color = '#27500A';
+          elApoyoMsg.textContent = '¡Listo! Tu solicitud fue enviada — en breve te contactamos.';
+          elBtnEnviarApoyo.textContent = 'Solicitud enviada';
+          elBtnEnviarApoyo.disabled = true;
+        } else {
+          elBtnEnviarApoyo.disabled = false;
+          elApoyoMsg.style.color = '#791F1F';
+          elApoyoMsg.textContent = data.error || 'No se pudo enviar. Intenta de nuevo.';
+        }
+      })
+      .catch(function() {
+        elBtnEnviarApoyo.disabled = false;
+        elApoyoMsg.style.color = '#791F1F';
+        elApoyoMsg.textContent = 'No se pudo conectar. Intenta de nuevo.';
+      });
+  });
+
   if (!ID_ENTIDAD) {
     elCargando.style.display = 'none';
     elSinHorarios.style.display = 'block';
@@ -321,7 +559,9 @@
       .catch(function() { callback([]); });
   }
 
-  fetch(BASE_URL + '?accion=horariosPorEntidad&entidad=' + encodeURIComponent(ID_ENTIDAD) + (MODULO_SOLICITADO ? '&modulo=' + encodeURIComponent(MODULO_SOLICITADO) : ''))
+  function iniciarFlujoDeRegistro() {
+    elCargando.style.display = 'block';
+    fetch(BASE_URL + '?accion=horariosPorEntidad&entidad=' + encodeURIComponent(ID_ENTIDAD) + (MODULO_SOLICITADO ? '&modulo=' + encodeURIComponent(MODULO_SOLICITADO) : ''))
     .then(function(res) { return res.json(); })
     .then(function(data) {
       elCargando.style.display = 'none';
@@ -355,6 +595,23 @@
     .catch(function() {
       elCargando.textContent = 'No se pudo cargar. Recarga la página.';
     });
+  }
+
+  // A partir del Módulo 2, es MUY probable que la persona ya tenga
+  // Código Personal de un Módulo anterior — así que en vez de mandarla
+  // derecho al formulario (y arriesgar un registro duplicado con
+  // datos nuevos), primero le pedimos su código, como si fuera una
+  // contraseña. El Módulo 1 no pasa por este candado porque ahí sí es
+  // normal que todavía no tengan código.
+  var MODULO_NUM = Number(MODULO_SOLICITADO) || 0;
+  if (MODULO_NUM >= 2) {
+    document.getElementById('rp-gate-sub-texto').textContent =
+      'Para el Módulo ' + MODULO_NUM + ' necesitamos verificar TU código personal (el que te mandamos por correo cuando te registraste antes).';
+    elRecuperarLink.style.display = 'none';
+    document.getElementById('rp-gate-modulo').style.display = 'block';
+  } else {
+    iniciarFlujoDeRegistro();
+  }
 
   function mostrarModoSugerencia() {
     modoActual = 'sugerencia';
@@ -437,6 +694,7 @@
     if (!codigoPostal) { elEstado.textContent = 'Escribe TU Código Postal.'; return; }
     if (!pais) { elEstado.textContent = 'Escribe TU País.'; return; }
     if (!entidadFederativa) { elEstado.textContent = 'Elige TU Entidad Federativa.'; return; }
+    if (!document.getElementById('rp-acepto-aviso').checked) { elEstado.textContent = 'Debes aceptar el Aviso de Privacidad para continuar.'; return; }
 
     var diasHoras = [];
     if (modoActual === 'sugerencia') {
