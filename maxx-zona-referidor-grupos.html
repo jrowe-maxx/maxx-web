@@ -860,11 +860,13 @@
         html += '</div>'; // .zrg-linea del grupo
       });
     }
-    html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin-top:8px;" onclick="window.zrgAgregarGrupo(\'' + ent.idEntidad + '\')">+ Agregar Grupo nuevo</button> ';
     if (esTipoGrupoAfin(ent.tipo)) {
       html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin-top:8px;" onclick="window.zrgVerSugerencias(\'' + ent.idEntidad + '\')">Ver sugerencias de horario pendientes</button>';
       html += '<div id="zrg-sugerencias-' + ent.idEntidad + '" class="zrg-oculto" style="margin-top:8px;"></div>';
     }
+    html += '<div style="border-top:1px dashed #E6F1FB; margin-top:12px; padding-top:8px;">';
+    html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgAgregarGrupo(\'' + ent.idEntidad + '\')">+ Agregar Grupo nuevo</button>';
+    html += '</div>';
     html += '<div id="zrg-estado-grupo-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     html += '</div>';
 
@@ -1105,7 +1107,7 @@
             html += '<div class="zrg-linea">' + (i + 1) + '. <b>' + c.dia + ' a las ' + c.hora + '</b> — ' + c.cantidad + ' persona(s) le sirve' + '</div>';
           });
         }
-        html += '<div class="zrg-linea" style="color:#666; margin-top:4px;">Crea el Horario ganador con "+ Agendar próxima sesión" arriba, y luego usa "Convertir sugerencias" junto a ese Horario en "Ver historial completo".</div>';
+        html += '<div class="zrg-linea" style="color:#666; margin-top:4px;">Crea el Horario ganador arriba con "+ Agendar próxima sesión", y luego haz clic en "Convertir sugerencias" — el botón que aparece junto a ese Horario en la lista de "Grupos y Horarios" — para pasarles el horario a todos y mandarles la invitación.</div>';
         elBloque.innerHTML = html;
       })
       .catch(function() { elBloque.innerHTML = '<div class="zrg-linea">No se pudo cargar.</div>'; });
