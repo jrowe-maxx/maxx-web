@@ -837,7 +837,8 @@
         } else {
           g.horarios.slice().sort(function(a, b) { return a.numeroModulo - b.numeroModulo; }).forEach(function(h) {
             html += '<div class="zrg-linea">📅 Módulo ' + h.numeroModulo + ' — ' + h.tituloModulo + ': ' + h.fecha + ' ' + h.hora + ' · ' + h.registrados + '/' + h.cupoMaximo + ' registrados · <b>' + h.estadoSesion + '</b>' +
-              (esTipoGrupoAfin(ent.tipo) ? ' <button class="zrg-btn zrg-btn-destacado zrg-btn-chico" onclick="window.zrgConvertirSugerencias(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Asigna y Envía Horario a Participantes</button>' : '') + '</div>';
+              (esTipoGrupoAfin(ent.tipo) ? ' <button class="zrg-btn zrg-btn-destacado zrg-btn-chico" onclick="window.zrgConvertirSugerencias(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Asigna y Envía Horario a Participantes</button>' : '') +
+              ' <button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgReenviarInvitacion(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Reenviar invitación a todos</button>' + '</div>';
           });
         }
         if (siguienteModulo === null) {
@@ -1129,6 +1130,23 @@
           cargarYFiltrar();
         } else {
           alert(data.error || 'No se pudo convertir.');
+        }
+      })
+      .catch(function() { alert('No se pudo conectar.'); });
+  };
+
+  window.zrgReenviarInvitacion = function(idEntidad, idHorario) {
+    if (!confirm('¿Reenviar el correo de invitación de este Horario (' + idHorario + ') a TODOS los que ya están inscritos en él, aunque ya se les haya mandado antes?')) return;
+    fetch(BASE_URL, {
+      method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: 'reenviarInvitacionHorario', ref: REF, idEntidad: idEntidad, idHorario: idHorario })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.exito) {
+          alert(data.reenviados + ' persona(s) reavisadas por correo.');
+        } else {
+          alert(data.error || 'No se pudo reenviar.');
         }
       })
       .catch(function() { alert('No se pudo conectar.'); });
