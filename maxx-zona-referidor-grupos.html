@@ -838,7 +838,9 @@
           g.horarios.slice().sort(function(a, b) { return a.numeroModulo - b.numeroModulo; }).forEach(function(h) {
             html += '<div class="zrg-linea">📅 Módulo ' + h.numeroModulo + ' — ' + h.tituloModulo + ': ' + h.fecha + ' ' + h.hora + ' · ' + h.registrados + '/' + h.cupoMaximo + ' registrados · <b>' + h.estadoSesion + '</b>' +
               (esTipoGrupoAfin(ent.tipo) ? ' <button class="zrg-btn zrg-btn-destacado zrg-btn-chico" onclick="window.zrgConvertirSugerencias(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Asigna y Envía Horario a Participantes</button>' : '') +
-              ' <button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgReenviarInvitacion(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Reenviar invitación a todos</button>' + '</div>';
+              ' <button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgReenviarInvitacion(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Reenviar invitación a todos</button>' +
+              ' <button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgMostrarQrAsistencia(\'' + h.idHorario + '\')">Mostrar Link/QR de Asistencia</button>' +
+              '<div id="zrg-qr-' + h.idHorario + '" class="zrg-oculto" style="margin-top:8px; background:white; border:2px solid #E6F1FB; border-radius:10px; padding:14px;"></div>' + '</div>';
           });
         }
         if (siguienteModulo === null) {
@@ -1150,6 +1152,20 @@
         }
       })
       .catch(function() { alert('No se pudo conectar.'); });
+  };
+
+  window.zrgMostrarQrAsistencia = function(idHorario) {
+    var elBloque = document.getElementById('zrg-qr-' + idHorario);
+    var abriendo = elBloque.classList.contains('zrg-oculto');
+    elBloque.classList.toggle('zrg-oculto');
+    if (!abriendo) return;
+
+    var url = 'https://maxx.mx/?horario=' + encodeURIComponent(idHorario) + '#confirmar-asistencia';
+    var urlQr = 'https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=' + encodeURIComponent(url);
+    elBloque.innerHTML =
+      '<div style="font-size:12px; color:#042C53; font-weight:bold; margin-bottom:6px;">Muestra este QR o comparte el link EN EL MOMENTO de esta sesión — está ligado a esta Entidad, Módulo y horario exactos:</div>' +
+      '<img src="' + urlQr + '" alt="QR de asistencia" style="display:block; margin:0 auto 10px;">' +
+      '<input type="text" readonly value="' + url + '" style="width:100%; box-sizing:border-box; padding:8px; border:2px solid #E6F1FB; border-radius:8px; font-size:12px; text-align:center;" onclick="this.select();">';
   };
 
   window.zrgMostrarFormAgendar = function(idEntidad, codigoGrupo, moduloDefault) {
