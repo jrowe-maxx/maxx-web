@@ -176,8 +176,8 @@
           elFormConfirmar.style.display = 'none';
           elExitoNombre.textContent = data.nombre || '';
           elExitoMensaje.textContent = data.yaConfirmada
-            ? 'Ya habías confirmado TU asistencia antes — sigue registrada. ¡Nos vemos en la sesión!'
-            : '¡Listo! TU asistencia a esta sesión quedó confirmada.';
+            ? 'TU asistencia a esta sesión ya estaba registrada — no hay problema, sigue registrada.'
+            : '¡Listo! TU asistencia a esta sesión quedó registrada.';
           elExitoCodigo.style.display = 'none';
           elExito.style.display = 'block';
         } else if (data.codigoNoEncontrado) {
