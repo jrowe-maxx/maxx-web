@@ -1,0 +1,255 @@
+<style>
+#ca-wrap { max-width: 640px; margin: 0 auto; font-family: Arial, sans-serif; padding: 24px 16px 60px; }
+#ca-wrap h1 { color: #042C53; font-size: 22px; margin: 0 0 6px 0; }
+#ca-wrap .ca-sub { color: #185FA5; font-size: 14px; margin: 0 0 20px 0; }
+#ca-wrap .ca-obligatorio { color: #791F1F; }
+#ca-wrap input {
+  width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 10px;
+  border: 2px solid #E6F1FB; border-radius: 8px; font-size: 15px; font-family: Arial, sans-serif;
+}
+#ca-wrap label { display: block; font-size: 13px; color: #042C53; font-weight: bold; margin-bottom: 4px; }
+.ca-btn { background: #185FA5; color: white; border: none; border-radius: 8px; padding: 12px 20px; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%; }
+.ca-btn:hover { background: #378ADD; }
+.ca-btn:disabled { background: #ccc; cursor: default; }
+#ca-sesion { background: #E6F1FB; border-radius: 10px; padding: 16px 18px; margin-bottom: 20px; }
+#ca-sesion .ca-s-entidad { font-size: 12px; color: #185FA5; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4px; }
+#ca-sesion .ca-s-modulo { font-size: 17px; font-weight: bold; color: #042C53; margin-top: 2px; }
+#ca-sesion .ca-s-fechahora { font-size: 14px; color: #185FA5; margin-top: 4px; }
+#ca-cargando { text-align: center; color: #185FA5; padding: 30px 0; }
+#ca-error-horario { display: none; text-align: center; color: #791F1F; background: #FAECE7; border-radius: 10px; padding: 20px 16px; }
+#ca-form-confirmar { display: none; }
+#ca-estado { font-size: 13px; margin: 10px 0; min-height: 18px; color: #791F1F; font-weight: bold; }
+#ca-no-encontrado { display: none; font-size: 15px; color: #185FA5; font-weight: bold; line-height: 1.5; background: #FFFBE6; border: 1px solid #FDF0B3; border-radius: 8px; padding: 14px 16px; margin: 14px 0; }
+#ca-form-walkin { display: none; margin-top: 8px; padding-top: 16px; border-top: 1px solid #E6F1FB; }
+#ca-form-walkin h2 { color: #042C53; font-size: 15px; margin: 0 0 12px; }
+.ca-fila-doble { display: flex; gap: 10px; }
+.ca-fila-doble > div { flex: 1; }
+.ca-aviso-check { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #042C53; font-weight: normal; margin: 4px 0 14px; cursor: pointer; }
+#ca-wrap .ca-aviso-check input { width: auto; margin: 3px 0 0; flex: 0 0 auto; }
+.ca-aviso-check a { color: #185FA5; font-weight: bold; }
+#ca-estado-walkin { font-size: 13px; margin: 10px 0; min-height: 18px; color: #791F1F; font-weight: bold; }
+#ca-exito { display: none; text-align: center; padding: 30px 16px; background: #EAF3DE; border-radius: 10px; }
+#ca-exito .ca-nombre { font-size: 18px; font-weight: bold; color: #042C53; margin-bottom: 6px; }
+#ca-exito .ca-mensaje { color: #27500A; font-size: 15px; }
+#ca-exito .ca-codigo-nuevo { font-size: 24px; font-weight: bold; color: #EF9F27; letter-spacing: 2px; margin: 10px 0; }
+</style>
+
+<div id="ca-wrap">
+  <h1>Confirma TU Asistencia</h1>
+  <p class="ca-sub">Escribe TU correo y TU Código Personal para registrar que ya llegaste a esta sesión.</p>
+
+  <div id="ca-cargando">Cargando datos de la sesión...</div>
+  <div id="ca-error-horario"></div>
+
+  <div id="ca-sesion" style="display:none;">
+    <div class="ca-s-entidad" id="ca-s-entidad"></div>
+    <div class="ca-s-modulo" id="ca-s-modulo"></div>
+    <div class="ca-s-fechahora" id="ca-s-fechahora"></div>
+  </div>
+
+  <div id="ca-form-confirmar">
+    <label>TU correo <span class="ca-obligatorio">*</span></label>
+    <input type="email" id="ca-correo" placeholder="tucorreo@ejemplo.com">
+    <label>TU Código Personal <span class="ca-obligatorio">*</span></label>
+    <input type="text" id="ca-codigo" placeholder="Ej. AB12CD" maxlength="6" style="text-transform:uppercase; font-size:18px; letter-spacing:2px; text-align:center; font-weight:bold;">
+    <button type="button" class="ca-btn" id="ca-btn-confirmar">Confirmar mi asistencia</button>
+    <div id="ca-estado"></div>
+
+    <div id="ca-no-encontrado">
+      Ese correo y código no coinciden con ningún registro para esta sesión.<br><br>
+      Si es TU primera vez aquí (no te habías pre-registrado antes), llena tus datos abajo para registrarte y confirmar TU asistencia en este momento.
+    </div>
+
+    <div id="ca-form-walkin">
+      <h2>Regístrate aquí mismo</h2>
+      <div class="ca-fila-doble">
+        <div><label>Nombre(s) <span class="ca-obligatorio">*</span></label><input type="text" id="ca-w-nombres"></div>
+        <div><label>Apellido(s) <span class="ca-obligatorio">*</span></label><input type="text" id="ca-w-apellidos"></div>
+      </div>
+      <label>Correo <span class="ca-obligatorio">*</span></label>
+      <input type="email" id="ca-w-correo">
+      <label>Teléfono (10 dígitos) <span class="ca-obligatorio">*</span></label>
+      <input type="tel" id="ca-w-telefono">
+      <label class="ca-aviso-check">
+        <input type="checkbox" id="ca-w-acepto-aviso">
+        <span>He leído y acepto el <a href="https://maxx.mx/#aviso" target="_blank" rel="noopener">Aviso de Privacidad</a> de MAXX. <span class="ca-obligatorio">*</span></span>
+      </label>
+      <button type="button" class="ca-btn" id="ca-btn-walkin">Registrarme y confirmar asistencia</button>
+      <div id="ca-estado-walkin"></div>
+    </div>
+  </div>
+
+  <div id="ca-exito">
+    <div class="ca-nombre" id="ca-exito-nombre"></div>
+    <div class="ca-mensaje" id="ca-exito-mensaje"></div>
+    <div class="ca-codigo-nuevo" id="ca-exito-codigo" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var hashActual = '';
+  try {
+    hashActual = window.top.location.hash || '';
+  } catch (e) {
+    hashActual = window.location.hash || '';
+  }
+  if (hashActual.indexOf('#confirmar-asistencia') !== 0) {
+    return;
+  }
+
+  var ID_HORARIO;
+  try {
+    var paramsUrl = new URLSearchParams(window.top.location.search);
+    ID_HORARIO = paramsUrl.get('horario') || '';
+  } catch (e) {
+    var paramsUrlLocal = new URLSearchParams(window.location.search);
+    ID_HORARIO = paramsUrlLocal.get('horario') || '';
+  }
+
+  var BASE_URL = 'https://script.google.com/macros/s/AKfycbxNl4ATBbC5fKm6SvIFwnApzEYt_qCkSSEcL-RXqoDucXSDcQjj_oOzWSL0oaGT5Qnn/exec';
+
+  var elCargando = document.getElementById('ca-cargando');
+  var elErrorHorario = document.getElementById('ca-error-horario');
+  var elSesion = document.getElementById('ca-sesion');
+  var elFormConfirmar = document.getElementById('ca-form-confirmar');
+  var elCorreo = document.getElementById('ca-correo');
+  var elCodigo = document.getElementById('ca-codigo');
+  var elBtnConfirmar = document.getElementById('ca-btn-confirmar');
+  var elEstado = document.getElementById('ca-estado');
+  var elNoEncontrado = document.getElementById('ca-no-encontrado');
+  var elFormWalkin = document.getElementById('ca-form-walkin');
+  var elBtnWalkin = document.getElementById('ca-btn-walkin');
+  var elEstadoWalkin = document.getElementById('ca-estado-walkin');
+  var elExito = document.getElementById('ca-exito');
+  var elExitoNombre = document.getElementById('ca-exito-nombre');
+  var elExitoMensaje = document.getElementById('ca-exito-mensaje');
+  var elExitoCodigo = document.getElementById('ca-exito-codigo');
+
+  if (!ID_HORARIO) {
+    elCargando.style.display = 'none';
+    elErrorHorario.style.display = 'block';
+    elErrorHorario.textContent = 'Este link no trae la sesión a la que debes confirmar asistencia. Pide que te compartan el link/QR correcto.';
+    return;
+  }
+
+  fetch(BASE_URL + '?accion=detalleHorario&horario=' + encodeURIComponent(ID_HORARIO))
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+      elCargando.style.display = 'none';
+      if (!data.exito) {
+        elErrorHorario.style.display = 'block';
+        elErrorHorario.textContent = data.error || 'No se pudo cargar la información de esta sesión.';
+        return;
+      }
+      document.getElementById('ca-s-entidad').textContent = data.nombreEntidad || '';
+      document.getElementById('ca-s-modulo').textContent = 'Módulo ' + data.numeroModulo + (data.tituloModulo ? ' — ' + data.tituloModulo : '');
+      document.getElementById('ca-s-fechahora').textContent = data.fecha + ' — ' + data.hora;
+      elSesion.style.display = 'block';
+      elFormConfirmar.style.display = 'block';
+    })
+    .catch(function() {
+      elCargando.style.display = 'none';
+      elErrorHorario.style.display = 'block';
+      elErrorHorario.textContent = 'No se pudo conectar. Recarga la página.';
+    });
+
+  elBtnConfirmar.addEventListener('click', function() {
+    var correo = elCorreo.value.trim();
+    var codigo = elCodigo.value.trim();
+    elEstado.textContent = '';
+    elNoEncontrado.style.display = 'none';
+    elFormWalkin.style.display = 'none';
+
+    if (!correo) { elEstado.textContent = 'Escribe TU correo.'; return; }
+    if (!codigo) { elEstado.textContent = 'Escribe TU Código Personal.'; return; }
+
+    elBtnConfirmar.disabled = true;
+    elBtnConfirmar.textContent = 'Confirmando...';
+
+    fetch(BASE_URL, {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: 'confirmarAsistencia', idHorario: ID_HORARIO, correo: correo, codigoPersonal: codigo })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.exito) {
+          elFormConfirmar.style.display = 'none';
+          elExitoNombre.textContent = data.nombre || '';
+          elExitoMensaje.textContent = data.yaConfirmada
+            ? 'Ya habías confirmado TU asistencia antes — sigue registrada. ¡Nos vemos en la sesión!'
+            : '¡Listo! TU asistencia a esta sesión quedó confirmada.';
+          elExitoCodigo.style.display = 'none';
+          elExito.style.display = 'block';
+        } else if (data.codigoNoEncontrado) {
+          elEstado.textContent = '';
+          elNoEncontrado.style.display = 'block';
+          elFormWalkin.style.display = 'block';
+          document.getElementById('ca-w-correo').value = correo;
+        } else {
+          elEstado.textContent = data.error || 'No se pudo confirmar. Intenta de nuevo.';
+        }
+      })
+      .catch(function() {
+        elEstado.textContent = 'No se pudo conectar. Intenta de nuevo.';
+      })
+      .finally(function() {
+        elBtnConfirmar.disabled = false;
+        elBtnConfirmar.textContent = 'Confirmar mi asistencia';
+      });
+  });
+
+  elBtnWalkin.addEventListener('click', function() {
+    var nombres = document.getElementById('ca-w-nombres').value.trim();
+    var apellidos = document.getElementById('ca-w-apellidos').value.trim();
+    var correo = document.getElementById('ca-w-correo').value.trim();
+    var telefono = document.getElementById('ca-w-telefono').value.trim();
+
+    elEstadoWalkin.textContent = '';
+    if (!nombres || !apellidos) { elEstadoWalkin.textContent = 'Escribe TU nombre y apellido.'; return; }
+    if (!correo) { elEstadoWalkin.textContent = 'Escribe TU correo.'; return; }
+    if (!telefono) { elEstadoWalkin.textContent = 'Escribe TU teléfono.'; return; }
+    if (!document.getElementById('ca-w-acepto-aviso').checked) {
+      elEstadoWalkin.textContent = 'Debes aceptar el Aviso de Privacidad para continuar.';
+      return;
+    }
+
+    elBtnWalkin.disabled = true;
+    elBtnWalkin.textContent = 'Registrando...';
+
+    fetch(BASE_URL, {
+      method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        accion: 'confirmarAsistencia', idHorario: ID_HORARIO,
+        nombres: nombres, apellidos: apellidos, correo: correo, telefono: telefono
+      })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.exito) {
+          elFormConfirmar.style.display = 'none';
+          elExitoNombre.textContent = data.nombre || '';
+          elExitoMensaje.textContent = '¡Listo! Quedaste registrado y TU asistencia a esta sesión quedó confirmada.';
+          if (data.codigoPersonal) {
+            elExitoCodigo.textContent = data.codigoPersonal;
+            elExitoCodigo.style.display = 'block';
+          }
+          elExito.style.display = 'block';
+        } else {
+          elEstadoWalkin.textContent = data.error || 'No se pudo registrar. Intenta de nuevo.';
+        }
+      })
+      .catch(function() {
+        elEstadoWalkin.textContent = 'No se pudo conectar. Intenta de nuevo.';
+      })
+      .finally(function() {
+        elBtnWalkin.disabled = false;
+        elBtnWalkin.textContent = 'Registrarme y confirmar asistencia';
+      });
+  });
+})();
+</script>
