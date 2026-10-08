@@ -234,14 +234,17 @@
   }
 
   var ID_ENTIDAD, MODULO_SOLICITADO;
+  var ORIGEN = { refLiga: '', utmSource: '', utmMedium: '', utmContent: '' };
   try {
     var paramsUrl = new URLSearchParams(window.top.location.search);
     ID_ENTIDAD = paramsUrl.get('entidad') || '';
     MODULO_SOLICITADO = paramsUrl.get('modulo') || '';
+    ORIGEN = { refLiga: paramsUrl.get('ref') || '', utmSource: paramsUrl.get('utm_source') || '', utmMedium: paramsUrl.get('utm_medium') || '', utmContent: paramsUrl.get('utm_content') || '' };
   } catch (e) {
     var paramsUrlLocal = new URLSearchParams(window.location.search);
     ID_ENTIDAD = paramsUrlLocal.get('entidad') || '';
     MODULO_SOLICITADO = paramsUrlLocal.get('modulo') || '';
+    ORIGEN = { refLiga: paramsUrlLocal.get('ref') || '', utmSource: paramsUrlLocal.get('utm_source') || '', utmMedium: paramsUrlLocal.get('utm_medium') || '', utmContent: paramsUrlLocal.get('utm_content') || '' };
   }
 
   var BASE_URL = 'https://script.google.com/macros/s/AKfycbxNl4ATBbC5fKm6SvIFwnApzEYt_qCkSSEcL-RXqoDucXSDcQjj_oOzWSL0oaGT5Qnn/exec';
@@ -729,7 +732,8 @@
         nombres: nombres, apellidos: apellidos, correo: correo, telefono: telefono,
         edad: edad, genero: genero, rol: rol, codigoPostal: codigoPostal, pais: pais,
         entidadFederativa: entidadFederativa, diasHoras: diasHoras,
-        posibleDuplicado: banderaPosibleDuplicado
+        posibleDuplicado: banderaPosibleDuplicado,
+        refLiga: ORIGEN.refLiga, utmSource: ORIGEN.utmSource, utmMedium: ORIGEN.utmMedium, utmContent: ORIGEN.utmContent
       };
     } else {
       accionEnvio = 'registrarParticipante';
@@ -739,7 +743,8 @@
         nombres: nombres, apellidos: apellidos, correo: correo, telefono: telefono,
         edad: edad, genero: genero, rol: rol, codigoPostal: codigoPostal, pais: pais,
         entidadFederativa: entidadFederativa,
-        posibleDuplicado: banderaPosibleDuplicado
+        posibleDuplicado: banderaPosibleDuplicado,
+        refLiga: ORIGEN.refLiga, utmSource: ORIGEN.utmSource, utmMedium: ORIGEN.utmMedium, utmContent: ORIGEN.utmContent
       };
     }
 
