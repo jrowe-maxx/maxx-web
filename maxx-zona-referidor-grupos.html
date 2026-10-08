@@ -1342,6 +1342,18 @@
     var elEstado = document.getElementById('zrg-estado-con-' + idEntidad);
     var elBtn = document.getElementById('zrg-btn-guardar-con-' + idEntidad);
     if (!nombre) { elEstado.textContent = 'Escribe el nombre del contacto.'; return; }
+    var telefonoNuevo = document.getElementById('zrg-con-telefono-' + idEntidad).value.trim();
+    var correoNuevo = document.getElementById('zrg-con-correo-' + idEntidad).value.trim();
+    if (telefonoNuevo) {
+      var mt = telefonoNuevo.match(/^(.*?)(?:\s*(?:ext\.?|extensi[oó]n|x)\s*(\d{1,6}))?$/i);
+      var baseTel = (mt ? mt[1] : telefonoNuevo).replace(/[\s\-().]/g, '');
+      var telOk = /^\+?52\d{10}$/.test(baseTel) || /^\d{10}$/.test(baseTel) || (/^\d{2,6}$/.test(baseTel) && !(mt && mt[2]));
+      if (!telOk) { elEstado.textContent = 'El teléfono debe tener 10 dígitos (o solo la extensión, de 2 a 6 dígitos).'; return; }
+    }
+    if (correoNuevo && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(correoNuevo)) {
+      elEstado.textContent = 'El correo no parece válido (ejemplo: nombre@empresa.com).';
+      return;
+    }
     var decisorNuevo = document.getElementById('zrg-con-decisor-' + idEntidad).value;
     if (!decisorNuevo) { elEstado.textContent = 'Elige si esta persona decide o ve la capacitación (o "Aún no lo sé").'; return; }
     elEstado.textContent = '';
