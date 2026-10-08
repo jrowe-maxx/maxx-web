@@ -44,7 +44,7 @@
 .zrg-insignia-ok { background:#639922; color:#fff; }
 .zrg-insignia-no { background:#D9D9D9; color:#444; }
 .zrg-insignia-pend { background:#FAC775; color:#412402; }
-.zrg-btn-quitar-contacto { background:none; border:none; color:#C0392B; font-size:12px; text-decoration:underline; cursor:pointer; padding:2px 0; margin:2px 0 6px; }
+.zrg-btn-quitar-contacto { background:none; border:none; color:#C0392B; font-size:12px; text-decoration:underline; cursor:pointer; padding:0 4px; margin:0 0 0 6px; white-space:nowrap; }
 .zrg-sel-decisor { margin-top:4px; font-size:13px; }
 .zrg-contacto-fila { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
 #zrg-estado { font-size: 13px; margin: 8px 0; min-height: 18px; }
@@ -921,13 +921,13 @@
       ent.contactos.forEach(function(c) {
         var d = c.decisor || '';
         var etiqueta = d === 'Sí' ? '<span class="zrg-insignia zrg-insignia-ok">DECIDE</span>' : (d === 'No' ? '<span class="zrg-insignia zrg-insignia-no">No decide</span>' : '<span class="zrg-insignia zrg-insignia-pend">Sin definir</span>');
-        html += '<div class="zrg-contacto-fila" style="display:block;"><span>' + c.nombre + (c.puesto ? ' — ' + c.puesto : '') + (c.telefono ? ' · ' + c.telefono : '') + (c.correo ? ' · ' + c.correo : '') + ' ' + etiqueta + '</span>';
+        html += '<div class="zrg-contacto-fila" style="display:block;"><span>' + c.nombre + (c.puesto ? ' — ' + c.puesto : '') + (c.telefono ? ' · ' + c.telefono : '') + (c.correo ? ' · ' + c.correo : '') + ' ' + etiqueta + ' <button type="button" class="zrg-btn-quitar-contacto" id="zrg-quitar-' + c.idContacto + '" onclick="window.zrgQuitarContacto(\'' + c.idContacto + '\')" title="Quitar este contacto">Quitar</button></span>';
         html += '<select class="zrg-sel-decisor" id="zrg-decisor-' + c.idContacto + '" onchange="window.zrgCambiarDecisor(\'' + c.idContacto + '\')">';
         [{v:'',t:'¿Es quien decide o ve la capacitación? — elige'},{v:'Sí',t:'Sí, decide / ve la capacitación'},{v:'No',t:'No, solo me atendió o me refirió'},{v:'No sé',t:'Aún no lo sé'}].forEach(function(o) {
           html += '<option value="' + o.v + '"' + (d === o.v ? ' selected' : '') + '>' + o.t + '</option>';
         });
         html += '</select><div id="zrg-decisor-msg-' + c.idContacto + '" class="zrg-estado-error" style="font-size:12px;"></div>';
-        html += '<button type="button" class="zrg-btn-quitar-contacto" id="zrg-quitar-' + c.idContacto + '" onclick="window.zrgQuitarContacto(\'' + c.idContacto + '\')">Quitar este contacto</button></div>';
+        html += '</div>';
       });
     }
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin-top:8px;" onclick="window.zrgMostrarFormContacto(\'' + ent.idEntidad + '\')">+ Agregar contacto</button>';
@@ -1095,33 +1095,20 @@
     var razonEl = document.getElementById('zrg-estado-razon-' + idEntidad);
     var razon = razonEl ? razonEl.value.trim() : '';
     var elMsg = document.getElementById('zrg-estado-estado-' + idEntidad);
-    var elBtn = document.getElementById('zrg-btn-estado-' + idEntidad);
     elMsg.textContent = '';
     if ((estado === 'Pendiente' || estado === 'No Interesado') && !razon) {
       elMsg.textContent = 'Escribe la razón antes de guardar.';
       return;
     }
-    elBtn.disabled = true; elBtn.textContent = 'Guardando...';
-    fetch(BASE_URL, {
-      method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ accion: 'actualizarEstadoEntidad', ref: REF, idEntidad: idEntidad, estado: estado, razon: (estado === 'Pendiente' || estado === 'No Interesado') ? razon : '' })
-    })
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        if (data.exito) {
-          todasMisEntidades = null;
-          cargarYFiltrar();
-        } else {
-          elBtn.disabled = false; elBtn.textContent = 'Guardar estado';
-          elMsg.textContent = data.error || 'No se pudo guardar.';
-        }
-      })
-      .catch(function() {
-        elBtn.disabled = false; elBtn.textContent = 'Guardar estado';
-        elMsg.textContent = 'No se pudo conectar. Intenta de nuevo.';
-      });
+    if (!(estado === 'Pendiente' || estado === 'No Interesado')) razon = '';
+    var ent = entidadLocal(idEntidad);
+    if (ent) {
+      (ent.grupos || []).forEach(function(g) { if (g.etapaFunnel !== 'Programa Cerrado' || ES_ADMIN) { g.etapaFunnel = estado; g.razonEstado = razon; } });
+      notaLocal(ent, 'ESTADO → ' + estado + (razon ? ' — ' + razon : ''));
+      aplicarFiltros();
+    }
+    guardarEnSegundoPlano({ accion: 'actualizarEstadoEntidad', ref: REF, idEntidad: idEntidad, estado: estado, razon: razon }, 'No se pudo guardar el estado. Se restauró.');
   };
-
   window.zrgGuardarSeguimiento = function(idEntidad) {
     var dia = document.getElementById('zrg-ed-seg-dia-' + idEntidad).value;
     var mes = document.getElementById('zrg-ed-seg-mes-' + idEntidad).value;
@@ -1297,45 +1284,55 @@
       .catch(function() { elEstado.textContent = 'No se pudo conectar. Intenta de nuevo.'; });
   };
 
+  // ===== Cambios "instantáneos": se pintan al momento y se guardan en segundo plano =====
+  function entidadLocal(id) { return (todasMisEntidades || []).filter(function(e) { return e.idEntidad === id; })[0]; }
+  function notaLocal(ent, texto) {
+    var d = new Date(); function p(n) { return ('0' + n).slice(-2); }
+    var linea = '[' + p(d.getDate()) + '/' + p(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + p(d.getHours()) + ':' + p(d.getMinutes()) + '] ' + texto;
+    ent.notas = ent.notas ? (linea + '\n' + ent.notas) : linea;
+  }
+  function guardarEnSegundoPlano(cuerpo, mensajeFallo) {
+    fetch(BASE_URL, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(cuerpo) })
+      .then(function(res) { return res.json(); })
+      .then(function(data) { if (!data.exito) recuperarPorFallo((data && data.error) || mensajeFallo); })
+      .catch(function() { recuperarPorFallo('No se pudo conectar. ' + mensajeFallo); });
+  }
+  function recuperarPorFallo(texto) {
+    alert(texto);
+    todasMisEntidades = null;
+    cargarYFiltrar();
+  }
+
   window.zrgQuitarContacto = function(idContacto) {
     var btn = document.getElementById('zrg-quitar-' + idContacto);
-    var msg = document.getElementById('zrg-decisor-msg-' + idContacto);
     if (btn.getAttribute('data-seguro') !== '1') {
       btn.setAttribute('data-seguro', '1');
-      btn.textContent = '¿Seguro? Toca otra vez para quitarlo';
-      setTimeout(function() { if (btn && btn.getAttribute('data-seguro') === '1') { btn.removeAttribute('data-seguro'); btn.textContent = 'Quitar este contacto'; } }, 4000);
+      btn.textContent = '¿Seguro?';
+      setTimeout(function() { if (btn && btn.getAttribute('data-seguro') === '1') { btn.removeAttribute('data-seguro'); btn.textContent = 'Quitar'; } }, 4000);
       return;
     }
-    btn.disabled = true; btn.textContent = 'Quitando...';
-    fetch(BASE_URL, {
-      method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ accion: 'eliminarContacto', ref: REF, idContacto: idContacto })
-    })
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        if (data.exito) { todasMisEntidades = null; cargarYFiltrar(); }
-        else { btn.disabled = false; btn.removeAttribute('data-seguro'); btn.textContent = 'Quitar este contacto'; msg.textContent = data.error || 'No se pudo quitar.'; }
-      })
-      .catch(function() { btn.disabled = false; btn.removeAttribute('data-seguro'); btn.textContent = 'Quitar este contacto'; msg.textContent = 'No se pudo conectar. Intenta de nuevo.'; });
+    var ent = entidadLocal(idEntidadSeleccionada);
+    if (ent) {
+      ent.contactos = (ent.contactos || []).filter(function(c) { return c.idContacto !== idContacto; });
+      aplicarFiltros();
+    }
+    guardarEnSegundoPlano({ accion: 'eliminarContacto', ref: REF, idContacto: idContacto }, 'No se pudo quitar el contacto. Se restauró.');
   };
-
   window.zrgCambiarDecisor = function(idContacto) {
     var sel = document.getElementById('zrg-decisor-' + idContacto);
-    var msg = document.getElementById('zrg-decisor-msg-' + idContacto);
     if (!sel.value) return;
-    msg.textContent = 'Guardando...';
-    fetch(BASE_URL, {
-      method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ accion: 'actualizarDecisorContacto', ref: REF, idContacto: idContacto, decisor: sel.value })
-    })
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        if (data.exito) { todasMisEntidades = null; cargarYFiltrar(); }
-        else { msg.textContent = data.error || 'No se pudo guardar.'; }
-      })
-      .catch(function() { msg.textContent = 'No se pudo conectar. Intenta de nuevo.'; });
+    var valor = sel.value;
+    var ent = entidadLocal(idEntidadSeleccionada);
+    if (ent) {
+      (ent.contactos || []).forEach(function(c) { if (c.idContacto === idContacto) c.decisor = valor; });
+      if (etapaDe(ent) === 'Registrado') {
+        (ent.grupos || []).forEach(function(g) { if (g.etapaFunnel === 'Registrado') g.etapaFunnel = 'Contactado'; });
+        notaLocal(ent, 'ESTADO → Contactado (ya hay contacto registrado)');
+      }
+      aplicarFiltros();
+    }
+    guardarEnSegundoPlano({ accion: 'actualizarDecisorContacto', ref: REF, idContacto: idContacto, decisor: valor }, 'No se pudo guardar. Se restauró.');
   };
-
   window.zrgMostrarFormContacto = function(idEntidad) {
     document.getElementById('zrg-form-contacto-' + idEntidad).classList.toggle('zrg-oculto');
   };
