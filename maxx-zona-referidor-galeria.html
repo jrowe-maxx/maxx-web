@@ -12,7 +12,7 @@
   #seccion-VIDEO .galeria { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
   .filtro-etapas { position: sticky; top: 0; z-index: 10; background: #F5F4F0; display: flex; gap: 6px; padding: 10px 0; margin-bottom: 8px; overflow-x: auto; }
   .filtro-principal { position: sticky; top: 0; z-index: 11; background: #F5F4F0; display: flex; gap: 8px; padding: 10px 0 4px; }
-  .filtro-principal-btn { flex: 1; background: white; border: 2px solid #042C53; color: #042C53; border-radius: 10px; padding: 14px 8px; font-size: 15px; font-weight: bold; text-align: center; cursor: pointer; }
+  .filtro-principal-btn { flex: 1; display: flex; align-items: center; justify-content: center; background: white; border: 2px solid #042C53; color: #042C53; border-radius: 10px; padding: 10px 6px; font-size: 14px; line-height: 1.2; font-weight: bold; text-align: center; cursor: pointer; }
   .filtro-principal-btn.activo { background: #042C53; border-color: #042C53; color: white; }
   .filtro-btn { flex: 1; min-width: 70px; background: white; border: 2px solid #E6F1FB; color: #042C53; border-radius: 8px; padding: 10px 6px; font-size: 13px; font-weight: bold; text-align: center; cursor: pointer; white-space: nowrap; }
   .filtro-btn.activo { background: #042C53; border-color: #042C53; color: white; }
@@ -40,6 +40,19 @@
   .btn:hover { background: #378ADD; }
   .btn-cerrar { background: transparent; color: #042C53; text-decoration: underline; border: none; cursor: pointer; font-size: 14px; }
   .cargando { color: #639922; font-weight: bold; }
+
+  /* ---- Educación Financiera para Grupos ---- */
+  .gr-paso { background: white; border: 2px solid #E6F1FB; border-radius: 10px; padding: 14px; margin: 0 0 12px 0; }
+  .gr-paso-t { color: #042C53; font-weight: bold; font-size: 15px; margin: 0 0 8px 0; line-height: 1.3; }
+  .gr-sub { color: #185FA5; font-size: 13px; font-weight: bold; margin: 10px 0 6px 0; line-height: 1.3; }
+  .gr-tipos { display: flex; flex-wrap: wrap; gap: 8px; }
+  .gr-tipo-btn { background: white; border: 2px solid #042C53; color: #042C53; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; }
+  .gr-tipo-btn.activo { background: #042C53; color: white; }
+  .gr-select { width: 100%; box-sizing: border-box; border: 2px solid #042C53; border-radius: 8px; padding: 10px; font-size: 15px; color: #042C53; background: white; }
+  .gr-aviso { background: #FFFBE6; border: 1px solid #FDF0B3; border-radius: 8px; padding: 12px 14px; font-size: 14px; color: #5F4B00; line-height: 1.4; }
+  .gr-aviso .btn { margin-top: 10px; width: auto; }
+  .gr-meta { color: #639922; font-size: 14px; font-weight: bold; margin: 0 0 10px 0; line-height: 1.4; }
+  .gr-nota { color: #5F5E5A; font-size: 13px; margin: 0 0 10px 0; line-height: 1.4; }
 </style>
 </head>
 <body>
@@ -2438,7 +2451,7 @@ var qrcode = function() {
           accion: 'actividad',
           lgen: REF_PRUEBA,
           tipo: tipoAccion,
-          c: copy.etapa + '-' + copy.tema
+          c: cDeCopy(copy)
         })
       }).catch(function() {});
     } catch (e) {}
@@ -2446,9 +2459,9 @@ var qrcode = function() {
 
   // (el nombre y código ya se muestran en el embed de bienvenida separado)
 
-  var GITHUB_BASE = 'https://raw.githubusercontent.com/jrowe-maxx/maxx-web/fe442c5/';
+  var GITHUB_BASE = 'https://raw.githubusercontent.com/jrowe-maxx/maxx-web/4a95f66/';
 
-  // ---- Los 17 copies aprobados ----
+  // ---- Los copies aprobados (Individual + Video + Grupos) ----
   // categoria: 'pie' (RH/AO/DE - QR en la franja final) o 'in' (Invita - QR bajo el ícono)
   // agregado: fecha en que se cerró el copy — al agregar copies nuevos en el
   // futuro, usa la fecha real de ese día y aparecerán arriba automáticamente.
@@ -2473,8 +2486,14 @@ var qrcode = function() {
     { archivo: 'MAXX_IN-OPC-01.png', etapa: 'IN', tema: 'OPC', categoria: 'in', agregado: '2026-08-15', baseVistas: 0 },
     { archivo: 'MAXX_IN-INV-01.png', etapa: 'IN', tema: 'INV', categoria: 'in', agregado: '2026-08-19', baseVistas: 0 },
     { archivo: 'MAXX_VIDEO-portada-01.png', etapa: 'VIDEO', tema: 'PPR', categoria: 'video', agregado: '2026-08-26', baseVistas: 0 },
-    { archivo: 'PDF_MAXX_Promocional_Escuelas_utm.pdf', miniatura: 'MAXX_Grupos_Escuela_miniatura.png', etapa: 'GRUPOS', tema: 'ESCUELA', categoria: 'pdf', agregado: '2026-09-14', baseVistas: 0 },
-    { archivo: 'PDF_MAXX_Promocional_Empresas_utm.pdf', miniatura: 'MAXX_Grupos_Empresa_miniatura.png', etapa: 'GRUPOS', tema: 'EMPRESA', categoria: 'pdf', agregado: '2026-09-14', baseVistas: 0 }
+    { archivo: 'MAXX_GRUPOS-ESCUELA-01.png', etapa: 'GRUPOS', tema: 'ESCI', categoria: 'grupoimg', familia: 'ESCUELA', agregado: '2026-10-08', baseVistas: 0 },
+    { archivo: 'MAXX_Grupos_Escuela_utm.pdf', miniatura: 'MAXX_GRUPOS-ESCUELA-pdf-mini.png', etapa: 'GRUPOS', tema: 'ESCP', categoria: 'pdf', familia: 'ESCUELA', agregado: '2026-10-08', baseVistas: 0 },
+    { archivo: 'MAXX_GRUPOS-EMPRESA-01.png', etapa: 'GRUPOS', tema: 'EMPI', categoria: 'grupoimg', familia: 'EMPRESA', agregado: '2026-10-08', baseVistas: 0 },
+    { archivo: 'MAXX_Grupos_Empresa_utm.pdf', miniatura: 'MAXX_GRUPOS-EMPRESA-pdf-mini.png', etapa: 'GRUPOS', tema: 'EMPP', categoria: 'pdf', familia: 'EMPRESA', agregado: '2026-10-08', baseVistas: 0 },
+    { archivo: 'MAXX_GRUPOS-INSTITUCION-01.png', etapa: 'GRUPOS', tema: 'INSI', categoria: 'grupoimg', familia: 'INSTITUCION', agregado: '2026-10-08', baseVistas: 0 },
+    { archivo: 'MAXX_Grupos_Instituciones_utm.pdf', miniatura: 'MAXX_GRUPOS-INSTITUCION-pdf-mini.png', etapa: 'GRUPOS', tema: 'INSP', categoria: 'pdf', familia: 'INSTITUCION', agregado: '2026-10-08', baseVistas: 0 },
+    { archivo: 'MAXX_GRUPOS-AFINES-01.png', etapa: 'GRUPOS', tema: 'AFI', categoria: 'grupoimg', familia: 'AFINES', agregado: '2026-10-08', baseVistas: 0 },
+    { archivo: 'MAXX_Grupos_Afines_utm.pdf', miniatura: 'MAXX_GRUPOS-AFINES-pdf-mini.png', etapa: 'GRUPOS', tema: 'AFP', categoria: 'pdf', familia: 'AFINES', agregado: '2026-10-08', baseVistas: 0 }
   ];
 
   // Orden fijo de las secciones (etapas) — no cronológico, es el orden de
@@ -2608,10 +2627,252 @@ var qrcode = function() {
     }
   }
 
+
+  // =====================================================================
+  // EDUCACIÓN FINANCIERA PARA GRUPOS
+  // Journey A (Escuela/Empresa/Institución): por llamada, meta = cita de
+  //   15 min con Javier; el referidor nunca vende ni cierra.
+  // Journey B (Grupos Afines): el referidor es miembro del grupo; meta =
+  //   que el grupo se registre (cada participante sugiere día y hora).
+  // La Entidad debe estar dada de alta ANTES de compartir cualquier material.
+  // =====================================================================
+  var GRUPOS_API_URL = 'https://script.google.com/macros/s/AKfycbxNl4ATBbC5fKm6SvIFwnApzEYt_qCkSSEcL-RXqoDucXSDcQjj_oOzWSL0oaGT5Qnn/exec';
+
+  // fuente: W=WhatsApp, F=Facebook, O=otros (se agrega al código c de los Afines)
+  var TIPOS_GRUPO = [
+    { id: 'ESCUELA',     etiqueta: 'Escuela',            journey: 'A', familia: 'ESCUELA',     tiposEntidad: ['Escuela'],      fuente: '',  conPdf: true },
+    { id: 'EMPRESA',     etiqueta: 'Empresa',            journey: 'A', familia: 'EMPRESA',     tiposEntidad: ['Empresa'],      fuente: '',  conPdf: true },
+    { id: 'INSTITUCION', etiqueta: 'Institución',        journey: 'A', familia: 'INSTITUCION', tiposEntidad: ['Institución'],  fuente: '',  conPdf: true },
+    { id: 'WHATSAPP',    etiqueta: 'Grupo de WhatsApp',  journey: 'B', familia: 'AFINES',      tiposEntidad: ['Grupo de WhatsApp'], fuente: 'W', conPdf: true, pdfOpcional: true },
+    { id: 'FACEBOOK',    etiqueta: 'Grupo de Facebook',  journey: 'B', familia: 'AFINES',      tiposEntidad: ['Grupo de Facebook'], fuente: 'F', conPdf: false },
+    { id: 'OTRO',        etiqueta: 'Otro tipo de grupo', journey: 'B', familia: 'AFINES',      tiposEntidad: ['Grupo de Instagram', 'Grupo en Otra Red Social', 'Personal', 'Religioso', 'Otro'], fuente: 'O', conPdf: true, pdfOpcional: true }
+  ];
+
+  // Coordenadas (Canvas 1080x1920) de la franja libre al pie de cada Copy de Grupos,
+  // medidas sobre los archivos de Marketing. A = sin QR (solo link). AFINES = QR + link.
+  var POSICIONES_COPY_GRUPO = {
+    A:      { sinQr: true, textoX: 130, textoY: 1796, textoAncho: 900, textoAlto: 92,  fontSize: 42, fontMin: 30, fontSizeDosLineas: 34 },
+    AFINES: { sinQr: false, qrX: 872, qrY: 1730, qrTam: 170, textoX: 130, textoY: 1800, textoAncho: 722, textoAlto: 112, fontSize: 36, fontMin: 30, fontSizeDosLineas: 32 }
+  };
+
+  var grState = { tipo: null, idEntidad: '', entidades: null, cargando: false, error: false, ultimaCarga: 0 };
+
+  function grTipoActual() {
+    for (var i = 0; i < TIPOS_GRUPO.length; i++) { if (TIPOS_GRUPO[i].id === grState.tipo) return TIPOS_GRUPO[i]; }
+    return null;
+  }
+
+  // Código c del link: GRUPOS-<tema> (+ fuente W/F/O en los Afines). Sin guiones extra.
+  function codigoCGrupo(copy) {
+    var t = grTipoActual();
+    return copy.etapa + '-' + copy.tema + ((copy.familia === 'AFINES' && t) ? t.fuente : '');
+  }
+
+  function cDeCopy(copy) {
+    return copy.etapa === 'GRUPOS' ? codigoCGrupo(copy) : (copy.etapa + '-' + copy.tema);
+  }
+
+  function linkDeCopy(copy) {
+    if (copy.etapa === 'GRUPOS') {
+      return 'https://maxx.mx/ir?ref=' + encodeURIComponent(REF_PRUEBA) + '&e=' + encodeURIComponent(grState.idEntidad) + '&c=' + encodeURIComponent(codigoCGrupo(copy));
+    }
+    return construirLink(REF_PRUEBA, copy.etapa, copy.tema);
+  }
+
+  function linkVisibleDeCopy(copy) {
+    if (copy.etapa === 'GRUPOS') {
+      return 'maxx.mx/ir?ref=' + REF_PRUEBA + '&e=' + grState.idEntidad + '&c=' + codigoCGrupo(copy);
+    }
+    return construirLinkVisible(REF_PRUEBA, copy.etapa, copy.tema);
+  }
+
+  function nombreArchivoDe(copy, extension) {
+    return 'MAXX_' + copy.etapa + '-' + copy.tema + (copy.etapa === 'GRUPOS' ? '_' + grState.idEntidad : '') + '_' + REF_PRUEBA + extension;
+  }
+
+  function crearTarjeta(copy, etiquetaTexto) {
+    var div = document.createElement('div');
+    div.className = 'miniatura';
+    var idBadgePersonal = 'zr-personal-' + copy.etapa + '-' + copy.tema;
+    var esPdf = copy.categoria === 'pdf';
+    var fuenteImg = esPdf ? copy.miniatura : copy.archivo;
+    div.innerHTML =
+      '<div class="etiqueta">' + (etiquetaTexto || copy.tema) + '</div>' +
+      '<div class="imagen-wrap">' +
+        '<img data-src="' + GITHUB_BASE + fuenteImg + '" alt="' + copy.etapa + '-' + copy.tema + '">' +
+        '<div class="lupa"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
+      '</div>' +
+      '<div class="badge">' + copy.baseVistas + ' compartidos</div>' +
+      '<div class="badge-personal" id="' + idBadgePersonal + '">TÚ: ' + leerContadorPersonal(copy) + ' veces</div>';
+    div.addEventListener('click', function() { abrirModal(copy); });
+    return div;
+  }
+
+  function irAAltaDeEntidad() {
+    try {
+      var el = window.top.document.getElementById('zrg-cargando-loader');
+      if (el && el.scrollIntoView) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    } catch (e) {}
+    try { window.top.location.hash = '#zona-referidor-galeria'; } catch (e2) {}
+  }
+
+  function grEntidadesDelTipo() {
+    var t = grTipoActual();
+    if (!t || !grState.entidades) return [];
+    return grState.entidades.filter(function(e) { return t.tiposEntidad.indexOf(e.tipo) !== -1; });
+  }
+
+  function grCargarEntidades() {
+    if (grState.cargando) return;
+    grState.cargando = true;
+    grState.error = false;
+    grRender();
+    fetch(GRUPOS_API_URL + '?accion=misEntidades&ref=' + encodeURIComponent(REF_PRUEBA))
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        grState.cargando = false;
+        if (!data || !data.exito) { grState.error = true; grRender(); return; }
+        grState.entidades = data.entidades || [];
+        grState.ultimaCarga = Date.now();
+        grRender();
+      })
+      .catch(function() {
+        grState.cargando = false;
+        grState.error = true;
+        grRender();
+      });
+  }
+
+  // Al volver a esta pestaña se vuelve a leer la lista (por si el referidor
+  // acaba de dar de alta una Entidad), máximo cada 15 segundos.
+  function grAlMostrar() {
+    if (!grState.entidades || (Date.now() - grState.ultimaCarga) > 15000) grCargarEntidades();
+  }
+
+  function construirSeccionGrupos() {
+    var seccion = document.createElement('div');
+    seccion.className = 'seccion-etapa';
+    seccion.id = 'seccion-GRUPOS';
+    seccion.innerHTML =
+      '<h3 class="titulo-etapa">Educación Financiera para Grupos</h3>' +
+      '<p class="objetivo-etapa">Programa de Finanzas Personales: 7 módulos de 1 hora, gratis y sin venta durante las sesiones.</p>' +
+      '<div class="gr-paso">' +
+        '<div class="gr-paso-t">1 · ¿Con qué tipo de grupo vas a trabajar?</div>' +
+        '<div class="gr-sub">Por llamada — la meta es una cita con Javier</div>' +
+        '<div class="gr-tipos" id="gr-tipos-A"></div>' +
+        '<div class="gr-sub">Eres parte del grupo — la meta es que se registre</div>' +
+        '<div class="gr-tipos" id="gr-tipos-B"></div>' +
+      '</div>' +
+      '<div class="gr-paso" id="gr-paso2" style="display:none;"></div>' +
+      '<div class="gr-paso" id="gr-paso3" style="display:none;">' +
+        '<div class="gr-paso-t">3 · Tus materiales</div>' +
+        '<p class="gr-meta" id="gr-meta"></p>' +
+        '<p class="gr-nota" id="gr-nota"></p>' +
+        '<div class="galeria" id="gr-tarjetas"></div>' +
+        '<div id="gr-guia"></div>' +
+      '</div>';
+    galeria.appendChild(seccion);
+
+    TIPOS_GRUPO.forEach(function(t) {
+      var btn = document.createElement('div');
+      btn.className = 'gr-tipo-btn';
+      btn.dataset.tipo = t.id;
+      btn.textContent = t.etiqueta;
+      btn.addEventListener('click', function() {
+        grState.tipo = t.id;
+        var propias = grEntidadesDelTipo();
+        var sigueValida = propias.some(function(e) { return e.idEntidad === grState.idEntidad; });
+        if (!sigueValida) grState.idEntidad = (propias.length === 1) ? propias[0].idEntidad : '';
+        grRender();
+      });
+      document.getElementById('gr-tipos-' + t.journey).appendChild(btn);
+    });
+    grRender();
+  }
+
+  function grRender() {
+    var t = grTipoActual();
+    Array.prototype.forEach.call(document.querySelectorAll('.gr-tipo-btn'), function(b) {
+      b.classList.toggle('activo', !!t && b.dataset.tipo === t.id);
+    });
+
+    var paso2 = document.getElementById('gr-paso2');
+    var paso3 = document.getElementById('gr-paso3');
+    if (!paso2 || !paso3) return;
+    document.getElementById('gr-tarjetas').innerHTML = '';
+
+    if (!t) { paso2.style.display = 'none'; paso3.style.display = 'none'; return; }
+
+    paso2.style.display = 'block';
+    paso2.innerHTML = '';
+    var titulo = document.createElement('div');
+    titulo.className = 'gr-paso-t';
+    titulo.textContent = '2 · Elige TU Entidad (' + t.etiqueta + ')';
+    paso2.appendChild(titulo);
+
+    if (grState.cargando && !grState.entidades) {
+      var p = document.createElement('p'); p.className = 'cargando'; p.textContent = 'Cargando TUS Entidades...'; paso2.appendChild(p);
+      paso3.style.display = 'none';
+      return;
+    }
+    if (grState.error && !grState.entidades) {
+      var av = document.createElement('div'); av.className = 'gr-aviso';
+      av.textContent = 'No se pudieron cargar TUS Entidades. ';
+      var br = document.createElement('button'); br.className = 'btn'; br.textContent = 'Reintentar';
+      br.addEventListener('click', grCargarEntidades);
+      av.appendChild(br); paso2.appendChild(av);
+      paso3.style.display = 'none';
+      return;
+    }
+
+    var propias = grEntidadesDelTipo();
+    if (propias.length === 0) {
+      var aviso = document.createElement('div'); aviso.className = 'gr-aviso';
+      aviso.textContent = 'Todavía no tienes una Entidad de tipo ' + t.etiqueta + ' dada de alta. Primero dala de alta (así TUS participantes quedan ligados a ti) y regresa aquí.';
+      var b1 = document.createElement('button'); b1.className = 'btn'; b1.style.display = 'block'; b1.textContent = 'Ir a dar de alta mi Entidad';
+      b1.addEventListener('click', irAAltaDeEntidad);
+      var b2 = document.createElement('button'); b2.className = 'btn'; b2.style.display = 'block'; b2.style.background = '#5F5E5A'; b2.textContent = 'Ya la di de alta — actualizar';
+      b2.addEventListener('click', grCargarEntidades);
+      aviso.appendChild(b1); aviso.appendChild(b2);
+      paso2.appendChild(aviso);
+      paso3.style.display = 'none';
+      return;
+    }
+
+    var sel = document.createElement('select'); sel.className = 'gr-select';
+    var ph = document.createElement('option'); ph.value = ''; ph.textContent = 'Elige la Entidad...'; sel.appendChild(ph);
+    propias.forEach(function(e) {
+      var o = document.createElement('option'); o.value = e.idEntidad; o.textContent = e.nombre; sel.appendChild(o);
+    });
+    sel.value = grState.idEntidad || '';
+    sel.addEventListener('change', function() { grState.idEntidad = sel.value; grRender(); });
+    paso2.appendChild(sel);
+
+    if (!grState.idEntidad) { paso3.style.display = 'none'; return; }
+
+    // ---- Paso 3: materiales ----
+    paso3.style.display = 'block';
+    document.getElementById('gr-meta').textContent = (t.journey === 'A')
+      ? 'Meta: que TU contacto acepte una cita de 15 minutos con Javier. Tú no vendes ni cierras — solo abres la puerta.'
+      : 'Meta: que el grupo se registre. Tú eres parte del grupo; cada participante sugiere su día y hora.';
+    document.getElementById('gr-nota').textContent = 'Cada material ya lleva TU link y TU QR ligados a esta Entidad. Solo toca el material y compártelo.';
+
+    var cont = document.getElementById('gr-tarjetas');
+    cont.innerHTML = '';
+    COPIES.filter(function(c) {
+      return c.etapa === 'GRUPOS' && c.familia === t.familia && (c.categoria === 'grupoimg' || (c.categoria === 'pdf' && t.conPdf));
+    }).forEach(function(c) {
+      var et = (c.categoria === 'pdf') ? (t.pdfOpcional ? 'PDF (opcional)' : 'PDF') : 'Copy (imagen)';
+      cont.appendChild(crearTarjeta(c, et));
+    });
+    cargarImagenesDeSeccion('GRUPOS');
+  }
+
   // ---- Construir la galería agrupada por etapa, más reciente primero ----
   var galeria = document.getElementById('galeria');
 
   ORDEN_ETAPAS.forEach(function(etapa) {
+    if (etapa === 'GRUPOS') { construirSeccionGrupos(); return; }
     var copiesDeEtapa = COPIES.filter(function(c) { return c.etapa === etapa; });
     if (copiesDeEtapa.length === 0) return;
 
@@ -2640,33 +2901,7 @@ var qrcode = function() {
     var fila = document.createElement('div');
     fila.className = 'galeria';
 
-    copiesDeEtapa.forEach(function(copy) {
-      var div = document.createElement('div');
-      div.className = 'miniatura';
-      var idBadgePersonal = 'zr-personal-' + copy.etapa + '-' + copy.tema;
-      var esPdf = copy.categoria === 'pdf';
-      // Para las tarjetas PDF (Grupos), la miniatura mostrada es una imagen
-      // real de la página 1 (copy.miniatura) — un PDF no se puede meter en
-      // un <img> directo, pero una miniatura PNG de su portada sí. El PDF
-      // real (copy.archivo) se sigue usando tal cual al generar/descargar,
-      // solo cambia lo que se ve en la tarjeta antes de abrirla.
-      var wrapVisual = esPdf
-        ? '<div class="imagen-wrap">' +
-            '<img data-src="' + GITHUB_BASE + copy.miniatura + '" alt="' + copy.etapa + '-' + copy.tema + '">' +
-            '<div class="lupa"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
-          '</div>'
-        : '<div class="imagen-wrap">' +
-            '<img data-src="' + GITHUB_BASE + copy.archivo + '" alt="' + copy.etapa + '-' + copy.tema + '">' +
-            '<div class="lupa"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>' +
-          '</div>';
-      div.innerHTML =
-        '<div class="etiqueta">' + copy.tema + '</div>' +
-        wrapVisual +
-        '<div class="badge">' + copy.baseVistas + ' compartidos</div>' +
-        '<div class="badge-personal" id="' + idBadgePersonal + '">TÚ: ' + leerContadorPersonal(copy) + ' veces</div>';
-      div.addEventListener('click', function() { abrirModal(copy); });
-      fila.appendChild(div);
-    });
+    copiesDeEtapa.forEach(function(copy) { fila.appendChild(crearTarjeta(copy)); });
 
     seccion.appendChild(fila);
     galeria.appendChild(seccion);
@@ -2724,9 +2959,9 @@ var qrcode = function() {
 
   // ---- Filtro principal: Grupos | Individual | Videos ----
   var GRUPOS_PRINCIPALES = [
-    { id: 'grupos', etiqueta: 'Grupos' },
-    { id: 'individual', etiqueta: 'Individual' },
-    { id: 'videos', etiqueta: 'Videos' }
+    { id: 'individual', etiqueta: 'Promoción Individual' },
+    { id: 'grupos', etiqueta: 'Educación Financiera para Grupos' },
+    { id: 'videos', etiqueta: 'Video' }
   ];
 
   var introIndividualEl = document.getElementById('intro-individual');
@@ -2747,6 +2982,7 @@ var qrcode = function() {
     } else if (grupo === 'grupos') {
       filtroEl.style.display = 'none';
       mostrarEtapa('GRUPOS');
+      grAlMostrar();
     } else if (grupo === 'videos') {
       filtroEl.style.display = 'none';
       mostrarEtapa('VIDEO');
@@ -2774,7 +3010,55 @@ var qrcode = function() {
   var blobListo = null;
   var blobEnProceso = false;
 
+  function generarBlobCopyGrupo(copy, callback) {
+    var ctx = canvas.getContext('2d');
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      canvas.width = 1080;
+      canvas.height = 1920;
+      ctx.drawImage(img, 0, 0, 1080, 1920);
+
+      var link = linkDeCopy(copy);
+      var visible = linkVisibleDeCopy(copy);
+      var p = POSICIONES_COPY_GRUPO[copy.familia === 'AFINES' ? 'AFINES' : 'A'];
+
+      if (!p.sinQr) {
+        var qrCanvas = document.createElement('canvas');
+        dibujarQR(qrCanvas, link, p.qrTam);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(p.qrX - 6, p.qrY - 6, p.qrTam + 12, p.qrTam + 12);
+        ctx.drawImage(qrCanvas, p.qrX, p.qrY, p.qrTam, p.qrTam);
+      }
+
+      ctx.fillStyle = '#185FA5';
+      ctx.textBaseline = 'top';
+      var tam = p.fontSize;
+      ctx.font = 'bold ' + tam + 'px Arial';
+      while (tam > p.fontMin && ctx.measureText(visible).width > p.textoAncho) {
+        tam -= 1;
+        ctx.font = 'bold ' + tam + 'px Arial';
+      }
+      if (ctx.measureText(visible).width <= p.textoAncho) {
+        ctx.fillText(visible, p.textoX, p.textoY + (p.textoAlto - tam) / 2);
+      } else {
+        var tam2 = p.fontSizeDosLineas;
+        ctx.font = 'bold ' + tam2 + 'px Arial';
+        var alto2 = tam2 * 1.2;
+        envolverTexto(ctx, visible, p.textoX, p.textoY + (p.textoAlto - alto2 * 2) / 2, p.textoAncho, alto2);
+      }
+
+      canvas.toBlob(function(blob) { callback(blob); }, 'image/png');
+    };
+    img.onerror = function() { callback(null); };
+    img.src = GITHUB_BASE + copy.archivo;
+  }
+
   function generarBlobPersonalizado(copy, callback) {
+    if (copy.categoria === 'grupoimg') {
+      generarBlobCopyGrupo(copy, callback);
+      return;
+    }
     if (copy.categoria === 'pdf') {
       generarBlobPdfPersonalizado(copy, callback);
       return;
@@ -2846,8 +3130,8 @@ var qrcode = function() {
    * porque un PDF no se puede "dibujar" con Canvas normal.
    */
   function generarBlobPdfPersonalizado(copy, callback) {
-    var link = construirLink(REF_PRUEBA, copy.etapa, copy.tema);
-    var linkVisible = construirLinkVisible(REF_PRUEBA, copy.etapa, copy.tema);
+    var link = linkDeCopy(copy);
+    var linkVisible = linkVisibleDeCopy(copy);
     var pos = POSICIONES_PDF;
 
     fetch(GITHUB_BASE + copy.archivo)
@@ -2971,7 +3255,7 @@ var qrcode = function() {
 
   document.getElementById('btn-copiar-link').addEventListener('click', function() {
     if (!copyActual) return;
-    var link = construirLink(REF_PRUEBA, copyActual.etapa, copyActual.tema);
+    var link = linkDeCopy(copyActual);
     var btn = document.getElementById('btn-copiar-link');
 
     function marcarCopiado() {
@@ -2990,7 +3274,7 @@ var qrcode = function() {
 
   document.getElementById('btn-ver-qr').addEventListener('click', function() {
     if (!copyActual) return;
-    var link = construirLink(REF_PRUEBA, copyActual.etapa, copyActual.tema);
+    var link = linkDeCopy(copyActual);
 
     vistaGrande.style.display = 'none';
     canvas.style.display = 'none';
@@ -3021,9 +3305,9 @@ var qrcode = function() {
         return;
       }
       var extension = copy.categoria === 'pdf' ? '.pdf' : '.png';
-      var nombreArchivo = 'MAXX_' + copy.etapa + '-' + copy.tema + '_' + REF_PRUEBA + extension;
-      var linkParaPrecargar = construirLink(REF_PRUEBA, copy.etapa, copy.tema);
-      compartirBlob(blobListo, nombreArchivo, linkParaPrecargar, copy.categoria);
+      var nombreArchivo = nombreArchivoDe(copy, extension);
+      var linkParaPrecargar = linkDeCopy(copy);
+      compartirBlob(blobListo, nombreArchivo, linkParaPrecargar, copy.categoria, copy);
 
       var nuevoConteo = sumarContadorPersonal(copy);
       var badgeEl = document.getElementById('zr-personal-' + copy.etapa + '-' + copy.tema);
@@ -3060,7 +3344,7 @@ var qrcode = function() {
         return;
       }
       var extension = copy.categoria === 'pdf' ? '.pdf' : '.png';
-      var nombreArchivo = 'MAXX_' + copy.etapa + '-' + copy.tema + '_' + REF_PRUEBA + extension;
+      var nombreArchivo = nombreArchivoDe(copy, extension);
       var url = URL.createObjectURL(blobListo);
       var a = document.createElement('a');
       a.href = url;
@@ -3093,11 +3377,12 @@ var qrcode = function() {
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   }
 
-  function compartirBlob(blob, nombreArchivo, link, categoria) {
+  function compartirBlob(blob, nombreArchivo, link, categoria, copy) {
     var esPdf = categoria === 'pdf';
     var tipoMime = esPdf ? 'application/pdf' : 'image/png';
     var file = new File([blob], nombreArchivo, { type: tipoMime });
-    var textoMensaje = 'MAXX — TUS ahorros, TU libertad\n\n' + link;
+    var encabezado = (copy && copy.etapa === 'GRUPOS') ? 'MAXX — Programa de Finanzas Personales' : 'MAXX — TUS ahorros, TU libertad';
+    var textoMensaje = encabezado + '\n\n' + link;
 
     function descargarDirecto() {
       var url = URL.createObjectURL(blob);
