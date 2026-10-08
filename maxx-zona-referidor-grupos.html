@@ -44,6 +44,7 @@
 .zrg-insignia-ok { background:#639922; color:#fff; }
 .zrg-insignia-no { background:#D9D9D9; color:#444; }
 .zrg-insignia-pend { background:#FAC775; color:#412402; }
+.zrg-btn-quitar-contacto { background:none; border:none; color:#C0392B; font-size:12px; text-decoration:underline; cursor:pointer; padding:2px 0; margin:2px 0 6px; }
 .zrg-sel-decisor { margin-top:4px; font-size:13px; }
 .zrg-contacto-fila { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
 #zrg-estado { font-size: 13px; margin: 8px 0; min-height: 18px; }
@@ -925,7 +926,8 @@
         [{v:'',t:'¿Es quien decide o ve la capacitación? — elige'},{v:'Sí',t:'Sí, decide / ve la capacitación'},{v:'No',t:'No, solo me atendió o me refirió'},{v:'No sé',t:'Aún no lo sé'}].forEach(function(o) {
           html += '<option value="' + o.v + '"' + (d === o.v ? ' selected' : '') + '>' + o.t + '</option>';
         });
-        html += '</select><div id="zrg-decisor-msg-' + c.idContacto + '" class="zrg-estado-error" style="font-size:12px;"></div></div>';
+        html += '</select><div id="zrg-decisor-msg-' + c.idContacto + '" class="zrg-estado-error" style="font-size:12px;"></div>';
+        html += '<button type="button" class="zrg-btn-quitar-contacto" id="zrg-quitar-' + c.idContacto + '" onclick="window.zrgQuitarContacto(\'' + c.idContacto + '\')">Quitar este contacto</button></div>';
       });
     }
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin-top:8px;" onclick="window.zrgMostrarFormContacto(\'' + ent.idEntidad + '\')">+ Agregar contacto</button>';
@@ -1293,6 +1295,28 @@
         }
       })
       .catch(function() { elEstado.textContent = 'No se pudo conectar. Intenta de nuevo.'; });
+  };
+
+  window.zrgQuitarContacto = function(idContacto) {
+    var btn = document.getElementById('zrg-quitar-' + idContacto);
+    var msg = document.getElementById('zrg-decisor-msg-' + idContacto);
+    if (btn.getAttribute('data-seguro') !== '1') {
+      btn.setAttribute('data-seguro', '1');
+      btn.textContent = '¿Seguro? Toca otra vez para quitarlo';
+      setTimeout(function() { if (btn && btn.getAttribute('data-seguro') === '1') { btn.removeAttribute('data-seguro'); btn.textContent = 'Quitar este contacto'; } }, 4000);
+      return;
+    }
+    btn.disabled = true; btn.textContent = 'Quitando...';
+    fetch(BASE_URL, {
+      method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: 'eliminarContacto', ref: REF, idContacto: idContacto })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.exito) { todasMisEntidades = null; cargarYFiltrar(); }
+        else { btn.disabled = false; btn.removeAttribute('data-seguro'); btn.textContent = 'Quitar este contacto'; msg.textContent = data.error || 'No se pudo quitar.'; }
+      })
+      .catch(function() { btn.disabled = false; btn.removeAttribute('data-seguro'); btn.textContent = 'Quitar este contacto'; msg.textContent = 'No se pudo conectar. Intenta de nuevo.'; });
   };
 
   window.zrgCambiarDecisor = function(idContacto) {
