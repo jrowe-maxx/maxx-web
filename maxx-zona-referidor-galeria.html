@@ -52,6 +52,31 @@
   .gr-aviso .btn { margin-top: 10px; width: auto; }
   .gr-meta { color: #639922; font-size: 14px; font-weight: bold; margin: 0 0 10px 0; line-height: 1.4; }
   .gr-nota { color: #5F5E5A; font-size: 13px; margin: 0 0 10px 0; line-height: 1.4; }
+  #gr-guia { margin-top: 18px; font-family: Arial, sans-serif; }
+  .gr-guia-t { color: #042C53; font-weight: bold; font-size: 16px; line-height: 1.3; margin: 0 0 6px 0; border-top: 2px solid #E6F1FB; padding-top: 14px; }
+  .gr-llenar { background: #FFF3B0; color: #5F4B00; padding: 0 2px; border-radius: 3px; }
+  .gr-contacto { margin: 0 0 14px 0; }
+  .gr-contacto label { display: block; color: #185FA5; font-weight: bold; font-size: 13px; margin-bottom: 6px; }
+  .gr-preg { margin: 0 0 14px 0; }
+  .gr-preg-t { color: #042C53; font-weight: bold; font-size: 15px; line-height: 1.3; margin: 0 0 8px 0; }
+  .gr-ops { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  .gr-op { text-align: left; background: white; border: 2px solid #042C53; color: #042C53; border-radius: 8px; padding: 10px 12px; font-size: 14px; font-weight: bold; line-height: 1.3; cursor: pointer; font-family: Arial, sans-serif; }
+  .gr-op.activo { background: #042C53; color: white; }
+  .gr-res { border-left: 4px solid #639922; background: #FAFDF6; border-radius: 6px; padding: 12px 12px 4px 12px; margin: 0 0 14px 0; }
+  .gr-sub-t { color: #185FA5; font-weight: bold; font-size: 14px; margin: 14px 0 6px 0; line-height: 1.3; }
+  .gr-nota-g { color: #5F5E5A; font-size: 13px; line-height: 1.45; margin: 0 0 10px 0; }
+  .gr-lista { margin: 0 0 12px 0; padding-left: 22px; font-size: 14px; color: #222; line-height: 1.5; }
+  .gr-lista li { margin-bottom: 6px; }
+  .gr-guion { background: #F5F9FE; border-left: 4px solid #185FA5; border-radius: 6px; padding: 10px 12px; margin: 0 0 10px 0; font-size: 14px; color: #222; line-height: 1.5; }
+  .gr-texto { border: 2px solid #E6F1FB; border-radius: 8px; padding: 10px 12px; margin: 0 0 12px 0; background: white; }
+  .gr-texto-et { color: #185FA5; font-weight: bold; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 6px; }
+  .gr-texto-cuerpo { font-size: 14px; color: #222; line-height: 1.5; margin-bottom: 10px; word-break: break-word; }
+  .gr-copiar { background: #639922; margin-bottom: 0; }
+  .gr-fila { border: 1px solid #E6F1FB; border-radius: 8px; padding: 10px 12px; margin: 0 0 8px 0; font-size: 14px; line-height: 1.45; background: white; }
+  .gr-fila-d { font-weight: bold; color: #042C53; margin-bottom: 4px; }
+  .gr-fila-r { color: #222; }
+  .gr-fila-p { color: #5F5E5A; font-size: 13px; margin-top: 6px; }
+  .gr-enlace { display: block; text-align: center; text-decoration: none; box-sizing: border-box; }
 </style>
 </head>
 <body>
@@ -2668,7 +2693,7 @@ var qrcode = function() {
     AFINES: { sinQr: false, qrX: 872, qrY: 1730, qrTam: 170, textoX: 130, textoY: 1800, textoAncho: 722, textoAlto: 112, fontSize: 36, fontMin: 30, fontSizeDosLineas: 32 }
   };
 
-  var grState = { tipo: null, idEntidad: '', entidades: null, cargando: false, error: false, ultimaCarga: 0 };
+  var grState = { tipo: null, idEntidad: '', idContacto: '', entidades: null, cargando: false, error: false, ultimaCarga: 0 };
 
   function grTipoActual() {
     for (var i = 0; i < TIPOS_GRUPO.length; i++) { if (TIPOS_GRUPO[i].id === grState.tipo) return TIPOS_GRUPO[i]; }
@@ -2762,6 +2787,369 @@ var qrcode = function() {
     if (!grState.entidades || (Date.now() - grState.ultimaCarga) > 15000) grCargarEntidades();
   }
 
+  // ---------------------------------------------------------------------
+  // GUÍA POR PREGUNTAS (textos de Marketing, 7-oct-2026, + 3 textos nuevos
+  // redactados el 8-oct-2026 en el mismo tono, marcados "NUEVO" abajo).
+  // El referidor contesta preguntas y la guía le muestra el script o texto
+  // que le toca. El sistema llena [Referidor], [Nombre de la Entidad],
+  // [Nombre] (si eligió un contacto de la Entidad), [vínculo] y las
+  // variantes escuela/empresa/institución. Lo demás lo llena el referidor.
+  // ---------------------------------------------------------------------
+  var GR_URL_AGENDA = ''; // enlace "agendar cita" de maxx.mx (pendiente)
+
+  var GR_VARIANTES = {
+    ESCUELA:     { ent: 'escuela',     su: 'su escuela',     la: 'la escuela',     pers: 'maestros',      persObj: 'maestros',      perReg: 'personal docente y empleados' },
+    EMPRESA:     { ent: 'empresa',     su: 'su empresa',     la: 'la empresa',     pers: 'colaboradores', persObj: 'empleados',     perReg: 'personal y colaboradores' },
+    INSTITUCION: { ent: 'institución', su: 'su institución', la: 'la institución', pers: 'integrantes',   persObj: 'colaboradores', perReg: 'personal y colaboradores' }
+  };
+
+  var grTextosCopiables = [];
+  var grCamino = [];      // índices de las opciones elegidas, en orden
+  var grClaveGuia = '';   // tipo|entidad|contacto para saber cuándo reiniciar
+
+  function grEsc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function grNombreReferidor() {
+    try { return new URLSearchParams(window.top.location.search).get('nombre') || ''; }
+    catch (e) { return new URLSearchParams(window.location.search).get('nombre') || ''; }
+  }
+
+  function grEntidadElegida() {
+    var ent = null;
+    (grState.entidades || []).forEach(function(e) { if (e.idEntidad === grState.idEntidad) ent = e; });
+    return ent;
+  }
+
+  function grContactoElegido() {
+    var ent = grEntidadElegida(), c = null;
+    if (ent && grState.idContacto) {
+      (ent.contactos || []).forEach(function(x) { if (x.idContacto === grState.idContacto) c = x; });
+    }
+    return c;
+  }
+
+  function grVinculoAfines() {
+    var copyImg = null;
+    COPIES.forEach(function(c) { if (c.etapa === 'GRUPOS' && c.familia === 'AFINES' && c.categoria === 'grupoimg') copyImg = c; });
+    return copyImg ? linkDeCopy(copyImg) : '[vínculo]';
+  }
+
+  // Sustituye {llaves} con datos del sistema; deja los [corchetes] para el referidor.
+  function grLlenar(texto, v) {
+    var ent = grEntidadElegida(), con = grContactoElegido();
+    var datos = {
+      Referidor: grNombreReferidor() || '[Referidor]',
+      Entidad: ent ? ent.nombre : '[Nombre de la Entidad]',
+      Nombre: (con && con.nombre) ? con.nombre : '[Nombre]',
+      vinculo: grVinculoAfines()
+    };
+    for (var k in (v || {})) { datos[k] = v[k]; }
+    return texto.replace(/\{(\w+)\}/g, function(m, k) { return (datos[k] !== undefined) ? datos[k] : m; });
+  }
+
+  function grMostrar(texto) {
+    return grEsc(texto).replace(/\[([^\]]+)\]/g, '<mark class="gr-llenar">[$1]</mark>').replace(/\n/g, '<br>');
+  }
+
+  function grBloqueTexto(etiqueta, texto) {
+    var i = grTextosCopiables.push(texto) - 1;
+    return '<div class="gr-texto">' +
+      '<div class="gr-texto-et">' + grEsc(etiqueta) + '</div>' +
+      '<div class="gr-texto-cuerpo">' + grMostrar(texto) + '</div>' +
+      '<button class="btn gr-copiar" data-i="' + i + '">Copiar texto</button>' +
+    '</div>';
+  }
+  function grGuion(texto) { return '<div class="gr-guion">' + grMostrar(texto) + '</div>'; }
+  function grNota(texto) { return '<p class="gr-nota-g">' + grMostrar(texto) + '</p>'; }
+  function grSub(texto) { return '<div class="gr-sub-t">' + grEsc(texto) + '</div>'; }
+  function grLista(items, ordenada) {
+    var tag = ordenada ? 'ol' : 'ul';
+    return '<' + tag + ' class="gr-lista">' + items.map(function(x) { return '<li>' + grMostrar(x) + '</li>'; }).join('') + '</' + tag + '>';
+  }
+  function grFilas(filas) {
+    return filas.map(function(f) {
+      return '<div class="gr-fila"><div class="gr-fila-d">' + grMostrar(f[0]) + '</div><div class="gr-fila-r">' + grMostrar(f[1]) + '</div>' +
+        (f[2] ? '<div class="gr-fila-p">' + grMostrar(f[2]) + '</div>' : '') + '</div>';
+    }).join('');
+  }
+
+  // ===================== CONTENIDOS (Journey A) =====================
+  function grC_conmutador(v) {
+    var L = function(s) { return grLlenar(s, v); };
+    return grNota('Es una guía: se adapta a quien contesta, sin sonar robotizado. La meta es una sola: que te comuniquen con la persona que ve la capacitación del personal.') +
+      grGuion(L('Le habla {Referidor} de MAXX – asesoría financiera. Quisiera comunicarme con la persona que ve temas de capacitación del {perReg} de {su}, para comentarle al respecto de nuestro “Programa de Finanzas Personales” que ofrecemos sin costo a {la}, y que contribuye a la evidencia de cumplimiento de la “NOM-035”. ¿Me podría comunicar, por favor?')) +
+      grNota('La mención de la NOM-035 aplica porque estas entidades tienen personal contratado. Si una institución no tiene nómina, se omite.') +
+      grSub('Frases de reserva (solo si hacen falta)') +
+      grFilas([
+        ['"¿De qué se trata?"', L('"Es un programa de capacitación en finanzas personales para el personal, sin costo para {la}. No vendemos nada por este medio; solo quiero platicarlo con quien ve estos temas."')],
+        ['"¿Es venta de seguros?"', '"MAXX es un asesor financiero. Nuestro programa tiene fines educativos, y no hay venta durante las sesiones."'],
+        ['"Mándenos un correo"', '"Con gusto. ¿Me dice a nombre de quién y a qué correo? Y ¿quién es la persona que ve estos temas, para dirigírselo?"'],
+        ['"No sé quién lo ve" / "No está"', '"¿Me dice su nombre, su puesto y en qué horario lo encuentro? ¿Hay extensión o correo directo?"'],
+        ['"Ahorita no se puede / vuelva a llamar"', '"Claro. ¿Cuándo le queda mejor que le marque?"']
+      ]) +
+      grNota('Después de cada llamada, anota en la Entidad con quién hablaste, el nombre y puesto del decisor, su extensión o correo, y la fecha del próximo seguimiento.');
+  }
+
+  function grC_noEsLaPersona() {
+    return grNota('Gracias a quien te contestó y pídele los datos de quien sí ve estos temas. Anótalos en la Entidad.') +
+      grFilas([
+        ['"No soy la persona"', '"Gracias, ¿me dice con quién debo hablar y cómo lo contacto?"', 'Pedir: nombre, puesto, extensión o correo. Anotarlo en la Entidad.'],
+        ['"No sé quién lo ve" / "No está"', '"¿Me dice su nombre, su puesto y en qué horario lo encuentro? ¿Hay extensión o correo directo?"'],
+        ['"Ahorita no es buen momento"', '"Entiendo. ¿Cuándo le queda mejor que le llame?"', 'Fecha concreta: queda como Próximo Seguimiento.']
+      ]);
+  }
+
+  function grC_intro(v) {
+    var L = function(s) { return grLlenar(s, v); };
+    var cuerpo = 'Hoy me comuniqué con {su} y me indicaron que usted ve los temas de capacitación del personal.\n\nLe comparto nuestro Programa de Finanzas Personales: 7 módulos de 1 hora, por vía digital, sin costo para {la} y sin venta durante las sesiones. Contribuye a la evidencia de cumplimiento de la NOM-035.\n\nEn el PDF {pdf} encontrará el detalle de los 7 módulos y lo que gana {su} al participar.\n\n¿Le parece si le marco el [día] para resolver sus dudas y, si le interesa, agendar una llamada breve (15 a 20 minutos) con Javier Rowe, quien dirige el programa?\n\nQuedo atento/a. {Referidor} · MAXX · maxx.mx';
+    return grNota('Se envía a la persona de contacto con el Copy y el PDF de tu tipo de Entidad (descárgalos arriba). Se pega tal cual. El texto anuncia el día en que la llamarás.') +
+      grBloqueTexto('WhatsApp', L('Buenos días/tardes {Nombre}, soy {Referidor}, de MAXX, asesor financiero. ' + cuerpo.replace('{pdf}', ''))) .replace('En el PDF  encontrará', 'En el PDF encontrará') +
+      grBloqueTexto('Correo — asunto', L('Programa de Finanzas Personales para {Entidad} — sin costo, 7 módulos')) +
+      grBloqueTexto('Correo — mensaje', L('Estimado/a {Nombre}:\n\nSoy {Referidor}, de MAXX, asesor financiero. ' + cuerpo.replace('{pdf}', 'adjunto')));
+  }
+
+  // NUEVO (8-oct): pedir la cita directamente por escrito
+  function grC_pedirCitaDirecto(v) {
+    var L = function(s) { return grLlenar(s, v); };
+    var cuerpo = 'Me indicaron que usted ve los temas de capacitación del personal de {su}, y me dio gusto poder escribirle.\n\nMAXX ofrece, sin costo para {la}, el Programa de Finanzas Personales: 7 módulos de 1 hora, por vía digital y sin venta durante las sesiones. Contribuye a la evidencia de cumplimiento de la NOM-035. En el PDF {pdf} encontrará el detalle.\n\nLo mejor es que Javier Rowe, quien dirige el programa, se lo explique en 15 minutos, por llamada o Zoom, y le resuelva cualquier duda. ¿Le queda mejor el [día] o el [día] por la tarde?\n\nQuedo atento/a. {Referidor} · MAXX · maxx.mx';
+    return grNota('Para cuando solo tienes su correo o WhatsApp y quieres pedirle la cita directamente, sin llamada previa. Envíalo con el Copy y el PDF. Se pega tal cual.') +
+      grBloqueTexto('WhatsApp', L('Buenos días/tardes {Nombre}, soy {Referidor}, de MAXX, asesor financiero. ' + cuerpo.replace('{pdf}', 'que le comparto'))) +
+      grBloqueTexto('Correo — asunto', L('Cita de 15 minutos con Javier Rowe — Programa de Finanzas Personales para {Entidad}')) +
+      grBloqueTexto('Correo — mensaje', L('Estimado/a {Nombre}:\n\nSoy {Referidor}, de MAXX, asesor financiero. ' + cuerpo.replace('{pdf}', 'adjunto')));
+  }
+
+  function grC_llamadaDecisor(v) {
+    var L = function(s) { return grLlenar(s, v); };
+    return grNota('Úsalo solo si esa persona es quien ve la capacitación o decide. La meta es la cita con Javier Rowe. Antes de llamar: la Entidad ya está dada de alta y tienes dos días y horarios libres de la agenda de Javier.') +
+      grSub('1. Saludo') +
+      grGuion(L('Buenos días/tardes {Nombre}, soy {Referidor}, de MAXX. Muchas gracias por tomarme la llamada, sé que tiene mil cosas. ¿Tiene dos minutos?')) +
+      grNota('Si no puede, pregunta cuándo le queda mejor. No insistas.') +
+      grSub('2. Motivo') +
+      grGuion(L('Le escribí [hoy/ayer] con información de nuestro Programa de Finanzas Personales, que MAXX ofrece sin costo a su {ent} para sus {pers}: son 7 módulos de una hora, sin venta durante las sesiones.')) +
+      grNota(L('Si ni siquiera has enviado el texto y contesta directo, en lugar de "Le escribí [hoy/ayer]" di: "Le llamo por el Programa de Finanzas Personales que MAXX ofrece sin costo a su {ent} para sus {pers}: son 7 módulos de una hora, sin venta durante las sesiones. Con su permiso, le envío hoy la información por [WhatsApp / correo]." Al terminar la llamada, envía el texto introductorio con su Copy y PDF.')) +
+      grSub('3. Escuchar') +
+      grGuion('¿Han hecho algo con el personal en temas de finanzas personales o de estrés económico?') +
+      grSub('4. Valor') +
+      grGuion('El programa les da conocimiento y hábitos para manejar mejor su dinero. Con la lista de asistencia por sesión, contribuye a la evidencia de cumplimiento de la NOM-035.') +
+      grNota('Omite lo de la NOM-035 si no tienen personal contratado.') +
+      grSub('5. Pedir la cita') +
+      grGuion('Lo mejor es que Javier Rowe se lo explique en 15 minutos, por llamada o Zoom, y le resuelva cualquier duda. ¿Le queda mejor el [día] o el [día] por la tarde?') +
+      grLista([
+        'Si dice "no lo he visto": "Se lo reenvío ahora mismo. ¿Le parece si le marco el [día] para ver sus dudas?"',
+        'Si dice "mándeme información": "Ya se la envié [hoy/ayer] por [WhatsApp/correo]. ¿Le parece si le marco el [día] para ver sus dudas?"'
+      ]) +
+      grNota('Si preguntan quién es MAXX: "MAXX es un asesor financiero. Nuestro programa tiene fines educativos, y no hay venta durante las sesiones."');
+  }
+
+  // Aceptó la cita: confirmar datos + (NUEVO) gracias y opciones de horario + (NUEVO) confirmación + invitación Zoom
+  function grC_aceptoCita(v) {
+    var L = function(s) { return grLlenar(s, v); };
+    return grNota('¡Muy bien! Tu meta está cumplida: ya sigue Javier.') +
+      grLista([
+        'Confirma nombre completo, puesto y WhatsApp o correo, y si debe estar alguien más en la llamada.',
+        'Actualiza la Entidad y llena la agenda de Javier.' + (GR_URL_AGENDA ? '' : '')
+      ], true) +
+      (GR_URL_AGENDA ? '<a class="btn gr-enlace" href="' + GR_URL_AGENDA + '" target="_blank" rel="noopener">Ver la agenda de Javier</a>' : '') +
+      grSub('Si te respondió por mensaje: gracias y opciones de horario') +
+      grBloqueTexto('Gracias + opciones de horario', L('Buenos días/tardes {Nombre}, muchas gracias por su tiempo. Con gusto agendo su llamada de 15 minutos con Javier Rowe, por llamada o Zoom, para explicarle cómo funciona el Programa de Finanzas Personales para {Entidad}.\n\nTengo estas opciones:\n• [día] a las [hora]\n• [día] a las [hora]\n\n¿Cuál le queda mejor? Si prefiere otro horario, con gusto lo buscamos. Para dejar la cita registrada, ¿me confirma su nombre completo, puesto y si desea que alguien más participe?\n\nQuedo atento/a. {Referidor} · MAXX · maxx.mx')) +
+      grSub('Cuando ya eligió el horario: confirmación') +
+      grBloqueTexto('Confirmación de la cita', L('Perfecto, {Nombre}. Queda agendada su llamada de 15 minutos con Javier Rowe el [día] a las [hora], por [llamada / Zoom]. Le enviaremos la invitación a [su correo / su WhatsApp]. Muchas gracias por su tiempo.\n\n{Referidor} · MAXX · maxx.mx')) +
+      grSub('Texto para la invitación de Zoom/Meet') +
+      grNota('Va en la invitación de la cita, antes del vínculo de la llamada.') +
+      grBloqueTexto('Texto de la invitación', L('En esta llamada de 15-20 minutos Javier le explicará cómo funcionan los 7 módulos, qué temas cubre cada uno y cómo se programan las sesiones para {Entidad}. No necesita preparar nada. Si después de escucharlo decide no continuar, no hay ningún compromiso.')) +
+      grNota('La cita la lleva Javier: explica el programa y cierra con la entidad (Convenio y programación de sesiones). El referidor no participa en el cierre.');
+  }
+
+  function grC_objeciones(v) {
+    var L = function(s) { return grLlenar(s, v); };
+    return grNota('No cierras nada: tu meta es la cita con Javier. Respuestas en una o dos frases.') +
+      grFilas([
+        ['"Mándeme información"', '"Con gusto, ya se la envié [hoy/ayer] por [WhatsApp/correo]."', 'Pedir: "¿Le parece si le marco el [día] para ver sus dudas?"'],
+        ['"No tenemos presupuesto"', L('"No lleva costo ni contrato: las sesiones son gratuitas para {la}."'), 'Pedir: "¿Le mando el detalle para que lo vea con calma?"'],
+        ['"¿Y ustedes qué ganan?"', '"MAXX es un asesor financiero. Nuestro programa tiene fines educativos, y no hay venta durante las sesiones. Si algún participante después quiere asesoría personal, la pide él; nunca al revés."', 'Dejarlo claro desde aquí evita que lo descubran después y se sientan engañados.'],
+        ['"Ya tenemos algo parecido"', '"Perfecto, no lo sustituye: son 7 módulos que se pueden sumar a lo que ya hacen."', 'Pedir: "¿Qué temas han cubierto? Así le digo cuáles módulos complementan."'],
+        ['"No soy la persona"', '"Gracias, ¿me dice con quién debo hablar y cómo lo contacto?"', 'Nombre, puesto, extensión o correo. Anotarlo en la Entidad.'],
+        ['"Ahorita no es buen momento"', '"Entiendo. ¿Cuándo le queda mejor que le llame?"', 'Fecha concreta: queda como Próximo Seguimiento.'],
+        ['"¿Qué tiene que ver con la NOM-035?"', L('"La NOM-035 busca prevenir riesgos psicosociales en el trabajo. A los {persObj}, el ingreso les viene de su trabajo, con jornadas largas y una paga que muchas veces no es holgada, y eso genera estrés. El programa los prepara con conocimiento y hábitos para manejar mejor su dinero. Con su lista de asistencia por sesión, queda evidencia y puede sumarse a las acciones preventivas que {la} ya registra para la NOM-035."'), 'Decir "contribuye" o "puede sumarse", nunca "cumple" ni "garantiza".'],
+        ['"¿Cuánto dura el programa?"', '"Son 7 módulos de una hora, uno cada dos meses. Se completan en unos 14 meses, por vía digital y en un horario que acordamos con ustedes."', 'Pedir: "¿Le explico en la cita con Javier cómo se programan?"']
+      ]);
+  }
+
+  function grC_seg1(v) {
+    var L = function(s) { return grLlenar(s, v); };
+    return grNota('Unos 3 días después del texto introductorio. Reenvía o cita tu mensaje anterior debajo. Funciona igual en WhatsApp y en correo. Se pega tal cual.') +
+      grBloqueTexto('Asunto (solo correo)', L('Re: Programa de Finanzas Personales para {Entidad}')) +
+      grBloqueTexto('Mensaje', L('Buenos días/tardes {Nombre}, soy {Referidor}, de MAXX. Le dejo abajo mi mensaje anterior, por si se le pasó.\n\nSon solo 15 minutos con Javier Rowe, por llamada o Zoom, para platicarle cómo sus {pers} pueden manejar mejor su dinero, sin costo para {la}. ¿Le queda mejor el [día] o el [día] por la tarde?'));
+  }
+  function grC_segFinal(v) {
+    var L = function(s) { return grLlenar(s, v); };
+    return grNota('Unos 7 días después del Seguimiento 1. Reenvía o cita tu mensaje anterior debajo. Se pega tal cual.') +
+      grBloqueTexto('Asunto (solo correo)', L('Re: Programa de Finanzas Personales para {Entidad}')) +
+      grBloqueTexto('Mensaje', L('Buenos días/tardes {Nombre}, soy {Referidor}, de MAXX. Le dejo abajo mi mensaje anterior.\n\nSi ahora no es buen momento, con gusto lo retomamos más adelante: ¿le escribo de nuevo en [mes]? Y si le interesa, bastan 15 minutos con Javier Rowe.'));
+  }
+  function grC_cierreEstados() {
+    return grNota('Después del Seguimiento final, deja la Entidad en uno de dos estados y anótalo en ella:') +
+      grLista(['Pendiente, con la fecha de próximo seguimiento.', 'No interesado, con su razón.']);
+  }
+
+  // ===================== CONTENIDOS (Journey B) =====================
+  function grC_publicarB(cfg) {
+    var L = function(s) { return grLlenar(s, {}); };
+    var esFb = cfg.fuente === 'F';
+    var pasos = esFb ? [
+      'Crear la publicación en el grupo.',
+      'Pegar el título y el texto de abajo, tal cual, sin cambiarlos.',
+      'Adjuntar el Copy de Afines como imagen.'
+    ] : [
+      'Enviar al grupo el Copy de Afines (la imagen).',
+      'Pegar debajo el texto de abajo, tal cual, sin cambiarlo.',
+      'Opcional: adjuntar también el PDF de Afines.'
+    ];
+    var h = grNota('Los textos se pegan tal cual; no los adaptes a tu voz. Tu meta: que el grupo se registre.') + grLista(pasos, true);
+    if (esFb) {
+      h += grBloqueTexto('Título', 'Programa GRATIS de Finanzas Personales para nuestro grupo') +
+           grBloqueTexto('Texto', L('🎓 7 módulos de 1 hora, GRATIS y por vía digital, para aprender hábitos prácticos con tu dinero, entre gente que conoces. Sin venta durante las sesiones.\n\nRegístrate en el vínculo y dinos qué días y horarios te acomodan. Si somos 10 o más, seguimos con el siguiente módulo.\n\n{vinculo}'));
+    } else {
+      h += grBloqueTexto('Texto para pegar debajo del Copy', L('Hola a todos 👋 Les comparto algo que me pareció muy bueno: el Programa Digital de Finanzas Personales de MAXX.\n\nSon 7 módulos de 1 hora, GRATIS y por vía digital, para aprender hábitos prácticos con nuestro dinero, entre gente que conocemos. Sin venta durante las sesiones.\n\nPara armar nuestro grupo, entren al vínculo, regístrense y díganme qué días y horarios les acomodan. Si somos 10 o más, seguimos con el siguiente módulo 💪\n\n{vinculo}'));
+      if (cfg.fuente === 'O') h += grNota('Este tipo de grupo usa el texto de WhatsApp. Si lo publicas en otra red, adáptalo solo en lo mínimo (por ejemplo, "Hola a todos").');
+    }
+    return h;
+  }
+  function grC_queSigueB() {
+    return grNota('Ya hiciste lo tuyo. Esto es lo que sigue:') +
+      grLista([
+        'Los integrantes del grupo se registran en el vínculo y sugieren sus días y horarios.',
+        'Javier revisa contigo cuántos grupos abrir y en qué fechas y horarios.',
+        'Cada participante confirma el horario que se le asignó.',
+        'Anota en la Entidad lo que vayas sabiendo del grupo.'
+      ], true);
+  }
+
+  // ===================== ÁRBOL DE PREGUNTAS =====================
+  function grArbol(t, cfg) {
+    var v = GR_VARIANTES[t.id] || {};
+    if (t.journey === 'B') {
+      return {
+        INICIO: { pregunta: '¿Ya compartiste el material en tu grupo?', opciones: [
+          { et: 'No todavía', cont: function() { return grC_publicarB(cfg); } },
+          { et: 'Sí, ya lo compartí', cont: grC_queSigueB }
+        ] }
+      };
+    }
+    return {
+      INICIO: { pregunta: '¿Cuál es tu situación con la Entidad?', opciones: [
+        { et: 'Todavía no he contactado a nadie', cont: function() { return grC_conmutador(v); }, sig: 'CONMUTADOR' },
+        { et: 'Hablé con alguien que NO es quien ve la capacitación o decide', cont: grC_noEsLaPersona, sig: 'CONTACTO' },
+        { et: 'Ya identifiqué a la persona que decide, pero no he hablado con ella', cont: null, sig: 'CONTACTO' },
+        { et: 'Voy a llamar a la persona que decide (o ya me contestó ella directo)', cont: function() { return grC_llamadaDecisor(v); }, sig: 'DESPUES_LLAMADA' }
+      ] },
+      CONMUTADOR: { pregunta: '¿Cómo te fue con el conmutador?', opciones: [
+        { et: 'Me comunicaron con la persona que ve la capacitación o decide', cont: function() { return grC_llamadaDecisor(v); }, sig: 'DESPUES_LLAMADA' },
+        { et: 'Me dieron los datos de esa persona (nombre, correo, extensión…)', cont: null, sig: 'CONTACTO' },
+        { et: 'No me la pasaron, no está o me dijeron que volviera a llamar', cont: grC_noEsLaPersona }
+      ] },
+      CONTACTO: { pregunta: '¿Qué datos tienes de la persona que decide y qué quieres hacer?', opciones: [
+        { et: 'Tengo su WhatsApp o correo y quiero presentarme (texto introductorio)', cont: function() { return grC_intro(v); }, sig: 'TRAS_INTRO' },
+        { et: 'Tengo su WhatsApp o correo y quiero pedirle la cita directamente', cont: function() { return grC_pedirCitaDirecto(v); }, sig: 'RESPUESTA' },
+        { et: 'Tengo su teléfono o extensión y voy a llamarle', cont: function() { return grC_llamadaDecisor(v); }, sig: 'DESPUES_LLAMADA' }
+      ] },
+      TRAS_INTRO: { pregunta: '¿Qué pasó después del texto introductorio?', opciones: [
+        { et: 'Ya es el día en que dije que llamaría', cont: function() { return grC_llamadaDecisor(v); }, sig: 'DESPUES_LLAMADA' },
+        { et: 'Me respondió que sí quiere la cita', cont: function() { return grC_aceptoCita(v); } },
+        { et: 'No he tenido respuesta', cont: null, sig: 'SEGUIMIENTO' }
+      ] },
+      RESPUESTA: { pregunta: '¿Qué pasó después de pedirle la cita?', opciones: [
+        { et: 'Me respondió que sí quiere la cita', cont: function() { return grC_aceptoCita(v); } },
+        { et: 'Puso una objeción o duda', cont: function() { return grC_objeciones(v); } },
+        { et: 'No he tenido respuesta', cont: null, sig: 'SEGUIMIENTO' }
+      ] },
+      DESPUES_LLAMADA: { pregunta: '¿Cómo te fue en la llamada?', opciones: [
+        { et: 'Aceptó la cita', cont: function() { return grC_aceptoCita(v); } },
+        { et: 'Puso una objeción o duda', cont: function() { return grC_objeciones(v); } },
+        { et: 'No contestó o quedó en pensarlo', cont: null, sig: 'SEGUIMIENTO' }
+      ] },
+      SEGUIMIENTO: { pregunta: '¿Qué seguimiento llevas?', opciones: [
+        { et: 'Ninguno todavía (unos 3 días después del texto introductorio)', cont: function() { return grC_seg1(v); } },
+        { et: 'Ya mandé el Seguimiento 1 (unos 7 días después)', cont: function() { return grC_segFinal(v); } },
+        { et: 'Ya mandé el Seguimiento final', cont: grC_cierreEstados }
+      ] }
+    };
+  }
+
+  function grRenderGuia(t, cfg) {
+    var cont = document.getElementById('gr-guia');
+    if (!cont) return;
+    var ent = grEntidadElegida();
+    var clave = t.id + '|' + grState.idEntidad;
+    if (clave !== grClaveGuia) { grClaveGuia = clave; grCamino = []; grState.idContacto = ''; }
+    grTextosCopiables = [];
+
+    var arbol = grArbol(t, cfg);
+    var titulo = (t.journey === 'A') ? ('Guía paso a paso — ' + t.singular) : ('Guía paso a paso — ' + (cfg.fuente === 'F' ? 'Grupo de Facebook' : 'Grupo de WhatsApp'));
+    var h = '<div class="gr-guia-t">' + grEsc(titulo) + '</div>' +
+      '<p class="gr-nota">Contesta las preguntas y te mostramos el script o texto que te toca. Lo marcado en <mark class="gr-llenar">amarillo</mark> lo llenas tú; lo demás se pega tal cual.</p>';
+
+    // ¿A quién le escribes? (llena [Nombre]) — solo Journey A y si la Entidad ya tiene contactos
+    var contactos = (ent && ent.contactos || []).filter(function(c) { return c.nombre; });
+    if (t.journey === 'A' && contactos.length) {
+      h += '<div class="gr-contacto"><label for="gr-sel-contacto">¿A quién le escribes o llamas? (llena el [Nombre] solo)</label>' +
+        '<select id="gr-sel-contacto" class="gr-select"><option value="">Otro / lo lleno yo</option>' +
+        contactos.map(function(c) { return '<option value="' + grEsc(c.idContacto) + '"' + (grState.idContacto === c.idContacto ? ' selected' : '') + '>' + grEsc(c.nombre + (c.puesto ? ' — ' + c.puesto : '')) + '</option>'; }).join('') +
+        '</select></div>';
+    }
+
+    var nodo = 'INICIO';
+    for (var p = 0; p <= grCamino.length && nodo; p++) {
+      var n = arbol[nodo];
+      var elegido = (p < grCamino.length) ? grCamino[p] : -1;
+      h += '<div class="gr-preg" id="gr-preg-' + p + '"><div class="gr-preg-t">' + (p + 1) + '. ' + grEsc(n.pregunta) + '</div><div class="gr-ops">';
+      n.opciones.forEach(function(op, i) {
+        h += '<button class="gr-op' + (i === elegido ? ' activo' : '') + '" data-p="' + p + '" data-i="' + i + '">' + grEsc(op.et) + '</button>';
+      });
+      h += '</div>';
+      if (elegido >= 0) {
+        var o = n.opciones[elegido];
+        if (o.cont) h += '<div class="gr-res" id="gr-res-' + p + '">' + o.cont() + '</div>';
+        nodo = o.sig || null;
+      } else { nodo = null; }
+      h += '</div>';
+    }
+    if (grCamino.length) h += '<button class="btn gr-reiniciar" id="gr-btn-reiniciar" style="background:#5F5E5A;">Volver a empezar</button>';
+    h += '<button class="btn gr-alta" id="gr-btn-alta" style="background:#EF9F27;">Ir a dar de alta o revisar mi Entidad</button>';
+    cont.innerHTML = h;
+
+    var bAlta = document.getElementById('gr-btn-alta'); if (bAlta) bAlta.addEventListener('click', irAAltaDeEntidad);
+    var bRei = document.getElementById('gr-btn-reiniciar'); if (bRei) bRei.addEventListener('click', function() { grCamino = []; grRenderGuia(t, cfg); });
+    var sel = document.getElementById('gr-sel-contacto');
+    if (sel) sel.addEventListener('change', function() { grState.idContacto = sel.value; grRenderGuia(t, cfg); });
+  }
+
+  function grAlElegirOpcion(btn) {
+    var p = parseInt(btn.getAttribute('data-p'), 10), i = parseInt(btn.getAttribute('data-i'), 10);
+    grCamino = grCamino.slice(0, p);
+    grCamino.push(i);
+    var t = grTipoActual();
+    if (!t) return;
+    grRenderGuia(t, grConfig());
+    var destino = document.getElementById('gr-res-' + p) || document.getElementById('gr-preg-' + (p + 1));
+    if (destino && destino.scrollIntoView) destino.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function grCopiarAlPortapapeles(texto, btn) {
+    function ok() { btn.textContent = '¡Copiado!'; setTimeout(function() { btn.textContent = 'Copiar texto'; }, 1800); }
+    function respaldo() {
+      var ta = document.createElement('textarea');
+      ta.value = texto; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); ok(); } catch (e) { prompt('Copia el texto manualmente:', texto); }
+      document.body.removeChild(ta);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(texto).then(ok).catch(respaldo); }
+    else { respaldo(); }
+  }
+
   function construirSeccionGrupos() {
     var seccion = document.createElement('div');
     seccion.className = 'seccion-etapa';
@@ -2782,6 +3170,12 @@ var qrcode = function() {
         '<div id="gr-guia"></div>' +
       '</div>';
     galeria.appendChild(seccion);
+    document.getElementById('gr-guia').addEventListener('click', function(ev) {
+      var b = ev.target.closest ? ev.target.closest('.gr-copiar') : null;
+      if (b) { grCopiarAlPortapapeles(grTextosCopiables[parseInt(b.getAttribute('data-i'), 10)], b); return; }
+      var o = ev.target.closest ? ev.target.closest('.gr-op') : null;
+      if (o) grAlElegirOpcion(o);
+    });
 
     TIPOS_GRUPO.forEach(function(t) {
       var btn = document.createElement('div');
@@ -2877,6 +3271,7 @@ var qrcode = function() {
       cont.appendChild(crearTarjeta(c, et));
     });
     cargarImagenesDeSeccion('GRUPOS');
+    grRenderGuia(t, cfg);
   }
 
   // ---- Construir la galería agrupada por etapa, más reciente primero ----
