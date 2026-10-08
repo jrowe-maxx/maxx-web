@@ -26,6 +26,7 @@
 #rp-modulo-contenido { display: none; background: white; border: 2px solid #E6F1FB; border-radius: 12px; padding: 18px; margin: 0 0 20px; }
 #rp-modulo-contenido .rp-mc-eyebrow { font-size: 12px; font-weight: bold; color: #EF9F27; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
 #rp-modulo-contenido h3 { color: #042C53; font-size: 19px; margin: 0 0 10px 0; }
+#rp-modulo-contenido .rp-mc-lema { display: none; color: #639922; font-size: 13px; font-weight: bold; font-style: italic; margin: -6px 0 12px 0; }
 #rp-modulo-contenido .rp-mc-desc { color: #185FA5; font-size: 14px; font-weight: bold; margin-bottom: 12px; line-height: 1.4; }
 #rp-modulo-contenido ul { margin: 0; padding-left: 18px; }
 #rp-modulo-contenido li { font-size: 13px; color: #444; margin-bottom: 8px; line-height: 1.45; }
@@ -144,6 +145,7 @@
     <div class="rp-mc-eyebrow">Lo que verás en esta sesión</div>
     <h3 id="rp-mc-titulo"></h3>
     <div class="rp-mc-desc" id="rp-mc-desc"></div>
+    <div class="rp-mc-lema" id="rp-mc-lema"></div>
     <ul id="rp-mc-temas"></ul>
   </div>
 
@@ -655,6 +657,9 @@
       if (modulo) {
         document.getElementById('rp-mc-titulo').textContent = 'Módulo ' + modulo.numero + ' — ' + modulo.titulo;
         document.getElementById('rp-mc-desc').textContent = modulo.descripcion;
+        var elLema = document.getElementById('rp-mc-lema');
+        elLema.textContent = modulo.lema ? '"' + modulo.lema + '"' : '';
+        elLema.style.display = modulo.lema ? 'block' : 'none';
         document.getElementById('rp-mc-temas').innerHTML = (modulo.temas || []).map(function(t) { return '<li>' + t + '</li>'; }).join('');
         elModuloContenido.style.display = 'block';
       }
