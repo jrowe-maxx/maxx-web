@@ -56,7 +56,7 @@
 </head>
 <body>
 
-<div id="contenedor-galeria" style="max-width:900px; margin:0 auto;">
+<div id="contenedor-galeria" style="max-width:900px; margin:0 auto; display:flow-root;">
 
 <p style="color:#042C53; font-size:15px; font-weight:bold; margin:0 0 16px 0; line-height:1.4;">
   Selecciona la opción deseada:
@@ -3011,6 +3011,51 @@ var qrcode = function() {
 
   mostrarGrupoPrincipal('grupos'); // vista por default al entrar
 
+  // ---- Tamaño automático del iframe + modal bien ubicado ----
+  // La Galería vive dentro de un iframe en Carrd. En vez de dejar que el
+  // iframe tenga su propia barra de scroll, se estira solo para ajustarse
+  // al contenido (así se navega con el scroll normal de la página, en
+  // computadora y en celular). Como el modal (vista grande) es "fixed" dentro
+  // del iframe, se recoloca siempre en la parte visible de la pantalla.
+  var elContenedorGaleria = document.getElementById('contenedor-galeria');
+  function ajustarAlturaIframe() {
+    try {
+      var marco = window.frameElement;
+      if (!marco) return;
+      var alto = Math.ceil(elContenedorGaleria.getBoundingClientRect().height) + 40;
+      marco.style.height = alto + 'px';
+    } catch (e) {}
+  }
+  try {
+    if (window.ResizeObserver) { new ResizeObserver(ajustarAlturaIframe).observe(elContenedorGaleria); }
+    window.addEventListener('load', ajustarAlturaIframe);
+    ajustarAlturaIframe();
+  } catch (e) {}
+
+  var modalEl = document.getElementById('modal');
+  function posicionarModal() {
+    try {
+      var marco = window.frameElement;
+      if (!marco) return;
+      var r = marco.getBoundingClientRect();
+      var alturaVentana = window.top.innerHeight;
+      var arriba = Math.max(0, -r.top);
+      modalEl.style.top = arriba + 'px';
+      modalEl.style.bottom = 'auto';
+      modalEl.style.height = alturaVentana + 'px';
+      // el modal no puede salirse del iframe: se le da altura suficiente mientras está abierto
+      marco.style.minHeight = (arriba + alturaVentana) + 'px';
+    } catch (e) {}
+  }
+  function activarSeguimientoModal(activar) {
+    try {
+      if (!activar && window.frameElement) window.frameElement.style.minHeight = '';
+      var fn = activar ? 'addEventListener' : 'removeEventListener';
+      window.top[fn]('scroll', posicionarModal);
+      window.top[fn]('resize', posicionarModal);
+    } catch (e) {}
+  }
+
   // ---- Vista grande instantánea + generación diferida al compartir ----
   var modal = document.getElementById('modal');
   var vistaGrande = document.getElementById('vista-grande');
@@ -3207,6 +3252,8 @@ var qrcode = function() {
     blobListo = null;
     blobEnProceso = true;
     modal.classList.add('abierto');
+    posicionarModal();
+    activarSeguimientoModal(true);
 
     var esPdf = copy.categoria === 'pdf';
 
@@ -3303,6 +3350,7 @@ var qrcode = function() {
 
   document.getElementById('btn-cerrar').addEventListener('click', function() {
     modal.classList.remove('abierto');
+    activarSeguimientoModal(false);
   });
 
   btnCompartir.addEventListener('click', function() {
