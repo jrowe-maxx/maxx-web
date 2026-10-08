@@ -87,6 +87,7 @@
   <select id="zrg-alta-tipo">
     <option value="Escuela">Escuela</option>
     <option value="Empresa">Empresa</option>
+    <option value="Institución">Institución</option>
     <option value="Personal">Grupo Personal</option>
     <option value="Religioso">Grupo Religioso</option>
     <option value="Grupo de Facebook">Grupo de Facebook</option>
@@ -134,6 +135,7 @@
         <option value="">Todos</option>
         <option value="Escuela">Escuela</option>
         <option value="Empresa">Empresa</option>
+    <option value="Institución">Institución</option>
         <option value="Personal">Grupo Personal</option>
         <option value="Religioso">Grupo Religioso</option>
         <option value="Grupo de Facebook">Grupo de Facebook</option>
@@ -251,7 +253,7 @@
   var MESES_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
   var COLOR_TIPO = {
-    'Escuela': '#DCEAFB', 'Empresa': '#FCEAD6', 'Personal': '#E3F2D9', 'Religioso': '#EDE3F5', 'Otro': '#EEEEEE'
+    'Escuela': '#DCEAFB', 'Empresa': '#FCEAD6', 'Institución': '#FBE3E8', 'Personal': '#E3F2D9', 'Religioso': '#EDE3F5', 'Otro': '#EEEEEE'
   };
   var TIPOS_GRUPO_AFIN = ['Personal', 'Religioso', 'Grupo de Facebook', 'Grupo de Instagram', 'Grupo de WhatsApp', 'Grupo en Otra Red Social', 'Otro'];
   function esTipoGrupoAfin(tipo) { return TIPOS_GRUPO_AFIN.indexOf(tipo) !== -1; }
@@ -263,7 +265,7 @@
   // son institucionales — son un grupo de personas sin domicilio
   // propio; ahí es cada PARTICIPANTE quien captura su propio Código
   // Postal y Entidad Federativa al registrarse, no la Entidad.
-  var TIPOS_INSTITUCIONALES = ['Escuela', 'Empresa', 'Religioso', 'Otro'];
+  var TIPOS_INSTITUCIONALES = ['Escuela', 'Empresa', 'Institución', 'Religioso', 'Otro'];
   function tipoEsInstitucional(tipo) { return TIPOS_INSTITUCIONALES.indexOf(tipo) !== -1; }
   var COLOR_ETAPA = {
     'Registrado': '#9AA0A6', 'Contactado': '#378ADD', 'Cita Agendada': '#EF9F27',
@@ -753,7 +755,7 @@
     html += '<input type="text" id="zrg-ed-nombre-' + ent.idEntidad + '" value="' + String(ent.nombre || '').replace(/"/g, '&quot;') + '">';
     html += '<label>Tipo</label>';
     html += '<select id="zrg-ed-tipo-' + ent.idEntidad + '">';
-    [{v:'Escuela',t:'Escuela'},{v:'Empresa',t:'Empresa'},{v:'Personal',t:'Grupo Personal'},{v:'Religioso',t:'Grupo Religioso'},{v:'Grupo de Facebook',t:'Grupo de Facebook'},{v:'Grupo de Instagram',t:'Grupo de Instagram'},{v:'Grupo de WhatsApp',t:'Grupo de WhatsApp'},{v:'Grupo en Otra Red Social',t:'Grupo en Otra Red Social'},{v:'Otro',t:'Otro'}].forEach(function(opcion) {
+    [{v:'Escuela',t:'Escuela'},{v:'Empresa',t:'Empresa'},{v:'Institución',t:'Institución'},{v:'Personal',t:'Grupo Personal'},{v:'Religioso',t:'Grupo Religioso'},{v:'Grupo de Facebook',t:'Grupo de Facebook'},{v:'Grupo de Instagram',t:'Grupo de Instagram'},{v:'Grupo de WhatsApp',t:'Grupo de WhatsApp'},{v:'Grupo en Otra Red Social',t:'Grupo en Otra Red Social'},{v:'Otro',t:'Otro'}].forEach(function(opcion) {
       html += '<option value="' + opcion.v + '"' + (ent.tipo === opcion.v ? ' selected' : '') + '>' + opcion.t + '</option>';
     });
     html += '</select>';
@@ -776,6 +778,27 @@
     html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-guardar-ed-' + ent.idEntidad + '" disabled onclick="window.zrgGuardarEdicion(\'' + ent.idEntidad + '\')">Sin cambios</button>';
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgMostrarFormEditar(\'' + ent.idEntidad + '\')">Cancelar</button>';
     html += '<div id="zrg-estado-ed-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
+    html += '</div>';
+
+    // ===== Estado de la Entidad (lo cambia el referidor) =====
+    var etapaActual = etapaDe(ent);
+    var razonActual = (ent.grupos && ent.grupos[0] && ent.grupos[0].razonEstado) || '';
+    html += '<div class="zrg-contacto">';
+    html += '<b style="color:#042C53;">Estado de la Entidad</b>';
+    if (etapaActual === 'Programa Cerrado') {
+      html += '<div class="zrg-linea">Programa cerrado. Lo gestiona Javier.</div>';
+    } else {
+      html += '<select id="zrg-estado-sel-' + ent.idEntidad + '" onchange="window.zrgCambioEstadoSel(\'' + ent.idEntidad + '\')">';
+      [{v:'Registrado',t:'Registrada (aún sin contacto)'},{v:'Contactado',t:'Contactada (ya hablé o escribí con alguien)'},{v:'Cita Agendada',t:'Cita agendada con Javier'},{v:'Pendiente',t:'Pendiente (quedó para otra fecha)'},{v:'No Interesado',t:'No le interesa'}].forEach(function(o) {
+        html += '<option value="' + o.v + '"' + (etapaActual === o.v ? ' selected' : '') + '>' + o.t + '</option>';
+      });
+      html += '</select>';
+      html += '<div id="zrg-estado-razon-wrap-' + ent.idEntidad + '" class="' + ((etapaActual === 'Pendiente' || etapaActual === 'No Interesado') ? '' : 'zrg-oculto') + '">';
+      html += '<textarea id="zrg-estado-razon-' + ent.idEntidad + '" placeholder="¿Por qué? (lo que te dijeron o la razón). Si queda Pendiente, pon abajo la fecha de Próximo Seguimiento." style="min-height:44px;">' + String(razonActual).replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</textarea>';
+      html += '</div>';
+      html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-estado-' + ent.idEntidad + '" onclick="window.zrgGuardarEstado(\'' + ent.idEntidad + '\')">Guardar estado</button>';
+      html += '<div id="zrg-estado-estado-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
+    }
     html += '</div>';
 
     html += '<div class="zrg-contacto">';
@@ -1034,6 +1057,44 @@
         elBtn.disabled = false;
         elBtn.textContent = '+ Agregar al historial';
         elEstado.textContent = 'No se pudo conectar. Intenta de nuevo.';
+      });
+  };
+
+  window.zrgCambioEstadoSel = function(idEntidad) {
+    var v = document.getElementById('zrg-estado-sel-' + idEntidad).value;
+    var wrap = document.getElementById('zrg-estado-razon-wrap-' + idEntidad);
+    if (wrap) wrap.classList.toggle('zrg-oculto', !(v === 'Pendiente' || v === 'No Interesado'));
+  };
+
+  window.zrgGuardarEstado = function(idEntidad) {
+    var estado = document.getElementById('zrg-estado-sel-' + idEntidad).value;
+    var razonEl = document.getElementById('zrg-estado-razon-' + idEntidad);
+    var razon = razonEl ? razonEl.value.trim() : '';
+    var elMsg = document.getElementById('zrg-estado-estado-' + idEntidad);
+    var elBtn = document.getElementById('zrg-btn-estado-' + idEntidad);
+    elMsg.textContent = '';
+    if ((estado === 'Pendiente' || estado === 'No Interesado') && !razon) {
+      elMsg.textContent = 'Escribe la razón antes de guardar.';
+      return;
+    }
+    elBtn.disabled = true; elBtn.textContent = 'Guardando...';
+    fetch(BASE_URL, {
+      method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: 'actualizarEstadoEntidad', ref: REF, idEntidad: idEntidad, estado: estado, razon: (estado === 'Pendiente' || estado === 'No Interesado') ? razon : '' })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.exito) {
+          todasMisEntidades = null;
+          cargarYFiltrar();
+        } else {
+          elBtn.disabled = false; elBtn.textContent = 'Guardar estado';
+          elMsg.textContent = data.error || 'No se pudo guardar.';
+        }
+      })
+      .catch(function() {
+        elBtn.disabled = false; elBtn.textContent = 'Guardar estado';
+        elMsg.textContent = 'No se pudo conectar. Intenta de nuevo.';
       });
   };
 
