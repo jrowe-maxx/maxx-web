@@ -10,8 +10,8 @@
 .zrg-btn { background: #185FA5; color: white; border: none; border-radius: 8px; padding: 11px 18px; font-size: 14px; font-weight: bold; cursor: pointer; }
 .zrg-btn:hover { background: #378ADD; }
 .zrg-btn:disabled { background: #ccc; cursor: default; }
-.zrg-btn-secundario { background: white; color: #185FA5; border: 2px solid #185FA5; }
-.zrg-btn-secundario:hover { background: #E6F1FB; }
+.zrg-btn-secundario { background: #DCEAFB; color: #185FA5; border: 2px solid #DCEAFB; }
+.zrg-btn-secundario:hover { background: #C5DCF5; border-color: #C5DCF5; }
 .zrg-btn-chico { padding: 6px 12px; font-size: 12px; }
 .zrg-btn-guardado { background: #639922 !important; }
 .zrg-btn-destacado { background: #EF9F27 !important; color: white !important; border: none !important; }
@@ -38,6 +38,13 @@
 .zrg-planteles-lista { margin: 2px 0 6px; padding-left: 18px; font-size: 13px; color: #444; }
 .zrg-planteles-lista li { margin-bottom: 3px; }
 .zrg-contacto { border-top: 1px dashed #E6F1FB; padding-top: 6px; margin-top: 8px; font-size: 13px; }
+.zrg-aviso-ok { background:#EAF3DE; color:#27500A; border-radius:6px; padding:6px 10px; margin:4px 0 6px; font-size:12px; }
+.zrg-aviso-alerta { background:#FFF6D6; border-left:4px solid #EF9F27; color:#412402; border-radius:6px; padding:6px 10px; margin:4px 0 6px; font-size:12px; line-height:1.35; }
+.zrg-insignia { display:inline-block; font-size:11px; font-weight:bold; border-radius:10px; padding:1px 8px; margin-left:4px; }
+.zrg-insignia-ok { background:#639922; color:#fff; }
+.zrg-insignia-no { background:#D9D9D9; color:#444; }
+.zrg-insignia-pend { background:#FAC775; color:#412402; }
+.zrg-sel-decisor { margin-top:4px; font-size:13px; }
 .zrg-contacto-fila { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
 #zrg-estado { font-size: 13px; margin: 8px 0; min-height: 18px; }
 .zrg-estado-ok { color: #27500A; font-weight: bold; }
@@ -785,6 +792,9 @@
     var razonActual = (ent.grupos && ent.grupos[0] && ent.grupos[0].razonEstado) || '';
     html += '<div class="zrg-contacto">';
     html += '<b style="color:#042C53;">Estado de la Entidad</b>';
+    if (etapaActual === 'Registrado' && ent.contactos && ent.contactos.length > 0) {
+      html += '<div class="zrg-aviso-alerta">Ya tienes contacto registrado: cambia el estado a "Contactada".</div>';
+    }
     if (etapaActual === 'Programa Cerrado') {
       html += '<div class="zrg-linea">Programa cerrado. Lo gestiona Javier.</div>';
     } else {
@@ -903,8 +913,19 @@
     if (ent.contactos.length === 0) {
       html += '<div class="zrg-linea">Ninguno todavía.</div>';
     } else {
+      var nDecide = ent.contactos.filter(function(c) { return c.decisor === 'Sí'; }).length;
+      html += nDecide > 0
+        ? '<div class="zrg-aviso-ok">✓ Ya tienes contacto que decide la capacitación.</div>'
+        : '<div class="zrg-aviso-alerta">Ningún contacto está marcado como quien decide la capacitación. Pregúntale a tu contacto quién ve esos temas y márcalo abajo.</div>';
       ent.contactos.forEach(function(c) {
-        html += '<div class="zrg-contacto-fila"><span>' + c.nombre + (c.puesto ? ' — ' + c.puesto : '') + (c.telefono ? ' · ' + c.telefono : '') + (c.correo ? ' · ' + c.correo : '') + '</span></div>';
+        var d = c.decisor || '';
+        var etiqueta = d === 'Sí' ? '<span class="zrg-insignia zrg-insignia-ok">DECIDE</span>' : (d === 'No' ? '<span class="zrg-insignia zrg-insignia-no">No decide</span>' : '<span class="zrg-insignia zrg-insignia-pend">Sin definir</span>');
+        html += '<div class="zrg-contacto-fila" style="display:block;"><span>' + c.nombre + (c.puesto ? ' — ' + c.puesto : '') + (c.telefono ? ' · ' + c.telefono : '') + (c.correo ? ' · ' + c.correo : '') + ' ' + etiqueta + '</span>';
+        html += '<select class="zrg-sel-decisor" id="zrg-decisor-' + c.idContacto + '" onchange="window.zrgCambiarDecisor(\'' + c.idContacto + '\')">';
+        [{v:'',t:'¿Es quien decide o ve la capacitación? — elige'},{v:'Sí',t:'Sí, decide / ve la capacitación'},{v:'No',t:'No, solo me atendió o me refirió'},{v:'No sé',t:'Aún no lo sé'}].forEach(function(o) {
+          html += '<option value="' + o.v + '"' + (d === o.v ? ' selected' : '') + '>' + o.t + '</option>';
+        });
+        html += '</select><div id="zrg-decisor-msg-' + c.idContacto + '" class="zrg-estado-error" style="font-size:12px;"></div></div>';
       });
     }
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin-top:8px;" onclick="window.zrgMostrarFormContacto(\'' + ent.idEntidad + '\')">+ Agregar contacto</button>';
@@ -913,6 +934,7 @@
     html += '<input type="text" placeholder="Puesto (opcional)" id="zrg-con-puesto-' + ent.idEntidad + '">';
     html += '<input type="text" placeholder="Teléfono/Extensión (opcional)" id="zrg-con-telefono-' + ent.idEntidad + '">';
     html += '<input type="email" placeholder="Correo (opcional)" id="zrg-con-correo-' + ent.idEntidad + '">';
+    html += '<select id="zrg-con-decisor-' + ent.idEntidad + '"><option value="">¿Es quien decide o ve la capacitación? — elige</option><option value="Sí">Sí, decide / ve la capacitación</option><option value="No">No, solo me atendió o me refirió</option><option value="No sé">Aún no lo sé</option></select>';
     html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-guardar-con-' + ent.idEntidad + '" onclick="window.zrgGuardarContacto(\'' + ent.idEntidad + '\')">Guardar contacto</button>';
     html += '<div id="zrg-estado-con-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     html += '</div>';
@@ -1273,6 +1295,23 @@
       .catch(function() { elEstado.textContent = 'No se pudo conectar. Intenta de nuevo.'; });
   };
 
+  window.zrgCambiarDecisor = function(idContacto) {
+    var sel = document.getElementById('zrg-decisor-' + idContacto);
+    var msg = document.getElementById('zrg-decisor-msg-' + idContacto);
+    if (!sel.value) return;
+    msg.textContent = 'Guardando...';
+    fetch(BASE_URL, {
+      method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ accion: 'actualizarDecisorContacto', ref: REF, idContacto: idContacto, decisor: sel.value })
+    })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.exito) { todasMisEntidades = null; cargarYFiltrar(); }
+        else { msg.textContent = data.error || 'No se pudo guardar.'; }
+      })
+      .catch(function() { msg.textContent = 'No se pudo conectar. Intenta de nuevo.'; });
+  };
+
   window.zrgMostrarFormContacto = function(idEntidad) {
     document.getElementById('zrg-form-contacto-' + idEntidad).classList.toggle('zrg-oculto');
   };
@@ -1282,6 +1321,8 @@
     var elEstado = document.getElementById('zrg-estado-con-' + idEntidad);
     var elBtn = document.getElementById('zrg-btn-guardar-con-' + idEntidad);
     if (!nombre) { elEstado.textContent = 'Escribe el nombre del contacto.'; return; }
+    var decisorNuevo = document.getElementById('zrg-con-decisor-' + idEntidad).value;
+    if (!decisorNuevo) { elEstado.textContent = 'Elige si esta persona decide o ve la capacitación (o "Aún no lo sé").'; return; }
     elEstado.textContent = '';
     elBtn.disabled = true;
     elBtn.textContent = 'Guardando...';
@@ -1293,6 +1334,7 @@
         puesto: document.getElementById('zrg-con-puesto-' + idEntidad).value.trim(),
         telefono: document.getElementById('zrg-con-telefono-' + idEntidad).value.trim(),
         correo: document.getElementById('zrg-con-correo-' + idEntidad).value.trim(),
+        decisor: decisorNuevo,
         notas: ''
       })
     })
