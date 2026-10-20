@@ -745,7 +745,6 @@
     }
     if (ent.empleadosElegibles) html += '<div class="zrg-linea"><b># Potencial de Participantes (estimado):</b> ' + ent.empleadosElegibles + '</div>';
     if (ent.empleadosConfirmados) html += '<div class="zrg-linea"><b># Participantes Confirmados:</b> ' + ent.empleadosConfirmados + '</div>';
-    if (ent.modulosComprometidos) html += '<div class="zrg-linea"><b>Módulos comprometidos (Convenio):</b> ' + ent.modulosComprometidos + '</div>';
     if (ent.sectorEconomico) html += '<div class="zrg-linea"><b>Sector Económico:</b> ' + ent.sectorEconomico + '</div>';
     if (ent.publicoPrivado) html += '<div class="zrg-linea"><b>Público/Privado:</b> ' + ent.publicoPrivado + '</div>';
     if (ent.religion) html += '<div class="zrg-linea"><b>Religión:</b> ' + ent.religion + '</div>';
@@ -780,8 +779,6 @@
     if (ES_ADMIN) {
       html += '<label>Participantes Confirmados (MAXX) — solo tú</label>';
       html += '<input type="text" id="zrg-ed-empleadosconf-' + ent.idEntidad + '" value="' + String(ent.empleadosConfirmados || '').replace(/"/g, '&quot;') + '">';
-      html += '<label>Módulos Comprometidos (Convenio) — solo tú</label>';
-      html += '<input type="text" id="zrg-ed-modulos-' + ent.idEntidad + '" value="' + String(ent.modulosComprometidos || '').replace(/"/g, '&quot;') + '">';
     }
     html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-guardar-ed-' + ent.idEntidad + '" disabled onclick="window.zrgGuardarEdicion(\'' + ent.idEntidad + '\')">Sin cambios</button>';
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgMostrarFormEditar(\'' + ent.idEntidad + '\')">Cancelar</button>';
@@ -967,9 +964,8 @@
     var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tipo-', 'zrg-ed-empleados-', 'zrg-ed-sector-', 'zrg-ed-pubpriv-', 'zrg-ed-religion-'];
     var valoresOriginales = { nombre: String(ent.nombre || ''), tipo: String(ent.tipo || ''), empleados: String(ent.empleadosElegibles || ''), sector: String(ent.sectorEconomico || ''), pubpriv: String(ent.publicoPrivado || ''), religion: String(ent.religion || ''), planteles: JSON.stringify(ent.planteles || []) };
     if (ES_ADMIN) {
-      camposEdicion.push('zrg-ed-empleadosconf-', 'zrg-ed-modulos-');
+      camposEdicion.push('zrg-ed-empleadosconf-');
       valoresOriginales.empleadosconf = String(ent.empleadosConfirmados || '');
-      valoresOriginales.modulos = String(ent.modulosComprometidos || '');
     }
     function revisarCambios() {
       var cambio =
@@ -980,8 +976,7 @@
         document.getElementById('zrg-ed-pubpriv-' + ent.idEntidad).value !== valoresOriginales.pubpriv ||
         document.getElementById('zrg-ed-religion-' + ent.idEntidad).value !== valoresOriginales.religion ||
         JSON.stringify(zrgLeerPlanteles('zrg-ed-planteles-' + ent.idEntidad)) !== valoresOriginales.planteles ||
-        (ES_ADMIN && document.getElementById('zrg-ed-empleadosconf-' + ent.idEntidad).value !== valoresOriginales.empleadosconf) ||
-        (ES_ADMIN && document.getElementById('zrg-ed-modulos-' + ent.idEntidad).value !== valoresOriginales.modulos);
+        (ES_ADMIN && document.getElementById('zrg-ed-empleadosconf-' + ent.idEntidad).value !== valoresOriginales.empleadosconf);
       elBtnGuardarEd.disabled = !cambio;
       elBtnGuardarEd.textContent = cambio ? 'Guardar cambios' : 'Sin cambios';
       elBtnGuardarEd.classList.remove('zrg-btn-guardado');
@@ -1014,7 +1009,6 @@
     elBtn.textContent = 'Guardando...';
 
     var elCampoConf = document.getElementById('zrg-ed-empleadosconf-' + idEntidad);
-    var elCampoMod = document.getElementById('zrg-ed-modulos-' + idEntidad);
 
     fetch(BASE_URL, {
       method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1026,8 +1020,7 @@
         sectorEconomico: document.getElementById('zrg-ed-sector-' + idEntidad).value,
         publicoPrivado: document.getElementById('zrg-ed-pubpriv-' + idEntidad).value,
         religion: document.getElementById('zrg-ed-religion-' + idEntidad).value,
-        empleadosConfirmados: elCampoConf ? elCampoConf.value.trim() : '',
-        modulosComprometidos: elCampoMod ? elCampoMod.value.trim() : ''
+        empleadosConfirmados: elCampoConf ? elCampoConf.value.trim() : ''
       })
     })
       .then(function(res) { return res.json(); })
