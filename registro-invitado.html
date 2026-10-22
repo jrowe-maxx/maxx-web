@@ -1,0 +1,257 @@
+<style>
+#ri-wrap { max-width: 640px; margin: 0 auto; font-family: Arial, sans-serif; padding: 24px 16px 60px; }
+#ri-wrap h1 { color: #042C53; font-size: 22px; margin: 0 0 6px 0; }
+#ri-wrap .ri-sub { color: #185FA5; font-size: 14px; margin: 0 0 20px 0; }
+#ri-wrap .ri-obligatorio { color: #791F1F; }
+#ri-wrap .ri-nota { font-size: 12px; color: #666; margin: -4px 0 16px; }
+#ri-wrap input, #ri-wrap select { width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 10px; border: 2px solid #E6F1FB; border-radius: 8px; font-size: 15px; font-family: Arial, sans-serif; }
+#ri-wrap label { display: block; font-size: 13px; color: #042C53; font-weight: bold; margin-bottom: 4px; }
+.ri-btn { background: #185FA5; color: white; border: none; border-radius: 8px; padding: 12px 20px; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%; }
+.ri-btn:hover { background: #378ADD; }
+.ri-btn:disabled { background: #ccc; cursor: default; }
+a.ri-btn { display: block; box-sizing: border-box; text-align: center; text-decoration: none; margin-top: 10px; }
+a.ri-btn-sec { background: #EF9F27; }
+a.ri-btn-sec:hover { background: #F5B34F; }
+#ri-cargando { text-align: center; color: #185FA5; padding: 30px 0; }
+#ri-error-sesion { display: none; text-align: center; color: #791F1F; padding: 24px 16px; background: #FAECE7; border-radius: 10px; }
+#ri-sesion { display: none; background: #E6F1FB; border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; }
+#ri-sesion .ri-s-modulo { font-size: 12px; color: #185FA5; font-weight: bold; text-transform: uppercase; }
+#ri-sesion .ri-s-titulo { font-size: 17px; font-weight: bold; color: #042C53; margin: 2px 0; }
+#ri-sesion .ri-s-fecha { font-size: 14px; color: #185FA5; }
+#ri-form { display: none; }
+#ri-form h2 { color: #042C53; font-size: 16px; margin-bottom: 4px; }
+.ri-fila-doble { display: flex; gap: 10px; }
+.ri-fila-doble > div { flex: 1; }
+.ri-ayuda { font-size: 12px; color: #185FA5; margin: -6px 0 12px; line-height: 1.4; }
+.ri-aviso { font-size: 12px; color: #444; line-height: 1.5; background: #F5F9FE; border: 1px solid #E6F1FB; border-radius: 8px; padding: 10px 12px; margin: 4px 0 12px; }
+#ri-wrap label.ri-aviso-check { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: #042C53; font-weight: normal; margin: 4px 0 14px; cursor: pointer; }
+#ri-wrap .ri-aviso-check input { width: auto; margin: 3px 0 0; flex: 0 0 auto; }
+.ri-aviso-check a { color: #185FA5; font-weight: bold; }
+#ri-estado { font-size: 13px; margin: 10px 0; min-height: 18px; color: #791F1F; font-weight: bold; }
+#ri-exito { display: none; text-align: center; padding: 26px 16px; background: #EAF3DE; border-radius: 10px; }
+#ri-exito .ri-pass { font-size: 30px; font-weight: bold; color: #27500A; letter-spacing: 3px; margin: 10px 0; }
+#ri-exito .ri-nota-exito { color: #444; font-size: 13px; line-height: 1.5; margin-top: 8px; }
+#ri-ya { display: none; text-align: center; padding: 24px 16px; background: #FFFBE6; border: 1px solid #FDF0B3; border-radius: 10px; color: #185FA5; font-weight: bold; line-height: 1.5; }
+</style>
+
+<div id="ri-wrap">
+  <h1>Regístrate como Invitado</h1>
+  <p class="ri-sub">Déjanos TUS datos para registrar TU asistencia a esta sesión y que puedas seguir con los Módulos.</p>
+
+  <div id="ri-cargando">Cargando la sesión...</div>
+  <div id="ri-error-sesion"></div>
+
+  <div id="ri-sesion">
+    <div class="ri-s-modulo" id="ri-s-modulo"></div>
+    <div class="ri-s-titulo" id="ri-s-titulo"></div>
+    <div class="ri-s-fecha" id="ri-s-fecha"></div>
+  </div>
+
+  <div id="ri-form">
+    <h2>TUS datos</h2>
+    <p class="ri-nota"><span class="ri-obligatorio">*</span> Campo obligatorio</p>
+    <div class="ri-fila-doble">
+      <div><label>Nombre(s) <span class="ri-obligatorio">*</span></label><input type="text" id="ri-nombres"></div>
+      <div><label>Apellido(s) <span class="ri-obligatorio">*</span></label><input type="text" id="ri-apellidos"></div>
+    </div>
+    <label>Correo <span class="ri-obligatorio">*</span></label>
+    <input type="email" id="ri-correo">
+    <label>Confirma TU Correo <span class="ri-obligatorio">*</span></label>
+    <input type="email" id="ri-correo-confirma">
+    <label>Teléfono (10 dígitos) <span class="ri-obligatorio">*</span></label>
+    <input type="tel" id="ri-telefono">
+    <label>Confirma TU Teléfono <span class="ri-obligatorio">*</span></label>
+    <input type="tel" id="ri-telefono-confirma">
+    <p class="ri-ayuda">Revísalo bien: es el número con el que TE contactaremos.</p>
+    <div class="ri-fila-doble">
+      <div><label>Edad (18 años o más) <span class="ri-obligatorio">*</span></label><input type="text" id="ri-edad"></div>
+      <div><label>Género (opcional)</label>
+        <select id="ri-genero">
+          <option value="">Prefiero no decirlo</option>
+          <option value="Femenino">Femenino</option>
+          <option value="Masculino">Masculino</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+    </div>
+    <div class="ri-fila-doble">
+      <div><label>Código Postal <span class="ri-obligatorio">*</span></label><input type="text" id="ri-cp"></div>
+      <div><label>País <span class="ri-obligatorio">*</span></label><input type="text" id="ri-pais" value="México"></div>
+    </div>
+    <label>Entidad Federativa <span class="ri-obligatorio">*</span></label>
+    <select id="ri-entidad-federativa"></select>
+
+    <label>Correo de quien TE invitó (opcional)</label>
+    <input type="email" id="ri-correo-invitador">
+    <p class="ri-ayuda">Si alguien TE invitó a esta sesión, escribe el correo con el que esa persona se registró. Si llegaste por TU cuenta, déjalo vacío.</p>
+
+    <div class="ri-aviso">MAXX puede grabar las sesiones grupales con fines de mejora continua; se avisa al inicio de la sesión. TU participación como invitado es personal y no se reporta a ninguna institución.</div>
+
+    <label class="ri-aviso-check">
+      <input type="checkbox" id="ri-acepto-aviso">
+      <span>He leído y acepto el <a href="https://maxx.mx/#aviso" target="_blank" rel="noopener">Aviso de Privacidad</a> de MAXX. <span class="ri-obligatorio">*</span></span>
+    </label>
+
+    <label class="ri-aviso-check">
+      <input type="checkbox" id="ri-acepto-wa">
+      <span>Autorizo que MAXX me envíe mensajes por WhatsApp (mi contraseña, recordatorios de mis sesiones y avisos del Programa) al teléfono que registré.</span>
+    </label>
+
+    <button class="ri-btn" id="ri-btn-registrar" type="button">Confirmar mi registro</button>
+    <div id="ri-estado"></div>
+  </div>
+
+  <div id="ri-ya">
+    <div id="ri-ya-texto"></div>
+    <a class="ri-btn" id="ri-ya-link" href="#" target="_blank" rel="noopener">Ir a Confirmar asistencia</a>
+  </div>
+
+  <div id="ri-exito">
+    <div style="color:#042C53; font-size:17px; font-weight:bold;">¡Listo! Ya quedaste registrado.</div>
+    <div style="color:#042C53; font-size:14px; margin-top:10px;">TU usuario es TU correo:</div>
+    <div style="color:#27500A; font-weight:bold; font-size:16px;" id="ri-exito-usuario"></div>
+    <div style="color:#042C53; font-size:14px; margin-top:10px;">TU contraseña es:</div>
+    <div class="ri-pass" id="ri-exito-pass"></div>
+    <div class="ri-nota-exito">Guárdala: la necesitarás, junto con TU correo, para registrar TU asistencia en los siguientes Módulos. También te llegó por correo (revisa SPAM).</div>
+    <div class="ri-nota-exito" id="ri-exito-secuencia" style="display:none;"><b>Los Módulos se toman en orden.</b> Para avanzar al siguiente, primero completa los que TE faltan.</div>
+    <a class="ri-btn" id="ri-btn-numero" href="#" target="_blank" rel="noopener">Conoce TU número</a>
+    <a class="ri-btn ri-btn-sec" id="ri-btn-cita" href="#" target="_blank" rel="noopener">Agenda TU Asesoría Gratuita</a>
+  </div>
+</div>
+
+<script>
+(function() {
+  var hashActual = '';
+  try {
+    hashActual = window.top.location.hash || '';
+  } catch (e) {
+    hashActual = window.location.hash || '';
+  }
+  if (hashActual.indexOf('#registro-invitado') !== 0) {
+    return;
+  }
+
+  var API = window.RI_API_PRUEBA || 'https://script.google.com/macros/s/AKfycbzjonaj5Qp3dQm7KQy0bvZnT_1HnqPFwj1Z_Puc8pPQ9oKpTX2w0WPjv8E4wF7Yf3V50g/exec';
+  var URL_CONOCE_NUMERO = 'https://maxx.mx/#cuestionario';
+  var URL_CITA = 'https://maxx.mx/#cita-desde-site';
+  var ENTIDADES_FEDERATIVAS = ['Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas',
+    'Chihuahua', 'Ciudad de México', 'Coahuila', 'Colima', 'Durango', 'Guanajuato', 'Guerrero', 'Hidalgo',
+    'Jalisco', 'México', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro',
+    'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz',
+    'Yucatán', 'Zacatecas'];
+
+  var ID_HORARIO = '', ORIGEN = { utmSource: '', utmMedium: '', utmContent: '' };
+  try {
+    var pu = new URLSearchParams(window.top.location.search);
+    ID_HORARIO = pu.get('horario') || '';
+    ORIGEN = { utmSource: pu.get('utm_source') || '', utmMedium: pu.get('utm_medium') || '', utmContent: pu.get('utm_content') || '' };
+  } catch (e) {
+    var pl = new URLSearchParams(window.location.search);
+    ID_HORARIO = pl.get('horario') || '';
+  }
+
+
+  var TYPOS_CORREO = { 'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gamil.com': 'gmail.com', 'gnail.com': 'gmail.com', 'gmail.con': 'gmail.com', 'gmail.co': 'gmail.com', 'gmaill.com': 'gmail.com',
+    'hotmial.com': 'hotmail.com', 'hotmal.com': 'hotmail.com', 'hotmail.con': 'hotmail.com', 'hotmai.com': 'hotmail.com', 'outlok.com': 'outlook.com', 'outlook.con': 'outlook.com',
+    'yahooo.com': 'yahoo.com', 'yaho.com': 'yahoo.com', 'yahoo.con': 'yahoo.com', 'iclod.com': 'icloud.com', 'icloud.con': 'icloud.com', 'icoud.com': 'icloud.com' };
+  function errCorreo(c) {
+    c = String(c || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c) || c.indexOf('..') !== -1 || /^\./.test(c) || /\.@/.test(c)) return 'Escribe un correo válido (ejemplo: nombre@correo.com).';
+    var dom = c.split('@')[1];
+    if (TYPOS_CORREO[dom]) return 'Revisa TU correo: ¿quisiste escribir @' + TYPOS_CORREO[dom] + '? Corrígelo en los dos campos de correo.';
+    return '';
+  }
+  function limpiaTel(t) {
+    var d = String(t || '').replace(/\D/g, '');
+    if (d.length === 12 && d.slice(0, 2) === '52') d = d.slice(2);
+    if (d.length === 13 && d.slice(0, 3) === '521') d = d.slice(3);
+    return d;
+  }
+  function errTelefono(t) {
+    var d = limpiaTel(t);
+    if (d.length !== 10 || !/^[2-9]/.test(d) || /^(\d)\1{9}$/.test(d) || d === '1234567890' || d === '2345678901' || d === '9876543210') return 'Escribe un teléfono válido de 10 dígitos (sin 0 ni 1 al inicio).';
+    return '';
+  }
+
+  function $(id) { return document.getElementById(id); }
+  function esc(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  $('ri-entidad-federativa').innerHTML = '<option value="">Selecciona...</option>' + ENTIDADES_FEDERATIVAS.map(function(e) { return '<option value="' + e + '">' + e + '</option>'; }).join('');
+  $('ri-btn-numero').href = URL_CONOCE_NUMERO;
+  $('ri-btn-cita').href = URL_CITA;
+
+  function errorSesion(txt) {
+    $('ri-cargando').style.display = 'none';
+    $('ri-error-sesion').textContent = txt;
+    $('ri-error-sesion').style.display = 'block';
+  }
+
+  if (!ID_HORARIO) {
+    errorSesion('Este link no trae la sesión. Pide que te compartan el link/QR correcto.');
+  } else {
+    fetch(API + '?accion=infoSesion&idHorario=' + encodeURIComponent(ID_HORARIO))
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (!d.exito) { errorSesion(d.error || 'No se pudo cargar la sesión.'); return; }
+        $('ri-cargando').style.display = 'none';
+        $('ri-s-modulo').textContent = 'Módulo ' + d.modulo;
+        $('ri-s-titulo').textContent = d.tituloModulo || '';
+        $('ri-s-fecha').textContent = d.fecha + ' — ' + d.hora;
+        $('ri-sesion').style.display = 'block';
+        $('ri-form').style.display = 'block';
+      })
+      .catch(function() { errorSesion('No se pudo conectar. Recarga la página.'); });
+  }
+
+  $('ri-btn-registrar').addEventListener('click', function() {
+    var nombres = $('ri-nombres').value.trim(), apellidos = $('ri-apellidos').value.trim();
+    var correo = $('ri-correo').value.trim(), correo2 = $('ri-correo-confirma').value.trim();
+    var telefono = $('ri-telefono').value.replace(/\D/g, ''), telefono2 = $('ri-telefono-confirma').value.replace(/\D/g, '');
+    var edad = $('ri-edad').value.trim(), cp = $('ri-cp').value.trim(), pais = $('ri-pais').value.trim();
+    var fed = $('ri-entidad-federativa').value, est = $('ri-estado');
+    if (!nombres || !apellidos) { est.textContent = 'Escribe TU nombre y apellido(s).'; return; }
+    var ec = errCorreo(correo); if (ec) { est.textContent = ec; return; }
+    if (correo.toLowerCase() !== correo2.toLowerCase()) { est.textContent = 'Los correos no coinciden.'; return; }
+    var et = errTelefono(telefono); if (et) { est.textContent = et; return; }
+    if (limpiaTel(telefono) !== limpiaTel(telefono2)) { est.textContent = 'Los dos teléfonos no coinciden.'; return; }
+    if (!edad || Number(edad.replace(/\D/g, '')) < 18) { est.textContent = 'Este registro es para personas de 18 años o más.'; return; }
+    if (!cp) { est.textContent = 'Escribe TU Código Postal.'; return; }
+    if (!pais) { est.textContent = 'Escribe TU País.'; return; }
+    if (!fed) { est.textContent = 'Elige TU Entidad Federativa.'; return; }
+    if (!$('ri-acepto-aviso').checked) { est.textContent = 'Debes aceptar el Aviso de Privacidad para continuar.'; return; }
+    var btn = $('ri-btn-registrar');
+    btn.disabled = true; btn.textContent = 'Registrando...'; est.textContent = '';
+    fetch(API, {
+      method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        accion: 'registrarInvitado', idHorario: ID_HORARIO, nombres: nombres, apellidos: apellidos, correo: correo, telefono: limpiaTel(telefono),
+        edad: edad, genero: $('ri-genero').value, codigoPostal: cp, pais: pais, entidadFederativa: fed,
+        correoInvitador: $('ri-correo-invitador').value.trim(), aceptaAviso: true, autorizaWhatsapp: $('ri-acepto-wa').checked,
+        utmSource: ORIGEN.utmSource, utmMedium: ORIGEN.utmMedium, utmContent: ORIGEN.utmContent
+      })
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.exito) {
+          $('ri-form').style.display = 'none';
+          $('ri-sesion').style.display = 'none';
+          $('ri-exito-usuario').textContent = d.usuario;
+          $('ri-exito-pass').textContent = d.contrasena;
+          $('ri-exito-secuencia').style.display = d.fueraDeSecuencia ? 'block' : 'none';
+          $('ri-exito').style.display = 'block';
+        } else if (d.yaTieneUsuario) {
+          $('ri-form').style.display = 'none';
+          $('ri-ya-texto').textContent = d.error;
+          $('ri-ya-link').href = 'https://maxx.mx/?horario=' + encodeURIComponent(ID_HORARIO) + '#confirmar-asistencia';
+          $('ri-ya').style.display = 'block';
+        } else {
+          btn.disabled = false; btn.textContent = 'Confirmar mi registro';
+          est.textContent = d.error || 'No se pudo registrar. Intenta de nuevo.';
+        }
+      })
+      .catch(function() {
+        btn.disabled = false; btn.textContent = 'Confirmar mi registro';
+        est.textContent = 'No se pudo conectar. Intenta de nuevo.';
+      });
+  });
+})();
+</script>
