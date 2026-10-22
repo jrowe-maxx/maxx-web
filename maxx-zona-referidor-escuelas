@@ -1,0 +1,376 @@
+<style>
+#zre-wrap { max-width: 760px; margin: 0 auto; font-family: Arial, sans-serif; padding: 14px 16px 8px; color: #333; }
+#zre-wrap h2 { color: #042C53; font-size: 16px; margin: 16px 0 8px; border-top: 1px solid #E6F1FB; padding-top: 14px; }
+#zre-wrap input, #zre-wrap select, #zre-wrap textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; margin-bottom: 8px; border: 2px solid #E6F1FB; border-radius: 8px; font-size: 15px; font-family: Arial, sans-serif; }
+#zre-wrap textarea { min-height: 50px; resize: vertical; }
+#zre-wrap label { display: block; font-size: 12px; color: #042C53; font-weight: bold; margin-bottom: 3px; }
+.zre-btn { background: #185FA5; color: #fff; border: none; border-radius: 8px; padding: 10px 16px; font-size: 14px; font-weight: bold; cursor: pointer; font-family: Arial, sans-serif; }
+.zre-btn:hover { background: #378ADD; }
+.zre-btn:disabled { background: #ccc; cursor: default; }
+.zre-btn-sec { background: #DCEAFB; color: #185FA5; }
+.zre-btn-sec:hover { background: #C5DCF5; }
+.zre-btn-ok { background: #639922; }
+.zre-btn-ok:hover { background: #4f7d1a; }
+.zre-btn-no { background: #FAECE7; color: #C0392B; }
+.zre-btn-no:hover { background: #F5D9CF; }
+.zre-chico { padding: 6px 12px; font-size: 12px; }
+.zre-oculto { display: none; }
+.zre-panel { background: #F2F8FE; border: 1px solid #E6F1FB; border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+.zre-panel b { color: #042C53; }
+.zre-nums { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.zre-num { flex: 1 1 110px; background: #fff; border-radius: 8px; border: 1px solid #E6F1FB; padding: 8px; text-align: center; }
+.zre-num span { display: block; font-size: 22px; font-weight: bold; color: #185FA5; }
+.zre-num small { font-size: 11px; color: #666; }
+.zre-alerta { background: #FFF6D6; border-left: 4px solid #EF9F27; color: #412402; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 13px; line-height: 1.4; }
+.zre-ok { background: #EAF3DE; color: #27500A; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; font-size: 13px; }
+.zre-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.zre-chip { background: #E6F1FB; color: #0C447C; border: none; border-radius: 16px; padding: 7px 12px; font-size: 13px; font-weight: bold; cursor: pointer; font-family: Arial, sans-serif; }
+.zre-chip.zre-act { background: #185FA5; color: #fff; }
+.zre-ayuda { font-size: 12px; color: #666; margin: -4px 0 10px; }
+.zre-card { background: #fff; border: 1px solid #E6F1FB; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+.zre-card-cab { cursor: pointer; }
+.zre-card h3 { color: #042C53; font-size: 14px; margin: 0 0 4px; }
+.zre-tag { display: inline-block; background: #E6F1FB; color: #0C447C; font-size: 11px; font-weight: bold; border-radius: 12px; padding: 2px 9px; margin: 0 5px 4px 0; }
+.zre-tag-e { background: #EAF3DE; color: #27500A; }
+.zre-tag-s { background: #FAC775; color: #412402; }
+.zre-linea { font-size: 13px; margin: 3px 0; }
+.zre-linea a { color: #185FA5; font-weight: bold; }
+.zre-acciones { border-top: 1px dashed #E6F1FB; margin-top: 8px; padding-top: 8px; }
+.zre-acc-bot { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.zre-form { background: #FAFCFE; border: 1px solid #E6F1FB; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+.zre-msg { font-size: 13px; min-height: 16px; margin: 4px 0; }
+.zre-msg-ok { color: #27500A; font-weight: bold; }
+.zre-msg-err { color: #791F1F; font-weight: bold; }
+.zre-notas { white-space: pre-wrap; font-size: 12px; color: #555; background: #fafafa; border-radius: 6px; padding: 6px 8px; margin-top: 6px; }
+.zre-res { background: #fff; border: 1px solid #E6F1FB; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 13px; }
+.zre-res-no { background: #F3F3F3; color: #777; }
+#zre-cargando { text-align: center; color: #185FA5; padding: 20px; }
+.zre-tabla { width: 100%; border-collapse: collapse; font-size: 12px; }
+.zre-tabla th, .zre-tabla td { border-bottom: 1px solid #E6F1FB; padding: 5px 4px; text-align: left; }
+</style>
+
+<div id="zre-wrap">
+  <h2 style="border-top:none; margin-top:0;">TUS Escuelas</h2>
+  <div id="zre-cargando">Cargando TUS Escuelas...</div>
+  <div id="zre-contenido" class="zre-oculto">
+    <div id="zre-resumen"></div>
+    <div class="zre-chips" id="zre-chips"></div>
+    <div class="zre-ayuda" id="zre-ayuda"></div>
+    <div id="zre-lista"></div>
+
+    <h2>Busca o selecciona una escuela</h2>
+    <div class="zre-ayuda" id="zre-ayuda-sel"></div>
+    <input type="text" id="zre-q" placeholder="Nombre de la escuela o municipio (mín. 3 letras)">
+    <div id="zre-resultados"></div>
+
+    <div id="zre-admin" class="zre-oculto">
+      <h2>Tablero (claves maestras)</h2>
+      <div id="zre-tablero"></div>
+    </div>
+  </div>
+  <div id="zre-error" class="zre-oculto zre-alerta"></div>
+</div>
+
+<script>
+(function() {
+  var hashActual = '';
+  try { hashActual = window.top.location.hash || ''; } catch (e) { hashActual = window.location.hash || ''; }
+  if (hashActual.indexOf('#zona-referidor-galeria') !== 0) { return; }
+
+  var REF, TS_LOGIN;
+  try {
+    var pu = new URLSearchParams(window.top.location.search);
+    REF = pu.get('ref') || ''; TS_LOGIN = pu.get('t') || '';
+  } catch (e) {
+    var pl = new URLSearchParams(window.location.search);
+    REF = pl.get('ref') || ''; TS_LOGIN = pl.get('t') || '';
+  }
+  var SESION_MAXIMA_MS = 30 * 60 * 1000;
+  if (!REF || !TS_LOGIN || (Date.now() - parseInt(TS_LOGIN, 10)) > SESION_MAXIMA_MS) {
+    window.top.location.href = 'https://maxx.mx/#zona-referidor';
+    return;
+  }
+
+  var API = window.ZRE_API_PRUEBA || 'https://script.google.com/macros/s/AKfycbzjonaj5Qp3dQm7KQy0bvZnT_1HnqPFwj1Z_Puc8pPQ9oKpTX2w0WPjv8E4wF7Yf3V50g/exec';
+  var FILTROS = [
+    { id: 'Nuevas', txt: 'Nuevas', ayuda: 'Nuevas: acaban de llegarte y todavía no las has tocado.' },
+    { id: 'Por contactar', txt: 'Por contactar', ayuda: 'Por contactar: asignadas o seleccionadas y sin gestión terminada.' },
+    { id: 'En seguimiento', txt: 'En seguimiento', ayuda: 'En seguimiento: ya hablaste con alguien; falta respuesta o cita.' },
+    { id: 'Cerradas', txt: 'Cerradas', ayuda: 'Cerradas: sin respuesta, no interesada o con cita agendada.' },
+    { id: 'Seleccionadas por mí', txt: 'Seleccionadas por mí', ayuda: 'Las que tú elegiste (por motivo propio).' }
+  ];
+  var S = { datos: null, filtro: 'Nuevas', abierta: '', tablero: null, ultimaBusqueda: null };
+
+  function esc(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function $(id) { return document.getElementById(id); }
+  function get(params) {
+    var qs = Object.keys(params).map(function(k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
+    return fetch(API + '?' + qs).then(function(r) { return r.json(); });
+  }
+  function post(obj) {
+    obj.ref = REF;
+    return fetch(API, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(obj) })
+      .then(function(r) { return r.json(); });
+  }
+  function msg(el, txt, ok) { el.className = 'zre-msg ' + (ok ? 'zre-msg-ok' : 'zre-msg-err'); el.textContent = txt; }
+  function opciones(lista, vacio) {
+    return (vacio ? '<option value="">' + esc(vacio) + '</option>' : '') + lista.map(function(x) { return '<option>' + esc(x) + '</option>'; }).join('');
+  }
+
+  function cargar(silencioso) {
+    if (!silencioso) { $('zre-cargando').classList.remove('zre-oculto'); }
+    get({ accion: 'misEscuelas', ref: REF }).then(function(d) {
+      $('zre-cargando').classList.add('zre-oculto');
+      if (!d.exito) { $('zre-error').textContent = d.error || 'No se pudieron cargar TUS Escuelas.'; $('zre-error').classList.remove('zre-oculto'); return; }
+      S.datos = d;
+      $('zre-error').classList.add('zre-oculto');
+      $('zre-contenido').classList.remove('zre-oculto');
+      pintar();
+      if (d.esAdmin && !S.tablero) { cargarTablero(); }
+    }).catch(function() {
+      $('zre-cargando').classList.add('zre-oculto');
+      $('zre-error').textContent = 'No se pudo conectar. Intenta de nuevo en un momento.';
+      $('zre-error').classList.remove('zre-oculto');
+    });
+  }
+
+  function pintar() { pintarResumen(); pintarChips(); pintarLista(); pintarAyudaSel(); }
+
+  function pintarResumen() {
+    var d = S.datos, r = d.resultados, c = d.cuotas, des = d.desbloqueo, h = '';
+    if (!des.libre) {
+      h += '<div class="zre-alerta"><b>Tu próximo lote está en pausa.</b> ' + esc(des.texto) +
+           ' Gestiona las pendientes (contactar, registrar intentos o cerrarlas) y se libera solo el siguiente lunes.</div>';
+    } else if (!des.nuevo) {
+      h += '<div class="zre-ok">Vas bien: lote anterior ' + des.pctUltimo + '% y acumulado ' + des.pctAcumulado + '% (mínimos ' + des.minUltimo + '% y ' + des.minAcumulado + '%).</div>';
+    }
+    h += '<div class="zre-panel"><b>Semana del ' + esc(d.semana) + '</b>' +
+         '<div class="zre-nums">' +
+         '<div class="zre-num"><span>' + r.loteActualGestionadas + ' / ' + r.loteActualTotal + '</span><small>gestionadas de TU lote' + (r.pctLoteActual === null ? '' : ' (' + r.pctLoteActual + '%)') + '</small></div>' +
+         '<div class="zre-num"><span>' + (r.pctAcumulado === null ? '—' : r.pctAcumulado + '%') + '</span><small>gestión acumulada</small></div>' +
+         '<div class="zre-num"><span>' + r.contactosEfectivos + '</span><small>contactos efectivos</small></div>' +
+         '<div class="zre-num"><span>' + r.citas + '</span><small>citas agendadas</small></div>' +
+         '</div></div>';
+    $('zre-resumen').innerHTML = h;
+  }
+
+  function pintarChips() {
+    var d = S.datos;
+    $('zre-chips').innerHTML = FILTROS.map(function(f) {
+      return '<button type="button" class="zre-chip' + (S.filtro === f.id ? ' zre-act' : '') + '" data-filtro="' + esc(f.id) + '">' + esc(f.txt) + ' (' + (d.conteo[f.id] || 0) + ')</button>';
+    }).join('');
+    var f = FILTROS.filter(function(x) { return x.id === S.filtro; })[0];
+    $('zre-ayuda').textContent = f ? f.ayuda : '';
+  }
+
+  function enFiltro(e) {
+    if (S.filtro === 'Seleccionadas por mí') return e.seleccionada;
+    return e.categoria === S.filtro;
+  }
+
+  function pintarLista() {
+    var lista = S.datos.escuelas.filter(enFiltro);
+    if (!lista.length) { $('zre-lista').innerHTML = '<div class="zre-ayuda">No hay escuelas en esta lista.</div>'; return; }
+    $('zre-lista').innerHTML = lista.map(htmlCard).join('');
+  }
+
+  function etiquetaEstado(e) {
+    var t = e.resultado || e.estado || '';
+    var cls = (e.categoria === 'Cerradas') ? 'zre-tag-e' : (e.categoria === 'En seguimiento' ? 'zre-tag-s' : '');
+    return '<span class="zre-tag ' + cls + '">' + esc(t) + (e.intentos ? ' · ' + e.intentos + ' intento' + (e.intentos > 1 ? 's' : '') : '') + '</span>';
+  }
+
+  function htmlCard(e) {
+    var abierta = S.abierta === e.idAsignacion;
+    var h = '<div class="zre-card" data-id="' + esc(e.idAsignacion) + '"><div class="zre-card-cab" data-abrir="' + esc(e.idAsignacion) + '">' +
+      '<h3>' + esc(e.nombre) + '</h3>' +
+      (/^[A-D]$/.test(e.segmento) ? '<span class="zre-tag">Tipo ' + esc(e.segmento) + '</span>' : '') +
+      '<span class="zre-tag">' + esc(e.municipio) + (e.entidad ? ', ' + esc(e.entidad) : '') + '</span>' +
+      (e.seleccionada ? '<span class="zre-tag">Seleccionada por ti</span>' : '') + etiquetaEstado(e) + '</div>';
+    if (abierta) { h += htmlDetalle(e); }
+    return h + '</div>';
+  }
+
+  function htmlDetalle(e) {
+    var h = '<div class="zre-acciones">';
+    if (e.telefono) { h += '<div class="zre-linea">📞 <a href="tel:' + esc(String(e.telefono).replace(/[^0-9+]/g, '')) + '">' + esc(e.telefono) + '</a></div>'; }
+    if (e.web) { var w = /^https?:/i.test(e.web) ? e.web : 'https://' + e.web; h += '<div class="zre-linea">🌐 <a href="' + esc(w) + '" target="_blank" rel="noopener">' + esc(e.web) + '</a></div>'; }
+    if (e.correo) { h += '<div class="zre-linea">✉️ <a href="mailto:' + esc(e.correo) + '">' + esc(e.correo) + '</a></div>'; }
+    if (e.contactoNombre) { h += '<div class="zre-linea"><b>Hablaste con:</b> ' + esc(e.contactoNombre) + (e.contactoPuesto ? ' (' + esc(e.contactoPuesto) + ')' : '') + '</div>'; }
+    if (e.ultimoIntento) { h += '<div class="zre-linea"><b>Último intento:</b> ' + esc(e.ultimoIntento) + (e.canalUltimo ? ' por ' + esc(e.canalUltimo) : '') + '</div>'; }
+    if (e.reservadaHasta && e.categoria !== 'Cerradas') { h += '<div class="zre-linea"><b>Reservada para ti hasta:</b> ' + esc(e.reservadaHasta) + '</div>'; }
+    if (e.categoria === 'Cerradas' && !(e.resultado === 'Cita agendada' || e.resultado === 'Programa cerrado')) { h += '<div class="zre-ayuda">Esta escuela ya está cerrada.</div>'; }
+    else if (e.resultado === 'Cita agendada') { h += '<div class="zre-ok">Cita agendada. El siguiente paso lo lleva Javier; si quieres compartir materiales, dala de alta arriba en «TUS Entidades».</div>'; }
+    else {
+      var canales = S.datos.canales;
+      h += '<div class="zre-acc-bot">' +
+        '<button type="button" class="zre-btn zre-chico" data-acc="intento" data-id="' + esc(e.idAsignacion) + '">Registrar intento</button>' +
+        '<button type="button" class="zre-btn zre-chico zre-btn-ok" data-acc="contactada" data-id="' + esc(e.idAsignacion) + '">Hablé con alguien</button>' +
+        '<button type="button" class="zre-btn zre-chico zre-btn-sec" data-acc="cita" data-id="' + esc(e.idAsignacion) + '">Se agendó cita</button>' +
+        '<button type="button" class="zre-btn zre-chico zre-btn-no" data-acc="no_interesada" data-id="' + esc(e.idAsignacion) + '">No le interesa</button></div>' +
+        '<div class="zre-form zre-oculto" id="zre-f-' + esc(e.idAsignacion) + '">' +
+        '<div id="zre-f-canal-w-' + esc(e.idAsignacion) + '"><label>Canal</label><select id="zre-f-canal-' + esc(e.idAsignacion) + '">' + opciones(canales, 'Elige...') + '</select></div>' +
+        '<div id="zre-f-con-w-' + esc(e.idAsignacion) + '"><label>Nombre de con quien hablaste</label><input type="text" id="zre-f-nom-' + esc(e.idAsignacion) + '">' +
+        '<label>Puesto</label><input type="text" id="zre-f-pue-' + esc(e.idAsignacion) + '"></div>' +
+        '<label id="zre-f-nota-l-' + esc(e.idAsignacion) + '">Nota (opcional)</label><textarea id="zre-f-nota-' + esc(e.idAsignacion) + '"></textarea>' +
+        '<button type="button" class="zre-btn" data-guardar="' + esc(e.idAsignacion) + '">Guardar</button> ' +
+        '<button type="button" class="zre-btn zre-btn-sec" data-cancelar="' + esc(e.idAsignacion) + '">Cancelar</button>' +
+        '<div class="zre-msg" id="zre-f-msg-' + esc(e.idAsignacion) + '"></div></div>';
+    }
+    if (e.notas) { h += '<div class="zre-notas">' + esc(e.notas) + '</div>'; }
+    return h + '</div>';
+  }
+
+  var accionActual = {};
+  function abrirForm(id, acc) {
+    accionActual[id] = acc;
+    var f = $('zre-f-' + id); if (!f) return;
+    f.classList.remove('zre-oculto');
+    $('zre-f-canal-w-' + id).classList.toggle('zre-oculto', !(acc === 'intento' || acc === 'contactada'));
+    $('zre-f-con-w-' + id).classList.toggle('zre-oculto', !(acc === 'contactada' || acc === 'cita'));
+    $('zre-f-nota-l-' + id).textContent = (acc === 'no_interesada') ? 'Qué te dijeron (obligatorio)' : 'Nota (opcional)';
+    msg($('zre-f-msg-' + id), '', true);
+  }
+
+  function guardarGestion(id) {
+    var acc = accionActual[id]; if (!acc) return;
+    var m = $('zre-f-msg-' + id);
+    var btn = document.querySelector('[data-guardar="' + id + '"]');
+    btn.disabled = true; btn.textContent = 'Guardando...';
+    post({ accion: 'registrarGestion', idAsignacion: id, tipo: acc,
+      canal: $('zre-f-canal-' + id).value, contactoNombre: $('zre-f-nom-' + id).value.trim(),
+      contactoPuesto: $('zre-f-pue-' + id).value.trim(), nota: $('zre-f-nota-' + id).value.trim()
+    }).then(function(r) {
+      if (r.exito) { cargar(true); }
+      else { btn.disabled = false; btn.textContent = 'Guardar'; msg(m, r.error || 'No se pudo guardar.', false); }
+    }).catch(function() { btn.disabled = false; btn.textContent = 'Guardar'; msg(m, 'No se pudo conectar. Intenta de nuevo.', false); });
+  }
+
+  /* ---------- Buscador y selección ---------- */
+  function pintarAyudaSel() {
+    var c = S.datos.cuotas;
+    $('zre-ayuda-sel').textContent = c.seleccionaHasta > 0
+      ? 'Puedes seleccionar ' + c.puedeSeleccionar + ' escuela(s) más esta semana (tope ' + c.seleccionaHasta + '). Primero busca: así evitamos duplicar.'
+      : 'Con tu perfil no seleccionas escuelas; si quieres una en especial, pídesela a Javier. Aquí sí puedes buscar para ver si existe.';
+  }
+
+  var tBusca = null;
+  function buscar() {
+    var q = $('zre-q').value.trim();
+    if (q.length < 3) { $('zre-resultados').innerHTML = ''; return; }
+    $('zre-resultados').innerHTML = '<div class="zre-ayuda">Buscando...</div>';
+    get({ accion: 'buscarEscuelas', ref: REF, q: q }).then(function(r) {
+      if (!r.exito) { $('zre-resultados').innerHTML = '<div class="zre-msg zre-msg-err">' + esc(r.error) + '</div>'; return; }
+      S.ultimaBusqueda = r;
+      var h = r.resultados.map(function(x) {
+        var libre = x.disponibilidad === 'Disponible', mia = x.disponibilidad === 'Ya es tuya';
+        return '<div class="zre-res ' + (libre || mia ? '' : 'zre-res-no') + '"><b>' + esc(x.nombre) + '</b><br>' +
+          '<small>' + esc(x.municipio) + (x.entidad ? ', ' + esc(x.entidad) : '') + (/^[A-D]$/.test(x.segmento) ? ' · Tipo ' + esc(x.segmento) : '') + '</small><br>' +
+          (libre ? '<span class="zre-tag zre-tag-e">Disponible</span>' + (S.datos.cuotas.seleccionaHasta > 0 ? ' <button type="button" class="zre-btn zre-chico" data-sel="' + esc(x.idEscuela) + '">Seleccionar</button>' : '') +
+                   (S.datos.esAdmin ? ' <button type="button" class="zre-btn zre-chico zre-btn-sec" data-dir="' + esc(x.idEscuela) + '">Asignar a otra persona</button>' : '')
+                 : mia ? '<span class="zre-tag">Ya es tuya</span>' : '<span class="zre-tag">No disponible</span>') +
+          '<div id="zre-s-' + esc(x.idEscuela) + '"></div></div>';
+      }).join('');
+      if (!r.resultados.length) { h = '<div class="zre-ayuda">No la encontré en el directorio.</div>'; }
+      if (S.datos.cuotas.seleccionaHasta > 0 && r.puedeAltaManual) {
+        h += '<button type="button" class="zre-btn zre-btn-sec zre-chico" data-alta="1">No está en la lista: darla de alta</button><div id="zre-alta"></div>';
+      }
+      $('zre-resultados').innerHTML = h;
+    }).catch(function() { $('zre-resultados').innerHTML = '<div class="zre-msg zre-msg-err">No se pudo conectar.</div>'; });
+  }
+
+  function formMotivo(idDest, extra) {
+    return '<div class="zre-form">' + (extra || '') +
+      '<label>¿Por qué la seleccionas? (obligatorio)</label><select class="zre-motivo">' + opciones(S.datos.motivos, 'Elige...') + '</select>' +
+      '<input type="text" class="zre-motivo-otro zre-oculto" placeholder="Escribe una frase corta">' +
+      '<label>Si conoces a alguien allí, su nombre (opcional)</label><input type="text" class="zre-conocido">' +
+      '<button type="button" class="zre-btn" data-confirmar="' + idDest + '">Confirmar</button> ' +
+      '<button type="button" class="zre-btn zre-btn-sec" data-cerrarform="' + idDest + '">Cancelar</button>' +
+      '<div class="zre-msg zre-m"></div></div>';
+  }
+
+  function leerMotivo(cont) {
+    var m = cont.querySelector('.zre-motivo').value;
+    if (m === 'Otro') { var o = cont.querySelector('.zre-motivo-otro').value.trim(); m = 'Otro: ' + o; }
+    return m;
+  }
+
+  function confirmar(btn) {
+    var dest = btn.getAttribute('data-confirmar'), cont = btn.parentNode, m = cont.querySelector('.zre-m');
+    var motivo = leerMotivo(cont), conocido = cont.querySelector('.zre-conocido').value.trim();
+    var obj;
+    if (dest === 'alta') {
+      obj = { accion: 'altaManualEscuela', nombre: $('zre-alta-nombre').value.trim(), municipio: $('zre-alta-mun').value.trim(),
+              entidad: $('zre-alta-ent').value, telefono: $('zre-alta-tel').value.trim(), motivo: motivo, contactoConocido: conocido };
+    } else { obj = { accion: 'seleccionarEscuela', idEscuela: dest, motivo: motivo, contactoConocido: conocido }; }
+    btn.disabled = true; btn.textContent = 'Guardando...';
+    post(obj).then(function(r) {
+      if (r.exito) {
+        cont.innerHTML = '<div class="zre-msg zre-msg-ok">✓ ' + esc(r.nombre) + ' quedó seleccionada para ti. Te quedan ' + r.restantes + ' esta semana. La encuentras en «Seleccionadas por mí».</div>';
+        S.filtro = 'Seleccionadas por mí'; cargar(true);
+        $('zre-q').value = ''; setTimeout(function() { $('zre-resultados').innerHTML = ''; }, 2500);
+      } else { btn.disabled = false; btn.textContent = 'Confirmar'; msg(m, r.error || 'No se pudo guardar.', false); }
+    }).catch(function() { btn.disabled = false; btn.textContent = 'Confirmar'; msg(m, 'No se pudo conectar.', false); });
+  }
+
+  var ENTIDADES = ['Ciudad de México', 'México', 'Aguascalientes', 'Baja California', 'Baja California Sur', 'Campeche', 'Chiapas', 'Chihuahua', 'Coahuila', 'Colima', 'Durango', 'Guanajuato', 'Guerrero', 'Hidalgo', 'Jalisco', 'Michoacán', 'Morelos', 'Nayarit', 'Nuevo León', 'Oaxaca', 'Puebla', 'Querétaro', 'Quintana Roo', 'San Luis Potosí', 'Sinaloa', 'Sonora', 'Tabasco', 'Tamaulipas', 'Tlaxcala', 'Veracruz', 'Yucatán', 'Zacatecas'];
+
+  /* ---------- Tablero ---------- */
+  function cargarTablero() {
+    get({ accion: 'tablero', ref: REF }).then(function(r) {
+      if (!r.exito) return;
+      S.tablero = r; $('zre-admin').classList.remove('zre-oculto');
+      $('zre-tablero').innerHTML = '<table class="zre-tabla"><tr><th>Persona</th><th>Escuelas</th><th>Gestión</th><th>Efectivos</th><th>Citas</th><th>Próximo lote</th></tr>' +
+        r.personas.map(function(p) {
+          return '<tr><td>' + esc(p.nombre) + '<br><small>' + esc(p.clave) + '</small></td><td>' + p.total + '</td><td>' + (p.pctGestion === null ? '—' : p.pctGestion + '%') +
+                 '</td><td>' + p.efectivos + '</td><td>' + p.citas + '</td><td>' + (p.libre ? 'Libre' : 'En pausa') + '</td></tr>';
+        }).join('') + '</table>';
+    });
+  }
+
+  /* ---------- Eventos ---------- */
+  document.getElementById('zre-wrap').addEventListener('click', function(ev) {
+    var t = ev.target;
+    var el = t.closest ? t.closest('[data-filtro],[data-abrir],[data-acc],[data-guardar],[data-cancelar],[data-sel],[data-alta],[data-confirmar],[data-cerrarform],[data-dir]') : null;
+    if (!el) return;
+    if (el.hasAttribute('data-filtro')) { S.filtro = el.getAttribute('data-filtro'); S.abierta = ''; pintarChips(); pintarLista(); }
+    else if (el.hasAttribute('data-abrir')) { var id = el.getAttribute('data-abrir'); S.abierta = (S.abierta === id) ? '' : id; pintarLista(); }
+    else if (el.hasAttribute('data-acc')) { abrirForm(el.getAttribute('data-id'), el.getAttribute('data-acc')); }
+    else if (el.hasAttribute('data-guardar')) { guardarGestion(el.getAttribute('data-guardar')); }
+    else if (el.hasAttribute('data-cancelar')) { $('zre-f-' + el.getAttribute('data-cancelar')).classList.add('zre-oculto'); }
+    else if (el.hasAttribute('data-sel')) { var sid = el.getAttribute('data-sel'); $('zre-s-' + sid).innerHTML = formMotivo(sid); }
+    else if (el.hasAttribute('data-alta')) {
+      $('zre-alta').innerHTML = formMotivo('alta',
+        '<label>Nombre de la escuela</label><input type="text" id="zre-alta-nombre" value="' + esc($('zre-q').value.trim()) + '">' +
+        '<label>Municipio o alcaldía</label><input type="text" id="zre-alta-mun">' +
+        '<label>Estado</label><select id="zre-alta-ent">' + opciones(ENTIDADES) + '</select>' +
+        '<label>Teléfono (opcional)</label><input type="text" id="zre-alta-tel">');
+    }
+    else if (el.hasAttribute('data-confirmar')) { confirmar(el); }
+    else if (el.hasAttribute('data-cerrarform')) { var c = el.parentNode.parentNode; c.innerHTML = ''; }
+    else if (el.hasAttribute('data-dir')) {
+      var did = el.getAttribute('data-dir');
+      var personas = (S.tablero ? S.tablero.personas : []);
+      $('zre-s-' + did).innerHTML = '<div class="zre-form"><label>Asignar a</label><select class="zre-para">' +
+        personas.map(function(p) { return '<option value="' + esc(p.clave) + '">' + esc(p.nombre) + ' (' + esc(p.clave) + ')</option>'; }).join('') +
+        '</select><button type="button" class="zre-btn zre-chico" data-confdir="' + esc(did) + '">Asignar</button><div class="zre-msg zre-m"></div></div>';
+    }
+  });
+  document.getElementById('zre-wrap').addEventListener('click', function(ev) {
+    var b = ev.target.closest ? ev.target.closest('[data-confdir]') : null; if (!b) return;
+    var cont = b.parentNode, m = cont.querySelector('.zre-m');
+    b.disabled = true;
+    post({ accion: 'asignarDirecta', paraClave: cont.querySelector('.zre-para').value, idEscuela: b.getAttribute('data-confdir') }).then(function(r) {
+      if (r.exito) { msg(m, '✓ Asignada: ' + r.nombre, true); S.tablero = null; cargar(true); } else { b.disabled = false; msg(m, r.error || 'No se pudo asignar.', false); }
+    }).catch(function() { b.disabled = false; msg(m, 'No se pudo conectar.', false); });
+  });
+  document.getElementById('zre-wrap').addEventListener('change', function(ev) {
+    if (ev.target.classList && ev.target.classList.contains('zre-motivo')) {
+      ev.target.parentNode.querySelector('.zre-motivo-otro').classList.toggle('zre-oculto', ev.target.value !== 'Otro');
+    }
+  });
+  $('zre-q').addEventListener('input', function() { clearTimeout(tBusca); tBusca = setTimeout(buscar, 450); });
+
+  cargar(false);
+})();
+</script>
