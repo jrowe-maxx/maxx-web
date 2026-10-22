@@ -835,7 +835,7 @@
   function cargarYFiltrar() {
     if (todasMisEntidades !== null) { aplicarFiltros(); return; }
     var cargaId = ++CARGA_ID, t0 = Date.now();
-    var entData = null, escData = null, escListo = false, errEsc = '';
+    var entData = null, escData = null, escListo = false, errEsc = '', tEnt = null, tEsc = null;
     elCargando.style.display = 'block';
     elCargando.textContent = 'Cargando TUS Entidades... 0 s';
     var tick = setInterval(function() {
@@ -855,6 +855,9 @@
       elTitulo.textContent = (m > 0)
         ? txtN + ' y ' + m + (m === 1 ? ' Escuela en TU Lote' : ' Escuelas en TU Lote') + ', ¿deseas filtrarlas?'
         : (n === 0 ? txtN : txtN + ', ¿deseas filtrar' + (n === 1 ? 'la?' : 'las?'));
+      if (RESUMEN_ESC && RESUMEN_ESC.esAdmin) {
+        elTitulo.insertAdjacentHTML('beforeend', ' <small style="color:#888;font-weight:normal;font-size:11px;">(carga: Entidades ' + (tEnt === null ? '…' : tEnt + ' s') + ' · Escuelas ' + (tEsc === null ? '…' : tEsc + ' s') + ')</small>');
+      }
       pintarResumenLote();
       var pnl = document.getElementById('zrg-lote-resumen');
       if (!RESUMEN_ESC && pnl) {
@@ -870,7 +873,7 @@
     pedirEntidades(1).then(function(d) {
       clearInterval(tick);
       if (!d.exito) { elCargando.style.display = 'none'; elFranja.innerHTML = '<p style="color:#791F1F;">No se pudieron cargar TUS Entidades.</p>'; return; }
-      entData = d; combinar();
+      tEnt = Math.round((Date.now() - t0) / 1000); entData = d; combinar();
     }).catch(function(e) {
       clearInterval(tick);
       if (cargaId !== CARGA_ID) return;
@@ -880,7 +883,7 @@
     });
     conTope(getEsc({ accion: 'misEscuelas', ref: REF }), 20000, 'tiempo agotado (20 s)')
       .catch(function(e) { errEsc = String((e && e.message) || e); return null; })
-      .then(function(r) { escData = r; escListo = true; if (entData) { combinar(); } });
+      .then(function(r) { tEsc = Math.round((Date.now() - t0) / 1000); escData = r; escListo = true; if (entData) { combinar(); } });
   }
 
   function etapaDe(ent) {
