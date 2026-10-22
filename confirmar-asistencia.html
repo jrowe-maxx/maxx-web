@@ -47,13 +47,13 @@
   <div id="ca-form-confirmar">
     <label>TU correo <span class="ca-obligatorio">*</span></label>
     <input type="email" id="ca-correo" placeholder="tucorreo@ejemplo.com">
-    <label>TU Código Personal <span class="ca-obligatorio">*</span></label>
+    <label>TU Contraseña <span class="ca-obligatorio">*</span></label>
     <input type="text" id="ca-codigo" placeholder="Ej. AB12CD" maxlength="6" style="text-transform:uppercase; font-size:18px; letter-spacing:2px; text-align:center; font-weight:bold;">
     <button type="button" class="ca-btn" id="ca-btn-confirmar">Confirmar mi asistencia</button>
     <div id="ca-estado"></div>
 
     <div id="ca-no-encontrado">
-      Ese correo y código no coinciden con ningún registro para esta sesión.<br><br>
+      Ese correo y contraseña no coinciden con ningún registro para esta sesión.<br><br>
       Si es TU primera vez aquí (no te habías pre-registrado antes), llena tus datos abajo para registrarte y confirmar TU asistencia en este momento.
     </div>
 
@@ -159,7 +159,7 @@
     elFormWalkin.style.display = 'none';
 
     if (!correo) { elEstado.textContent = 'Escribe TU correo.'; return; }
-    if (!codigo) { elEstado.textContent = 'Escribe TU Código Personal.'; return; }
+    if (!codigo) { elEstado.textContent = 'Escribe TU Contraseña.'; return; }
 
     elBtnConfirmar.disabled = true;
     elBtnConfirmar.textContent = 'Confirmando...';
