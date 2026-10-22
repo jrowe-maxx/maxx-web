@@ -823,44 +823,64 @@
       });
   });
 
+  var CARGA_ID = 0;
+  function conTope(promesa, ms, msg) {
+    return Promise.race([promesa, new Promise(function(_, rej) { setTimeout(function() { rej(new Error(msg)); }, ms); })]);
+  }
+  function pedirEntidades(reintentos) {
+    return conTope(fetch(BASE_URL + '?accion=misEntidades&ref=' + encodeURIComponent(REF)).then(function(res) { return res.json(); }), 30000, 'tiempo agotado (30 s)')
+      .catch(function(e) { if (reintentos > 0) { return pedirEntidades(reintentos - 1); } throw e; });
+  }
+
   function cargarYFiltrar() {
     if (todasMisEntidades !== null) { aplicarFiltros(); return; }
+    var cargaId = ++CARGA_ID, t0 = Date.now();
+    var entData = null, escData = null, escListo = false, errEsc = '';
     elCargando.style.display = 'block';
-    elCargando.textContent = 'Cargando TUS Entidades...';
-    var pEnt = fetch(BASE_URL + '?accion=misEntidades&ref=' + encodeURIComponent(REF)).then(function(res) { return res.json(); });
-    var errEsc = '';
-    var pEsc = Promise.race([
-      getEsc({ accion: 'misEscuelas', ref: REF }),
-      new Promise(function(_, rej) { setTimeout(function() { rej(new Error('tiempo agotado (15 s)')); }, 15000); })
-    ]).catch(function(e) { errEsc = String((e && e.message) || e); return null; });
-    Promise.all([pEnt, pEsc])
-      .then(function(r) {
-        var data = r[0], esc = r[1];
-        elCargando.style.display = 'none';
-        if (!data.exito) {
-          elFranja.innerHTML = '<p style="color:#791F1F;">No se pudieron cargar TUS Entidades.</p>';
-          return;
-        }
-        RESUMEN_ESC = (esc && esc.exito) ? esc : null;
-        var escuelas = RESUMEN_ESC ? RESUMEN_ESC.escuelas.filter(function(e) { return !e.idEntidad; }).map(escuelaComoEntidad) : [];
-        todasMisEntidades = data.entidades.concat(escuelas);
-        var elTitulo = document.getElementById('zrg-titulo-entidades');
-        var n = data.entidades.length, m = escuelas.length;
-        var txtN = n === 0 ? 'Todavía no tienes Entidades dadas de alta' : (n === 1 ? 'Tienes 1 Entidad dada de alta' : 'Tienes ' + n + ' Entidades dadas de alta');
-        elTitulo.textContent = (m > 0)
-          ? txtN + ' y ' + m + (m === 1 ? ' Escuela en TU Lote' : ' Escuelas en TU Lote') + ', ¿deseas filtrarlas?'
-          : (n === 0 ? txtN : txtN + ', ¿deseas filtrar' + (n === 1 ? 'la?' : 'las?'));
-        pintarResumenLote();
-        if (!RESUMEN_ESC) {
-          var pnl = document.getElementById('zrg-lote-resumen');
-          if (pnl) { pnl.innerHTML = '<p style="color:#791F1F;font-size:13px;">Escuelas del lote no disponibles: ' + escH(errEsc || (esc && esc.mensaje) || 'sin respuesta') + '</p>'; }
-        }
-        aplicarFiltros();
-        if (RESUMEN_ESC && RESUMEN_ESC.esAdmin && !TABLERO_ESC) { cargarTableroEsc(); }
-      })
-      .catch(function() {
-        elCargando.textContent = 'No se pudo conectar. Recarga la página.';
-      });
+    elCargando.textContent = 'Cargando TUS Entidades... 0 s';
+    var tick = setInterval(function() {
+      if (cargaId !== CARGA_ID || elCargando.style.display === 'none') { clearInterval(tick); return; }
+      elCargando.textContent = 'Cargando TUS Entidades... ' + Math.round((Date.now() - t0) / 1000) + ' s';
+    }, 1000);
+
+    function combinar() {
+      if (cargaId !== CARGA_ID || !entData) return;
+      elCargando.style.display = 'none';
+      RESUMEN_ESC = (escData && escData.exito) ? escData : null;
+      var escuelas = RESUMEN_ESC ? RESUMEN_ESC.escuelas.filter(function(e) { return !e.idEntidad; }).map(escuelaComoEntidad) : [];
+      todasMisEntidades = entData.entidades.concat(escuelas);
+      var elTitulo = document.getElementById('zrg-titulo-entidades');
+      var n = entData.entidades.length, m = escuelas.length;
+      var txtN = n === 0 ? 'Todavía no tienes Entidades dadas de alta' : (n === 1 ? 'Tienes 1 Entidad dada de alta' : 'Tienes ' + n + ' Entidades dadas de alta');
+      elTitulo.textContent = (m > 0)
+        ? txtN + ' y ' + m + (m === 1 ? ' Escuela en TU Lote' : ' Escuelas en TU Lote') + ', ¿deseas filtrarlas?'
+        : (n === 0 ? txtN : txtN + ', ¿deseas filtrar' + (n === 1 ? 'la?' : 'las?'));
+      pintarResumenLote();
+      var pnl = document.getElementById('zrg-lote-resumen');
+      if (!RESUMEN_ESC && pnl) {
+        pnl.innerHTML = escListo
+          ? '<p style="color:#791F1F;font-size:13px;">Escuelas del lote no disponibles: ' + escH(errEsc || (escData && escData.error) || 'sin respuesta') + '</p>'
+          : '<p style="color:#666;font-size:13px;">Cargando Escuelas de TU lote...</p>';
+      }
+      aplicarFiltros();
+      if (RESUMEN_ESC && RESUMEN_ESC.esAdmin && !TABLERO_ESC) { cargarTableroEsc(); }
+    }
+
+    // Las Entidades se pintan en cuanto llegan; las Escuelas se suman cuando lleguen.
+    pedirEntidades(1).then(function(d) {
+      clearInterval(tick);
+      if (!d.exito) { elCargando.style.display = 'none'; elFranja.innerHTML = '<p style="color:#791F1F;">No se pudieron cargar TUS Entidades.</p>'; return; }
+      entData = d; combinar();
+    }).catch(function(e) {
+      clearInterval(tick);
+      if (cargaId !== CARGA_ID) return;
+      elCargando.innerHTML = 'No se pudo conectar (' + escH(String((e && e.message) || e)) + '). <button type="button" class="zrg-btn zrg-btn-chico" id="zrg-reintentar-carga">Reintentar</button>';
+      var rb = document.getElementById('zrg-reintentar-carga');
+      if (rb) rb.addEventListener('click', function() { todasMisEntidades = null; cargarYFiltrar(); });
+    });
+    conTope(getEsc({ accion: 'misEscuelas', ref: REF }), 20000, 'tiempo agotado (20 s)')
+      .catch(function(e) { errEsc = String((e && e.message) || e); return null; })
+      .then(function(r) { escData = r; escListo = true; if (entData) { combinar(); } });
   }
 
   function etapaDe(ent) {
