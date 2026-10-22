@@ -53,18 +53,20 @@
 .zrg-oculto { display: none; }
 #zrg-cargando { text-align: center; color: #185FA5; padding: 20px; }
 
-/* Filtros */
-.zrg-filtros { display: flex; flex-direction: column; align-items: center; gap: 6px; max-width: 340px; margin: 0 auto 4px; }
-.zrg-filtro-item { width: 100%; text-align: center; }
-.zrg-filtro-chip-btn {
-  display: inline-flex; align-items: center; gap: 6px; background: #E6F1FB; color: #0C447C;
-  border: none; border-radius: 16px; padding: 7px 14px; font-size: 13px; font-weight: bold;
-  cursor: pointer; font-family: Arial, sans-serif; margin: 0 auto;
-}
-.zrg-filtro-chip-btn.zrg-filtro-activo { background: #185FA5; color: white; }
-.zrg-filtro-campo { margin-top: 6px; }
-.zrg-filtro-campo input, .zrg-filtro-campo select { margin-bottom: 4px; }
+/* Filtros en cascada: de lo general a lo particular */
+.zrg-casc { max-width: 360px; margin: 0 auto 6px; text-align: center; }
+.zrg-casc-ver { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; background: #E6F1FB; border-radius: 18px; padding: 3px; margin-bottom: 8px; }
+.zrg-casc-ver button { flex: 1 1 auto; border: none; background: transparent; color: #0C447C; font-weight: bold; font-size: 12.5px; padding: 8px 4px; border-radius: 15px; cursor: pointer; font-family: Arial, sans-serif; }
+.zrg-casc-ver button.zrg-ver-activo { background: #185FA5; color: white; }
+.zrg-casc-nivel { text-align: left; margin-bottom: 6px; }
+.zrg-casc-nivel label { display: block; font-size: 12px; font-weight: bold; color: #0C447C; margin-bottom: 2px; }
+.zrg-casc-nivel select, #zrg-f-texto { margin-bottom: 4px; }
+#zrg-casc-checks { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 4px 0; }
 .zrg-filtro-check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: #042C53; font-weight: bold; cursor: pointer; }
+#zrg-casc-resumen { font-size: 12.5px; color: #0C447C; margin-top: 4px; }
+.zrg-resumen-chip { display: inline-flex; align-items: center; gap: 4px; background: #185FA5; color: white; border-radius: 12px; padding: 3px 4px 3px 10px; margin: 2px; font-weight: bold; }
+.zrg-resumen-chip button { border: none; background: rgba(255,255,255,.25); color: white; border-radius: 50%; width: 18px; height: 18px; line-height: 16px; padding: 0; cursor: pointer; font-size: 11px; }
+.zrg-resumen-limpiar { border: none; background: transparent; color: #185FA5; text-decoration: underline; cursor: pointer; font-size: 12.5px; }
 
 /* Franja horizontal tipo "Camino al Éxito" */
 .zrg-franja-wrap { position: relative; margin: 6px 0 6px; }
@@ -89,6 +91,10 @@
 .zrg-chip-esc .zrg-chip-circulo { border: 3px dashed #86B2DE; }
 .zrg-chip-esc.zrg-chip-activo .zrg-chip-circulo { border: 3px solid #185FA5; }
 .zrg-chip-sub { display: block; font-size: 10px; color: #666; margin-top: 3px; }
+.zrg-chip-entidad.zrg-chip-pend .zrg-chip-circulo { background: #FDE3E1 !important; border: 3px solid #D9534F; }
+.zrg-chip-entidad.zrg-chip-pend.zrg-chip-esc .zrg-chip-circulo { border-style: dashed; }
+.zrg-chip-entidad.zrg-chip-pend.zrg-chip-activo .zrg-chip-circulo { border: 3px solid #185FA5; }
+.zrg-chip-entidad.zrg-chip-pend .zrg-chip-sub { color: #B02A2A; font-weight: bold; }
 .zrg-dir-item { background: #F2F8FE; border: 1px solid #C5DCF5; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 13px; color: #042C53; }
 .zrg-dir-item strong { display: block; font-size: 14px; margin-bottom: 2px; }
 .zrg-dir-no { background: #F3F3F3; border-color: #ddd; color: #777; }
@@ -158,84 +164,22 @@
 
 <h2 id="zrg-titulo-entidades">TUS Entidades</h2>
 <div id="zrg-lote-resumen"></div>
-<div class="zrg-filtros">
-  <div class="zrg-filtro-item">
-    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-lote-campo">Escuelas de mi Lote</button>
-    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-lote-campo">
-      <select id="zrg-f-lote">
-        <option value="">Todas mis Entidades y Escuelas</option>
-        <option value="propias">Solo Entidades dadas de alta por mí</option>
-        <option value="lote">Todas las Escuelas de mi Lote</option>
-        <option value="Nuevas">Escuelas Nuevas: acaban de llegarme</option>
-        <option value="Por contactar">Escuelas Por contactar: sin gestión terminada</option>
-        <option value="En seguimiento">Escuelas En seguimiento: ya hablé, falta respuesta o cita</option>
-        <option value="Cerradas">Escuelas Cerradas: sin respuesta, no interesada o con cita</option>
-        <option value="Seleccionadas">Escuelas Seleccionadas por mí</option>
-      </select>
-    </div>
+<div class="zrg-casc">
+  <div class="zrg-casc-ver" id="zrg-casc-ver">
+    <button type="button" data-ver="">Todas</button>
+    <button type="button" data-ver="Escuela">Escuelas</button>
+    <button type="button" data-ver="Empresa">Empresas</button>
+    <button type="button" data-ver="Institución">Instituciones</button>
+    <button type="button" data-ver="Afines">Grupos Afines</button>
+    <button type="button" data-ver="Otro">Otras</button>
   </div>
-  <div class="zrg-filtro-item">
-    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-tipo-campo">Tipo de Entidad</button>
-    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-tipo-campo">
-      <select id="zrg-f-tipo">
-        <option value="">Todos</option>
-        <option value="Escuela">Escuela</option>
-        <option value="Empresa">Empresa</option>
-    <option value="Institución">Institución</option>
-        <option value="Personal">Grupo Personal</option>
-        <option value="Religioso">Grupo Religioso</option>
-        <option value="Grupo de Facebook">Grupo de Facebook</option>
-        <option value="Grupo de Instagram">Grupo de Instagram</option>
-        <option value="Grupo de WhatsApp">Grupo de WhatsApp</option>
-        <option value="Grupo en Otra Red Social">Grupo en Otra Red Social</option>
-        <option value="Otro">Otro</option>
-      </select>
-    </div>
-  </div>
-  <div class="zrg-filtro-item">
-    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-etapa-campo">Etapa Actual de Pipeline</button>
-    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-etapa-campo">
-      <select id="zrg-f-etapa">
-        <option value="">Todas</option>
-        <option value="Registrado">Registrado</option>
-        <option value="Contactado">Contactado</option>
-        <option value="Cita Agendada">Cita Agendada</option>
-        <option value="Programa Cerrado">Programa Cerrado</option>
-        <option value="Pendiente">Pendiente</option>
-        <option value="No Interesado">No Interesado</option>
-      </select>
-    </div>
-  </div>
-  <div class="zrg-filtro-item">
-    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-nombre-entidad-campo">Nombre de Entidad</button>
-    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-nombre-entidad-campo">
-      <input type="text" id="zrg-f-nombre-entidad" placeholder="Escribe para filtrar...">
-    </div>
-  </div>
-  <div class="zrg-filtro-item">
-    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-nombre-contacto-campo">Nombre de Contacto</button>
-    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-nombre-contacto-campo">
-      <input type="text" id="zrg-f-nombre-contacto" placeholder="Escribe para filtrar...">
-    </div>
-  </div>
-  <div class="zrg-filtro-item">
-    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-federativa-campo">Entidad Federativa</button>
-    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-federativa-campo">
-      <select id="zrg-f-federativa"></select>
-    </div>
-  </div>
-  <div class="zrg-filtro-item">
-    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-sector-campo">Sector Económico</button>
-    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-sector-campo">
-      <select id="zrg-f-sector"></select>
-    </div>
-  </div>
-  <div class="zrg-filtro-item">
+  <div id="zrg-casc-niveles"></div>
+  <input type="text" id="zrg-f-texto" placeholder="Buscar por nombre de Entidad o de Contacto...">
+  <div id="zrg-casc-checks">
     <label class="zrg-filtro-check"><input type="checkbox" id="zrg-f-30dias" style="width:auto; margin:0;"> Dadas de alta en los últimos 30 días</label>
-  </div>
-  <div class="zrg-filtro-item">
     <label class="zrg-filtro-check"><input type="checkbox" id="zrg-f-seguimiento-hoy" style="width:auto; margin:0;"> Seguimiento para HOY o atrasado</label>
   </div>
+  <div id="zrg-casc-resumen" class="zrg-oculto"></div>
 </div>
 
 <div id="zrg-cargando">Cargando TUS Entidades...</div>
@@ -334,7 +278,6 @@
       .replace(/\[(\d{2}\/\d{2}\/\d{4} \d{2}:\d{2})\]/g, '<span style="color:#185FA5; font-weight:bold;">[$1]</span>')
       .replace(/\n/g, '<br>');
   }
-  llenarSelectFederativa(document.getElementById('zrg-f-federativa'));
 
   function llenarSelectGenerico(el, lista, textoTodas) {
     el.innerHTML = '<option value="">' + textoTodas + '</option>' +
@@ -342,7 +285,6 @@
   }
   llenarSelectGenerico(document.getElementById('zrg-alta-sector'), SECTORES_ECONOMICOS, 'Selecciona...');
   llenarSelectGenerico(document.getElementById('zrg-alta-religion'), RELIGIONES, 'Selecciona...');
-  llenarSelectGenerico(document.getElementById('zrg-f-sector'), SECTORES_ECONOMICOS, 'Todos');
 
   // Mostrar solo el campo que corresponde al Tipo elegido (Sector
   // Económico para Empresa, Público/Privado para Escuela, Religión
@@ -372,13 +314,6 @@
     actualizarCamposPorTipo(this.value, 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap', 'zrg-alta-planteles-wrap', 'zrg-alta-planteles-lista');
   });
   actualizarCamposPorTipo(document.getElementById('zrg-alta-tipo').value, 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap', 'zrg-alta-planteles-wrap', 'zrg-alta-planteles-lista');
-
-  // Chips de filtro: cada uno abre/cierra su propio campo.
-  Array.prototype.forEach.call(document.querySelectorAll('.zrg-filtro-chip-btn'), function(btn) {
-    btn.addEventListener('click', function() {
-      document.getElementById(btn.dataset.campo).classList.toggle('zrg-oculto');
-    });
-  });
 
   var elBuscar = document.getElementById('zrg-buscar');
   var elResultadosBusqueda = document.getElementById('zrg-resultados-busqueda');
@@ -520,7 +455,7 @@
 
     var cerrada = (e.resultado === 'Cita agendada' || e.resultado === 'Programa cerrado' || e.resultado === 'No interesada' || e.resultado === 'No responde');
     if (e.resultado === 'Cita agendada') {
-      h += '<div class="zrg-aviso-ok">Cita agendada. Da de alta la Entidad para compartir materiales y seguir el Programa.</div>';
+      h += '<div class="zrg-aviso-ok">Cita agendada. Esta escuela ya es una Entidad: sigue desde ahí con contactos, horarios y materiales.</div>';
     } else if (cerrada) {
       h += '<div class="zrg-linea" style="color:#666;">Esta escuela ya está cerrada (' + escH(e.resultado) + ').</div>';
     } else {
@@ -537,8 +472,9 @@
         '<button type="button" class="zrg-btn zrg-btn-secundario" data-esc-cancelar="' + escH(id) + '">Cancelar</button>' +
         '<div class="zrg-esc-msg" id="zrg-esc-msg-' + escH(id) + '"></div></div>';
     }
-    h += '<div style="margin-top:6px;"><button type="button" class="zrg-btn zrg-btn-destacado zrg-btn-chico" data-esc-alta="' + escH(id) + '">Dar de alta como Entidad</button> ' +
-         '<span class="zrg-tooltip" title="Úsalo cuando ya hay interés real: pasa a ser una Entidad con contactos, seguimiento, horarios y materiales.">?</span></div>';
+    if (!e.idEntidad && (e.contactoNombre || e.resultado === 'Cita agendada' || e.resultado === 'Contactada')) {
+      h += '<div style="margin-top:6px;"><div class="zrg-linea" style="color:#B02A2A;">No se pudo convertir en Entidad automáticamente.</div><button type="button" class="zrg-btn zrg-btn-destacado zrg-btn-chico" data-esc-alta="' + escH(id) + '">Reintentar convertir en Entidad</button></div>';
+    }
     if (e.notas) h += '<div class="zrg-esc-notas">' + escH(e.notas) + '</div>';
     h += '</div>';
     elDetalle.innerHTML = h;
@@ -565,12 +501,44 @@
       contactoPuesto: document.getElementById('zrg-esc-pue-' + id).value.trim(),
       nota: document.getElementById('zrg-esc-nota-' + id).value.trim()
     }).then(function(r) {
-      if (r.exito) { idEntidadSeleccionada = id; todasMisEntidades = null; cargarYFiltrar(); }
+      if (r.exito) {
+        if (acc === 'contactada' || acc === 'cita') {
+          var entEsc = (todasMisEntidades || []).filter(function(x) { return x.idEntidad === id; })[0];
+          if (entEsc && !entEsc.sch.idEntidad) {
+            m.className = 'zrg-esc-msg'; m.textContent = 'Guardado. Convirtiendo en Entidad...';
+            convertirEscuelaEnEntidad(entEsc.sch, document.getElementById('zrg-esc-nom-' + id).value.trim(), document.getElementById('zrg-esc-pue-' + id).value.trim());
+            return;
+          }
+        }
+        idEntidadSeleccionada = id; todasMisEntidades = null; cargarYFiltrar();
+      }
       else { btn.disabled = false; btn.textContent = 'Guardar'; m.className = 'zrg-esc-msg zrg-estado-error'; m.textContent = r.error || 'No se pudo guardar.'; }
     }).catch(function() { btn.disabled = false; btn.textContent = 'Guardar'; m.className = 'zrg-esc-msg zrg-estado-error'; m.textContent = 'No se pudo conectar. Intenta de nuevo.'; });
   }
 
-  // "Dar de alta como Entidad": abre el formulario de alta ya existente, con los datos de la escuela.
+  // Conversión automática: la escuela del lote pasa a ser Entidad con sus datos del directorio (nada se reescribe).
+  function convertirEscuelaEnEntidad(sch, contactoNombre, contactoPuesto) {
+    var h = { 'Content-Type': 'text/plain;charset=utf-8' };
+    function llamar(obj) { return fetch(BASE_URL, { method: 'POST', mode: 'cors', headers: h, body: JSON.stringify(obj) }).then(function(res) { return res.json(); }); }
+    function terminar() { todasMisEntidades = null; cargarYFiltrar(); }
+    llamar({
+      accion: 'darDeAltaEntidad', ref: REF, nombre: sch.nombre, tipo: 'Escuela',
+      planteles: [{ nombre: sch.municipio || '', direccion: '', entidadFederativa: federativaDeEscuela(sch.entidad), codigoPostal: '' }],
+      empleadosElegibles: '', sectorEconomico: '', publicoPrivado: '', religion: '',
+      notas: 'Viene de mi lote de Escuelas.' + (sch.telefono ? ' Tel: ' + sch.telefono + '.' : '')
+    }).then(function(d) {
+      if (!d.exito) { terminar(); return; }
+      var idNueva = d.idEntidad;
+      var pContacto = contactoNombre
+        ? llamar({ accion: 'darDeAltaContacto', ref: REF, idEntidad: idNueva, nombre: contactoNombre, puesto: contactoPuesto, telefono: '', correo: '', decisor: 'No sé', notas: '' }).catch(function() {})
+        : Promise.resolve();
+      return pContacto.then(function() {
+        return postEsc({ accion: 'registrarGestion', idAsignacion: sch.idAsignacion, tipo: 'seguimiento', idEntidad: idNueva, nota: 'Convertida en Entidad ' + idNueva });
+      }).then(function() { idEntidadSeleccionada = idNueva; terminar(); }, function() { idEntidadSeleccionada = idNueva; terminar(); });
+    }).catch(terminar);
+  }
+
+  // (Respaldo) abre el formulario de alta ya existente, con los datos de la escuela.
   var altaDesdeEscuela = null;
   function altaDesdeEsc(id) {
     var ent = (todasMisEntidades || []).filter(function(x) { return x.idEntidad === id; })[0];
@@ -651,7 +619,11 @@
     if (el.hasAttribute('data-esc-acc')) abrirFormEsc(el.getAttribute('data-esc-id'), el.getAttribute('data-esc-acc'));
     else if (el.hasAttribute('data-esc-guardar')) guardarGestionEsc(el.getAttribute('data-esc-guardar'));
     else if (el.hasAttribute('data-esc-cancelar')) document.getElementById('zrg-esc-f-' + el.getAttribute('data-esc-cancelar')).classList.add('zrg-oculto');
-    else if (el.hasAttribute('data-esc-alta')) altaDesdeEsc(el.getAttribute('data-esc-alta'));
+    else if (el.hasAttribute('data-esc-alta')) {
+      var idr = el.getAttribute('data-esc-alta');
+      var er = (todasMisEntidades || []).filter(function(x) { return x.idEntidad === idr; })[0];
+      if (er) { el.disabled = true; el.textContent = 'Convirtiendo...'; convertirEscuelaEnEntidad(er.sch, er.sch.contactoNombre || '', er.sch.contactoPuesto || ''); }
+    }
   });
   elResultadosBusqueda.addEventListener('click', function(ev) {
     var el = ev.target.closest ? ev.target.closest('[data-dir-sel],[data-dir-confirmar],[data-dir-cerrar],[data-dir-asig],[data-dir-asig-ok]') : null;
@@ -854,7 +826,11 @@
     elCargando.style.display = 'block';
     elCargando.textContent = 'Cargando TUS Entidades...';
     var pEnt = fetch(BASE_URL + '?accion=misEntidades&ref=' + encodeURIComponent(REF)).then(function(res) { return res.json(); });
-    var pEsc = getEsc({ accion: 'misEscuelas', ref: REF }).catch(function() { return null; });
+    var errEsc = '';
+    var pEsc = Promise.race([
+      getEsc({ accion: 'misEscuelas', ref: REF }),
+      new Promise(function(_, rej) { setTimeout(function() { rej(new Error('tiempo agotado (15 s)')); }, 15000); })
+    ]).catch(function(e) { errEsc = String((e && e.message) || e); return null; });
     Promise.all([pEnt, pEsc])
       .then(function(r) {
         var data = r[0], esc = r[1];
@@ -873,6 +849,10 @@
           ? txtN + ' y ' + m + (m === 1 ? ' Escuela en TU Lote' : ' Escuelas en TU Lote') + ', ¿deseas filtrarlas?'
           : (n === 0 ? txtN : txtN + ', ¿deseas filtrar' + (n === 1 ? 'la?' : 'las?'));
         pintarResumenLote();
+        if (!RESUMEN_ESC) {
+          var pnl = document.getElementById('zrg-lote-resumen');
+          if (pnl) { pnl.innerHTML = '<p style="color:#791F1F;font-size:13px;">Escuelas del lote no disponibles: ' + escH(errEsc || (esc && esc.mensaje) || 'sin respuesta') + '</p>'; }
+        }
         aplicarFiltros();
         if (RESUMEN_ESC && RESUMEN_ESC.esAdmin && !TABLERO_ESC) { cargarTableroEsc(); }
       })
@@ -885,56 +865,123 @@
     return (ent.grupos && ent.grupos[0] && ent.grupos[0].etapaFunnel) || 'Registrado';
   }
 
-  function actualizarChipsActivos() {
-    var mapa = {
-      'zrg-f-tipo-campo': document.getElementById('zrg-f-tipo').value,
-      'zrg-f-etapa-campo': document.getElementById('zrg-f-etapa').value,
-      'zrg-f-nombre-entidad-campo': document.getElementById('zrg-f-nombre-entidad').value.trim(),
-      'zrg-f-nombre-contacto-campo': document.getElementById('zrg-f-nombre-contacto').value.trim(),
-      'zrg-f-federativa-campo': document.getElementById('zrg-f-federativa').value,
-      'zrg-f-sector-campo': document.getElementById('zrg-f-sector').value,
-      'zrg-f-lote-campo': document.getElementById('zrg-f-lote').value
-    };
-    Array.prototype.forEach.call(document.querySelectorAll('.zrg-filtro-chip-btn'), function(btn) {
-      btn.classList.toggle('zrg-filtro-activo', !!mapa[btn.dataset.campo]);
-    });
+  // ---- Filtros en cascada ----
+  var CASC = { ver: '', niv: [] };
+  var TIPOS_CASC = [['Escuela','Escuela'],['Empresa','Empresa'],['Institución','Institución'],['Personal','Grupo Personal'],['Religioso','Grupo Religioso'],['Grupo de Facebook','Grupo de Facebook'],['Grupo de Instagram','Grupo de Instagram'],['Grupo de WhatsApp','Grupo de WhatsApp'],['Grupo en Otra Red Social','Grupo en Otra Red Social'],['Otro','Otro']];
+  var ETAPAS_CASC = ['Registrado','Contactado','Cita Agendada','Programa Cerrado','Pendiente','No Interesado'];
+  var ESTADOS_LOTE = [['Nuevas','Nuevas: acaban de llegarme'],['Por contactar','Por contactar: sin gestión terminada'],['En seguimiento','En seguimiento: ya hablé, falta respuesta o cita'],['Cerradas','Cerradas: sin respuesta, no interesada o con cita'],['Seleccionadas','Seleccionadas por mí']];
+  function pares(l) { return l.map(function(x) { return [x, x]; }); }
+
+  var TIPOS_AFINES = [['Personal','Grupo Personal'],['Religioso','Grupo Religioso'],['Grupo de Facebook','Grupo de Facebook'],['Grupo de Instagram','Grupo de Instagram'],['Grupo de WhatsApp','Grupo de WhatsApp'],['Grupo en Otra Red Social','Grupo en Otra Red Social']];
+  var ESTADOS_ESC = [['altas','Ya dadas de alta como Entidad']].concat(ESTADOS_LOTE);
+  function cadenaCascada() {
+    var etapa = { k: 'etapa', etiqueta: 'Etapa Actual de Pipeline', todos: 'Todas', ops: pares(ETAPAS_CASC) };
+    var fed = { k: 'fed', etiqueta: 'Entidad Federativa', todos: 'Todas', ops: pares(ENTIDADES_FEDERATIVAS) };
+    switch (CASC.ver) {
+      case 'Escuela': return [{ k: 'estado', etiqueta: 'Mis Escuelas', todos: 'Todas mis Escuelas', ops: ESTADOS_ESC }, etapa, fed];
+      case 'Empresa': return [etapa, { k: 'sector', etiqueta: 'Sector Económico', todos: 'Todos', ops: pares(SECTORES_ECONOMICOS) }, fed];
+      case 'Afines': return [{ k: 'tipo', etiqueta: 'Tipo de Grupo', todos: 'Todos los Grupos Afines', ops: TIPOS_AFINES }, etapa, fed];
+      default: return [etapa, fed];
+    }
+  }
+  function textoVer() {
+    return { '': 'Todas', 'Escuela': 'Escuelas', 'Empresa': 'Empresas', 'Institución': 'Instituciones', 'Afines': 'Grupos Afines', 'Otro': 'Otras' }[CASC.ver];
+  }
+  function etiquetaOpcion(nivel, v) {
+    if (v === '*') return nivel.todos;
+    for (var i = 0; i < nivel.ops.length; i++) { if (nivel.ops[i][0] === v) { return nivel.ops[i][1].split(':')[0]; } }
+    return v;
   }
 
+  function pintarCascada() {
+    Array.prototype.forEach.call(document.querySelectorAll('#zrg-casc-ver button'), function(b) {
+      b.classList.toggle('zrg-ver-activo', b.dataset.ver === CASC.ver);
+    });
+    var cad = cadenaCascada(), h = '';
+    for (var i = 0; i < cad.length; i++) {
+      if (i > 0 && !CASC.niv[i - 1]) break;
+      var n = cad[i], val = CASC.niv[i] || '';
+      h += '<div class="zrg-casc-nivel"><label>' + escH(n.etiqueta) + '</label><select data-nivel="' + i + '">' +
+        '<option value=""' + (val === '' ? ' selected' : '') + '>Selecciona...</option>' +
+        '<option value="*"' + (val === '*' ? ' selected' : '') + '>' + escH(n.todos) + '</option>' +
+        n.ops.map(function(o) { return '<option value="' + escH(o[0]) + '"' + (val === o[0] ? ' selected' : '') + '>' + escH(o[1]) + '</option>'; }).join('') +
+        '</select></div>';
+    }
+    document.getElementById('zrg-casc-niveles').innerHTML = h;
+    // Resumen de lo activo, con ✕ para quitar desde ese nivel hacia abajo
+    var r = '', hay = false;
+    if (CASC.ver) { hay = true; r += '<span class="zrg-resumen-chip">' + escH(textoVer()) + '<button type="button" data-quitar="ver">✕</button></span>'; }
+    for (var j = 0; j < cad.length; j++) {
+      if (!CASC.niv[j]) break;
+      hay = true;
+      r += '<span class="zrg-resumen-chip">' + escH(etiquetaOpcion(cad[j], CASC.niv[j])) + '<button type="button" data-quitar="' + j + '">✕</button></span>';
+    }
+    var cajaR = document.getElementById('zrg-casc-resumen');
+    if (hay) { r += ' <button type="button" class="zrg-resumen-limpiar" data-quitar="todo">Limpiar todo</button>'; }
+    cajaR.innerHTML = r;
+    cajaR.classList.toggle('zrg-oculto', !hay);
+  }
+
+  function filtrosActuales() {
+    var f = { loteSel: '', tipos: [], etapa: '', federativa: '', sector: '' };
+    if (CASC.ver === 'Afines') { f.tipos = TIPOS_AFINES.map(function(t) { return t[0]; }); }
+    else if (CASC.ver) { f.tipos = [CASC.ver]; }
+    cadenaCascada().forEach(function(n, i) {
+      var v = CASC.niv[i]; if (!v || v === '*') return;
+      if (n.k === 'estado') { f.loteSel = (v === 'altas') ? 'propias' : v; }
+      else if (n.k === 'tipo') { f.tipos = [v]; }
+      else if (n.k === 'etapa') { f.etapa = v; }
+      else if (n.k === 'fed') { f.federativa = v; }
+      else if (n.k === 'sector') { f.sector = v; }
+    });
+    return f;
+  }
+
+  document.getElementById('zrg-casc-ver').addEventListener('click', function(ev) {
+    var b = ev.target.closest('button'); if (!b) return;
+    CASC.ver = b.dataset.ver; CASC.niv = [];
+    pintarCascada(); aplicarFiltros();
+  });
+  document.getElementById('zrg-casc-niveles').addEventListener('change', function(ev) {
+    var sel = ev.target; if (!sel.dataset || sel.dataset.nivel === undefined) return;
+    var i = parseInt(sel.dataset.nivel, 10);
+    CASC.niv = CASC.niv.slice(0, i);
+    CASC.niv[i] = sel.value;
+    if (!sel.value) { CASC.niv.length = i; }
+    pintarCascada(); aplicarFiltros();
+  });
+  document.getElementById('zrg-casc-resumen').addEventListener('click', function(ev) {
+    var b = ev.target.closest('button'); if (!b) return;
+    var q = b.dataset.quitar;
+    if (q === 'todo' || q === 'ver') { CASC.ver = ''; CASC.niv = []; }
+    else { CASC.niv = CASC.niv.slice(0, parseInt(q, 10)); }
+    pintarCascada(); aplicarFiltros();
+  });
+
   function aplicarFiltros() {
-    actualizarChipsActivos();
-    var tipo = document.getElementById('zrg-f-tipo').value;
-    var etapa = document.getElementById('zrg-f-etapa').value;
-    var nombreEnt = document.getElementById('zrg-f-nombre-entidad').value.trim().toLowerCase();
-    var nombreCon = document.getElementById('zrg-f-nombre-contacto').value.trim().toLowerCase();
-    var federativa = document.getElementById('zrg-f-federativa').value;
-    var sector = document.getElementById('zrg-f-sector').value;
-    var loteSel = document.getElementById('zrg-f-lote').value;
+    var f = filtrosActuales();
+    var texto = document.getElementById('zrg-f-texto').value.trim().toLowerCase();
     var solo30dias = document.getElementById('zrg-f-30dias').checked;
     var soloSeguimientoHoy = document.getElementById('zrg-f-seguimiento-hoy').checked;
     var hace30dias = Date.now() - (30 * 24 * 60 * 60 * 1000);
     var finDeHoy = new Date(); finDeHoy.setHours(23,59,59,999);
 
     var filtradas = (todasMisEntidades || []).filter(function(ent) {
-      if (!pasaFiltroLote(ent, loteSel)) return false;
-      if (tipo && ent.tipo !== tipo) return false;
-      if (etapa && etapaDe(ent) !== etapa) return false;
-      if (nombreEnt && ent.nombre.toLowerCase().indexOf(nombreEnt) === -1) return false;
-      if (federativa) {
-        // La Entidad Federativa ya no vive en la Entidad — vive en
-        // cada Plantel (una misma Entidad puede tener planteles en
-        // varios estados). El filtro busca si CUALQUIERA de sus
-        // planteles está en el estado elegido.
-        var coincideFederativa = (ent.planteles || []).some(function(p) { return p.entidadFederativa === federativa; });
+      if (!pasaFiltroLote(ent, f.loteSel)) return false;
+      if (f.tipos.length && f.tipos.indexOf(ent.tipo) === -1) return false;
+      if (f.etapa && etapaDe(ent) !== f.etapa) return false;
+      if (f.federativa) {
+        // La Entidad Federativa vive en cada Plantel: basta que CUALQUIERA esté en el estado elegido.
+        var coincideFederativa = (ent.planteles || []).some(function(p) { return p.entidadFederativa === f.federativa; });
         if (!coincideFederativa) return false;
       }
-      if (sector && ent.sectorEconomico !== sector) return false;
+      if (f.sector && ent.sectorEconomico !== f.sector) return false;
       if (solo30dias && (!ent.fechaAlta || ent.fechaAlta < hace30dias)) return false;
       if (soloSeguimientoHoy && (!ent.proximoSeguimiento || ent.proximoSeguimiento > finDeHoy.getTime())) return false;
-      if (nombreCon) {
-        var algunContactoCoincide = (ent.contactos || []).some(function(c) {
-          return (c.nombre || '').toLowerCase().indexOf(nombreCon) !== -1;
-        });
-        if (!algunContactoCoincide) return false;
+      if (texto) {
+        var enNombre = (ent.nombre || '').toLowerCase().indexOf(texto) !== -1;
+        var enContacto = (ent.contactos || []).some(function(c) { return (c.nombre || '').toLowerCase().indexOf(texto) !== -1; });
+        if (!enNombre && !enContacto) return false;
       }
       return true;
     });
@@ -942,18 +989,31 @@
     pintarFranja(filtradas);
   }
 
-  ['zrg-f-lote', 'zrg-f-tipo', 'zrg-f-etapa', 'zrg-f-federativa', 'zrg-f-sector'].forEach(function(id) {
-    document.getElementById(id).addEventListener('change', cargarYFiltrar);
-  });
-  document.getElementById('zrg-f-30dias').addEventListener('change', cargarYFiltrar);
-  document.getElementById('zrg-f-seguimiento-hoy').addEventListener('change', cargarYFiltrar);
+  document.getElementById('zrg-f-30dias').addEventListener('change', aplicarFiltros);
+  document.getElementById('zrg-f-seguimiento-hoy').addEventListener('change', aplicarFiltros);
   var temporizadorFiltroTexto = null;
-  ['zrg-f-nombre-entidad', 'zrg-f-nombre-contacto'].forEach(function(id) {
-    document.getElementById(id).addEventListener('input', function() {
-      clearTimeout(temporizadorFiltroTexto);
-      temporizadorFiltroTexto = setTimeout(cargarYFiltrar, 300);
-    });
+  document.getElementById('zrg-f-texto').addEventListener('input', function() {
+    clearTimeout(temporizadorFiltroTexto);
+    temporizadorFiltroTexto = setTimeout(aplicarFiltros, 250);
   });
+  pintarCascada();
+
+  // Leyenda bajo cada círculo: lo que está sin trabajar se ve en rojo.
+  function leyendaChip(ent) {
+    if (ent.esEscuela) {
+      var c = ent.sch.categoria;
+      if (c === 'Nuevas') return { texto: 'Por gestionar', alerta: true };
+      if (c === 'Por contactar') return { texto: 'Falta contactar', alerta: false };
+      if (c === 'En seguimiento') return { texto: 'En seguimiento', alerta: false };
+      if (c === 'Cerradas') return { texto: 'Cerrada', alerta: false };
+      return { texto: ent.sch.seleccionada ? 'Seleccionada' : '', alerta: false };
+    }
+    var et = etapaDe(ent);
+    if (ent.proximoSeguimiento && ent.proximoSeguimiento <= Date.now() && et !== 'Programa Cerrado' && et !== 'No Interesado') {
+      return { texto: 'Seguimiento atrasado', alerta: true };
+    }
+    return { texto: '', alerta: false };
+  }
 
   function pintarFranja(entidades) {
     elConteoFiltro.classList.remove('zrg-oculto');
@@ -973,11 +1033,12 @@
       var activo = (ent.idEntidad === idEntidadSeleccionada) ? ' zrg-chip-activo' : '';
       var colorEtapa = COLOR_ETAPA[etapaDe(ent)] || '#9AA0A6';
       var colorTipo = COLOR_TIPO[ent.tipo] || COLOR_TIPO['Otro'];
-      html += '<button class="zrg-chip-entidad' + activo + (ent.esEscuela ? ' zrg-chip-esc' : '') + '" onclick="window.zrgSeleccionarEntidad(\'' + ent.idEntidad + '\')">' +
+      var leyenda = leyendaChip(ent);
+      html += '<button class="zrg-chip-entidad' + activo + (ent.esEscuela ? ' zrg-chip-esc' : '') + (leyenda.alerta ? ' zrg-chip-pend' : '') + '" onclick="window.zrgSeleccionarEntidad(\'' + ent.idEntidad + '\')">' +
         '<div class="zrg-chip-circulo" style="background:' + colorTipo + ';">' +
         '<span class="zrg-chip-circulo-texto">' + ent.nombre + '</span>' +
         '<span class="zrg-chip-punto" style="background:' + colorEtapa + ';"></span></div>' +
-        (ent.esEscuela ? '<span class="zrg-chip-sub">' + (ent.sch.seleccionada ? 'Seleccionada' : 'Asignada') + '</span>' : '') + '</button>';
+        (leyenda.texto ? '<span class="zrg-chip-sub">' + escH(leyenda.texto) + '</span>' : '') + '</button>';
     });
     elFranja.classList.toggle('zrg-franja-centrada', entidades.length < 7);
     elFranja.innerHTML = html;
