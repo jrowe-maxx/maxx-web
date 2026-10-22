@@ -163,7 +163,6 @@
 </div>
 
 <h2 id="zrg-titulo-entidades">TUS Entidades</h2>
-<div id="zrg-lote-resumen"></div>
 <div class="zrg-casc">
   <div class="zrg-casc-ver" id="zrg-casc-ver">
     <button type="button" data-ver="">Todas</button>
@@ -183,12 +182,13 @@
 </div>
 
 <div id="zrg-cargando">Cargando TUS Entidades...</div>
+<div id="zrg-lote-resumen"></div>
+<div id="zrg-tablero-esc"></div>
 <div id="zrg-conteo-filtro" class="zrg-conteo-filtro zrg-oculto"></div>
 <div class="zrg-franja-wrap">
   <div class="zrg-franja" id="zrg-franja"></div>
 </div>
 <div id="zrg-detalle"></div>
-<div id="zrg-tablero-esc"></div>
 
 </div>
 
@@ -410,7 +410,7 @@
     } else if (!des.nuevo) {
       h += '<div class="zrg-lote-ok">Vas bien: lote anterior ' + des.pctUltimo + '% y acumulado ' + des.pctAcumulado + '% (mínimos ' + des.minUltimo + '% y ' + des.minAcumulado + '%).</div>';
     }
-    h += '<div class="zrg-lote-panel"><b>TU Lote de Escuelas — semana del ' + escH(d.semana) + '</b><div class="zrg-lote-nums">' +
+    if (CASC.ver === 'Escuela') h += '<div class="zrg-lote-panel"><b>TU Lote de Escuelas — semana del ' + escH(d.semana) + '</b><div class="zrg-lote-nums">' +
       '<div class="zrg-lote-num"><span>' + r.loteActualGestionadas + ' / ' + r.loteActualTotal + '</span><small>gestionadas de TU lote' + (r.pctLoteActual === null ? '' : ' (' + r.pctLoteActual + '%)') + '</small></div>' +
       '<div class="zrg-lote-num"><span>' + (r.pctAcumulado === null ? '—' : r.pctAcumulado + '%') + '</span><small>gestión acumulada</small></div>' +
       '<div class="zrg-lote-num"><span>' + r.contactosEfectivos + '</span><small>contactos efectivos</small></div>' +
@@ -894,6 +894,8 @@
   }
 
   function pintarCascada() {
+    pintarResumenLote();
+    var tb = document.getElementById('zrg-tablero-esc'); if (tb) { tb.style.display = (CASC.ver === 'Escuela') ? '' : 'none'; }
     Array.prototype.forEach.call(document.querySelectorAll('#zrg-casc-ver button'), function(b) {
       b.classList.toggle('zrg-ver-activo', b.dataset.ver === CASC.ver);
     });
