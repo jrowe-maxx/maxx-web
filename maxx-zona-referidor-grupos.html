@@ -843,8 +843,13 @@
     return Promise.race([promesa, new Promise(function(_, rej) { setTimeout(function() { rej(new Error(msg)); }, ms); })]);
   }
   function pedirEntidades(reintentos) {
-    return conTope(fetch(BASE_URL + '?accion=misEntidades&ref=' + encodeURIComponent(REF)).then(function(res) { return res.json(); }), 30000, 'tiempo agotado (30 s)')
-      .catch(function(e) { if (reintentos > 0) { return pedirEntidades(reintentos - 1); } throw e; });
+    var qsRef = '?accion=misEntidades&ref=' + encodeURIComponent(REF);
+    return conTope(fetch(ESCUELAS_API + qsRef).then(function(res) { return res.json(); }), 30000, 'tiempo agotado (30 s)')
+      .then(function(d) { if (!d || !d.exito) { throw new Error('respuesta no válida'); } return d; })
+      .catch(function(e0) {
+        return conTope(fetch(BASE_URL + qsRef).then(function(res) { return res.json(); }), 45000, 'tiempo agotado (45 s)')
+          .catch(function(e) { if (reintentos > 0) { return pedirEntidades(reintentos - 1); } throw e; });
+      });
   }
 
   function cargarYFiltrar() {
@@ -924,7 +929,7 @@
       var rb = document.getElementById('zrg-reintentar-carga');
       if (rb) rb.addEventListener('click', function() { todasMisEntidades = null; cargarYFiltrar(); });
     });
-    conTope(getEsc({ accion: 'misEscuelas', ref: REF }), 20000, 'tiempo agotado (20 s)')
+    conTope(getEsc({ accion: 'misEscuelas', ref: REF }), 30000, 'tiempo agotado (30 s)')
       .catch(function(e) { errEsc = String((e && e.message) || e); return null; })
       .then(function(r) { tEsc = Math.round((Date.now() - t0) / 1000); escData = r; escListo = true; frescoEsc = true; if (entData) { combinar(); guardarCache(); } });
   }
