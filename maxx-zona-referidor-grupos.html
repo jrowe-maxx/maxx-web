@@ -76,6 +76,28 @@
 .zrg-chip-circulo-texto { font-size: 13px; font-weight: bold; color: #042C53; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 .zrg-chip-punto { width: 11px; height: 11px; border-radius: 50%; position: absolute; bottom: 4px; right: 8px; border: 2px solid white; }
 .zrg-conteo-filtro { font-size: 12px; color: #666; margin: 0 0 4px; text-align: center; }
+
+/* ---- Escuelas del lote (integradas a TUS Entidades) ---- */
+.zrg-lote-panel { background: #F2F8FE; border: 1px solid #E6F1FB; border-radius: 10px; padding: 10px 12px; margin: 0 0 10px; font-size: 13px; }
+.zrg-lote-panel b { color: #042C53; }
+.zrg-lote-nums { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.zrg-lote-num { flex: 1 1 90px; background: #fff; border: 1px solid #E6F1FB; border-radius: 8px; padding: 6px; text-align: center; }
+.zrg-lote-num span { display: block; font-size: 19px; font-weight: bold; color: #185FA5; }
+.zrg-lote-num small { font-size: 11px; color: #666; }
+.zrg-lote-alerta { background: #FFF6D6; border-left: 4px solid #EF9F27; color: #412402; border-radius: 6px; padding: 8px 12px; margin-bottom: 8px; font-size: 13px; line-height: 1.4; }
+.zrg-lote-ok { background: #EAF3DE; color: #27500A; border-radius: 6px; padding: 6px 10px; margin-bottom: 8px; font-size: 12px; }
+.zrg-chip-esc .zrg-chip-circulo { border: 3px dashed #86B2DE; }
+.zrg-chip-esc.zrg-chip-activo .zrg-chip-circulo { border: 3px solid #185FA5; }
+.zrg-chip-sub { display: block; font-size: 10px; color: #666; margin-top: 3px; }
+.zrg-dir-item { background: #F2F8FE; border: 1px solid #C5DCF5; border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 13px; color: #042C53; }
+.zrg-dir-item strong { display: block; font-size: 14px; margin-bottom: 2px; }
+.zrg-dir-no { background: #F3F3F3; border-color: #ddd; color: #777; }
+.zrg-dir-titulo { font-size: 12px; font-weight: bold; color: #042C53; margin: 10px 0 4px; }
+.zrg-esc-form { background: #FAFCFE; border: 1px solid #E6F1FB; border-radius: 8px; padding: 10px; margin: 8px 0; }
+.zrg-esc-msg { font-size: 13px; min-height: 16px; margin: 4px 0; }
+.zrg-esc-notas { white-space: pre-wrap; font-size: 12px; color: #555; background: #fafafa; border-radius: 6px; padding: 6px 8px; margin-top: 6px; }
+.zrg-tabla-admin { width: 100%; border-collapse: collapse; font-size: 12px; }
+.zrg-tabla-admin th, .zrg-tabla-admin td { border-bottom: 1px solid #E6F1FB; padding: 5px 4px; text-align: left; }
 </style>
 
 <div id="zrg-wrap">
@@ -135,7 +157,23 @@
 </div>
 
 <h2 id="zrg-titulo-entidades">TUS Entidades</h2>
+<div id="zrg-lote-resumen"></div>
 <div class="zrg-filtros">
+  <div class="zrg-filtro-item">
+    <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-lote-campo">Escuelas de mi Lote</button>
+    <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-lote-campo">
+      <select id="zrg-f-lote">
+        <option value="">Todas mis Entidades y Escuelas</option>
+        <option value="propias">Solo Entidades dadas de alta por mí</option>
+        <option value="lote">Todas las Escuelas de mi Lote</option>
+        <option value="Nuevas">Escuelas Nuevas: acaban de llegarme</option>
+        <option value="Por contactar">Escuelas Por contactar: sin gestión terminada</option>
+        <option value="En seguimiento">Escuelas En seguimiento: ya hablé, falta respuesta o cita</option>
+        <option value="Cerradas">Escuelas Cerradas: sin respuesta, no interesada o con cita</option>
+        <option value="Seleccionadas">Escuelas Seleccionadas por mí</option>
+      </select>
+    </div>
+  </div>
   <div class="zrg-filtro-item">
     <button type="button" class="zrg-filtro-chip-btn" data-campo="zrg-f-tipo-campo">Tipo de Entidad</button>
     <div class="zrg-filtro-campo zrg-oculto" id="zrg-f-tipo-campo">
@@ -206,6 +244,7 @@
   <div class="zrg-franja" id="zrg-franja"></div>
 </div>
 <div id="zrg-detalle"></div>
+<div id="zrg-tablero-esc"></div>
 
 </div>
 
@@ -368,6 +407,274 @@
   }
   var idEntidadSeleccionada = null;
 
+  // =====================================================================
+  // ESCUELAS DEL LOTE — integradas a TUS Entidades (nov-2026 prueba: 22-oct)
+  // Las escuelas asignadas por MAXX o seleccionadas por el referidor se
+  // muestran como "Entidades" más (círculo con borde punteado) y usan los
+  // mismos filtros. Al darlas de alta como Entidad pasan a ser una Entidad real.
+  // =====================================================================
+  var ESCUELAS_API = window.ZRG_ESCUELAS_API_PRUEBA || 'https://script.google.com/macros/s/AKfycbzjonaj5Qp3dQm7KQy0bvZnT_1HnqPFwj1Z_Puc8pPQ9oKpTX2w0WPjv8E4wF7Yf3V50g/exec';
+  var RESUMEN_ESC = null;
+  var TABLERO_ESC = null;
+  var accionEsc = {};
+
+  function escH(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+  function postEsc(obj) {
+    obj.ref = REF;
+    return fetch(ESCUELAS_API, { method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(obj) })
+      .then(function(res) { return res.json(); });
+  }
+  function getEsc(params) {
+    var qs = Object.keys(params).map(function(k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
+    return fetch(ESCUELAS_API + '?' + qs).then(function(res) { return res.json(); });
+  }
+  function opcionesEsc(lista, vacio) {
+    return (vacio ? '<option value="">' + escH(vacio) + '</option>' : '') + lista.map(function(x) { return '<option>' + escH(x) + '</option>'; }).join('');
+  }
+
+  // Misma ruta de etapas que ya usa TUS Entidades, para que colores y filtros funcionen igual.
+  function etapaDeEscuela(e) {
+    if (e.resultado === 'Cita agendada') return 'Cita Agendada';
+    if (e.resultado === 'Programa cerrado') return 'Programa Cerrado';
+    if (e.resultado === 'No interesada') return 'No Interesado';
+    if (e.resultado === 'No responde') return 'Pendiente';
+    if (e.resultado === 'Contactada' || e.contactoNombre) return 'Contactado';
+    return 'Registrado';
+  }
+  function federativaDeEscuela(txt) {
+    var t = String(txt || '');
+    for (var i = 0; i < ENTIDADES_FEDERATIVAS.length; i++) { if (t.indexOf(ENTIDADES_FEDERATIVAS[i]) === 0) return ENTIDADES_FEDERATIVAS[i]; }
+    return t;
+  }
+  function escuelaComoEntidad(e) {
+    var razon = (e.resultado === 'No responde') ? 'Sin respuesta tras 2 intentos' : '';
+    return {
+      esEscuela: true, sch: e, idEntidad: e.idAsignacion, nombre: e.nombre, tipo: 'Escuela',
+      planteles: [{ nombre: e.municipio, direccion: '', entidadFederativa: federativaDeEscuela(e.entidad), codigoPostal: '' }],
+      grupos: [{ etapaFunnel: etapaDeEscuela(e), razonEstado: razon }],
+      contactos: e.contactoNombre ? [{ nombre: e.contactoNombre, puesto: e.contactoPuesto, telefono: '', correo: '' }] : [],
+      notas: e.notas, fechaAlta: null, proximoSeguimiento: null
+    };
+  }
+  function pasaFiltroLote(ent, v) {
+    if (!v) return true;
+    if (v === 'propias') return !ent.esEscuela;
+    if (!ent.esEscuela) return false;
+    if (v === 'lote') return true;
+    if (v === 'Seleccionadas') return !!ent.sch.seleccionada;
+    return ent.sch.categoria === v;
+  }
+
+  function pintarResumenLote() {
+    var cont = document.getElementById('zrg-lote-resumen');
+    if (!cont) return;
+    if (!RESUMEN_ESC) { cont.innerHTML = ''; return; }
+    var d = RESUMEN_ESC, r = d.resultados, c = d.cuotas, des = d.desbloqueo, h = '';
+    if (!des.libre) {
+      h += '<div class="zrg-lote-alerta"><b>Tu próximo lote de Escuelas está en pausa.</b> ' + escH(des.texto) + ' Gestiona las pendientes (contactar, registrar intentos o cerrarlas) y se libera solo el siguiente lunes.</div>';
+    } else if (!des.nuevo) {
+      h += '<div class="zrg-lote-ok">Vas bien: lote anterior ' + des.pctUltimo + '% y acumulado ' + des.pctAcumulado + '% (mínimos ' + des.minUltimo + '% y ' + des.minAcumulado + '%).</div>';
+    }
+    h += '<div class="zrg-lote-panel"><b>TU Lote de Escuelas — semana del ' + escH(d.semana) + '</b><div class="zrg-lote-nums">' +
+      '<div class="zrg-lote-num"><span>' + r.loteActualGestionadas + ' / ' + r.loteActualTotal + '</span><small>gestionadas de TU lote' + (r.pctLoteActual === null ? '' : ' (' + r.pctLoteActual + '%)') + '</small></div>' +
+      '<div class="zrg-lote-num"><span>' + (r.pctAcumulado === null ? '—' : r.pctAcumulado + '%') + '</span><small>gestión acumulada</small></div>' +
+      '<div class="zrg-lote-num"><span>' + r.contactosEfectivos + '</span><small>contactos efectivos</small></div>' +
+      '<div class="zrg-lote-num"><span>' + r.citas + '</span><small>citas agendadas</small></div>' +
+      '<div class="zrg-lote-num"><span>' + c.puedeSeleccionar + '</span><small>selecciones que te quedan (tope ' + c.seleccionaHasta + ')</small></div>' +
+      '</div></div>';
+    cont.innerHTML = h;
+  }
+
+  function cargarTableroEsc() {
+    getEsc({ accion: 'tablero', ref: REF }).then(function(r) {
+      if (!r.exito) return;
+      TABLERO_ESC = r;
+      var cont = document.getElementById('zrg-tablero-esc');
+      if (!cont) return;
+      cont.innerHTML = '<h2>Tablero de Escuelas (claves maestras)</h2><table class="zrg-tabla-admin"><tr><th>Persona</th><th>Escuelas</th><th>Gestión</th><th>Efectivos</th><th>Citas</th><th>Próximo lote</th></tr>' +
+        r.personas.map(function(p) {
+          return '<tr><td>' + escH(p.nombre) + '<br><small>' + escH(p.clave) + '</small></td><td>' + p.total + '</td><td>' + (p.pctGestion === null ? '—' : p.pctGestion + '%') +
+                 '</td><td>' + p.efectivos + '</td><td>' + p.citas + '</td><td>' + (p.libre ? 'Libre' : 'En pausa') + '</td></tr>';
+        }).join('') + '</table>';
+    }).catch(function() {});
+  }
+
+  // ---------- Detalle de una Escuela del lote ----------
+  function pintarDetalleEscuela(ent) {
+    var e = ent.sch, id = e.idAsignacion, h = '';
+    h += '<div class="zrg-card" data-id-entidad="' + escH(id) + '">';
+    h += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="float:right;" onclick="window.zrgCerrarDetalle()">✕ Cerrar</button>';
+    h += '<h3>' + escH(e.nombre) + '</h3>';
+    h += '<span class="zrg-tag">Escuela</span>';
+    h += '<span class="zrg-tag zrg-tag-etapa">' + escH(etapaDeEscuela(e)) + '</span>';
+    h += '<span class="zrg-tag">' + (e.seleccionada ? 'Seleccionada por ti' : 'Asignada por MAXX') + '</span>';
+    if (/^[A-D]$/.test(e.segmento)) h += '<span class="zrg-tag">Tipo ' + escH(e.segmento) + '</span>';
+    if (e.municipio) h += '<div class="zrg-linea"><b>Ubicación:</b> ' + escH(e.municipio) + (e.entidad ? ', ' + escH(e.entidad) : '') + '</div>';
+    if (e.telefono) h += '<div class="zrg-linea">📞 <a href="tel:' + escH(String(e.telefono).replace(/[^0-9+]/g, '')) + '">' + escH(e.telefono) + '</a></div>';
+    if (e.web) { var w = /^https?:/i.test(e.web) ? e.web : 'https://' + e.web; h += '<div class="zrg-linea">🌐 <a href="' + escH(w) + '" target="_blank" rel="noopener">' + escH(e.web) + '</a></div>'; }
+    if (e.correo) h += '<div class="zrg-linea">✉️ <a href="mailto:' + escH(e.correo) + '">' + escH(e.correo) + '</a></div>';
+    if (e.seleccionada && e.motivo) h += '<div class="zrg-linea"><b>Motivo de selección:</b> ' + escH(e.motivo) + '</div>';
+    if (e.contactoNombre) h += '<div class="zrg-linea"><b>Hablaste con:</b> ' + escH(e.contactoNombre) + (e.contactoPuesto ? ' (' + escH(e.contactoPuesto) + ')' : '') + '</div>';
+    if (e.intentos) h += '<div class="zrg-linea"><b>Intentos:</b> ' + e.intentos + (e.ultimoIntento ? ' — último ' + escH(e.ultimoIntento) + (e.canalUltimo ? ' por ' + escH(e.canalUltimo) : '') : '') + '</div>';
+    if (e.reservadaHasta && e.categoria !== 'Cerradas') h += '<div class="zrg-linea"><b>Reservada para ti hasta:</b> ' + escH(e.reservadaHasta) + '</div>';
+
+    var cerrada = (e.resultado === 'Cita agendada' || e.resultado === 'Programa cerrado' || e.resultado === 'No interesada' || e.resultado === 'No responde');
+    if (e.resultado === 'Cita agendada') {
+      h += '<div class="zrg-aviso-ok">Cita agendada. Da de alta la Entidad para compartir materiales y seguir el Programa.</div>';
+    } else if (cerrada) {
+      h += '<div class="zrg-linea" style="color:#666;">Esta escuela ya está cerrada (' + escH(e.resultado) + ').</div>';
+    } else {
+      h += '<div style="margin:8px 0; display:flex; flex-wrap:wrap; gap:6px;">' +
+        '<button type="button" class="zrg-btn zrg-btn-chico" data-esc-acc="intento" data-esc-id="' + escH(id) + '">Registrar intento</button>' +
+        '<button type="button" class="zrg-btn zrg-btn-chico" style="background:#639922;" data-esc-acc="contactada" data-esc-id="' + escH(id) + '">Hablé con alguien</button>' +
+        '<button type="button" class="zrg-btn zrg-btn-secundario zrg-btn-chico" data-esc-acc="cita" data-esc-id="' + escH(id) + '">Se agendó cita</button>' +
+        '<button type="button" class="zrg-btn zrg-btn-chico" style="background:#FAECE7; color:#C0392B;" data-esc-acc="no_interesada" data-esc-id="' + escH(id) + '">No le interesa</button></div>' +
+        '<div class="zrg-esc-form zrg-oculto" id="zrg-esc-f-' + escH(id) + '">' +
+        '<div id="zrg-esc-canal-w-' + escH(id) + '"><label>Canal</label><select id="zrg-esc-canal-' + escH(id) + '">' + opcionesEsc(RESUMEN_ESC.canales, 'Elige...') + '</select></div>' +
+        '<div id="zrg-esc-con-w-' + escH(id) + '"><label>Nombre de con quien hablaste</label><input type="text" id="zrg-esc-nom-' + escH(id) + '"><label>Puesto</label><input type="text" id="zrg-esc-pue-' + escH(id) + '"></div>' +
+        '<label id="zrg-esc-nota-l-' + escH(id) + '">Nota (opcional)</label><textarea id="zrg-esc-nota-' + escH(id) + '"></textarea>' +
+        '<button type="button" class="zrg-btn" data-esc-guardar="' + escH(id) + '">Guardar</button> ' +
+        '<button type="button" class="zrg-btn zrg-btn-secundario" data-esc-cancelar="' + escH(id) + '">Cancelar</button>' +
+        '<div class="zrg-esc-msg" id="zrg-esc-msg-' + escH(id) + '"></div></div>';
+    }
+    h += '<div style="margin-top:6px;"><button type="button" class="zrg-btn zrg-btn-destacado zrg-btn-chico" data-esc-alta="' + escH(id) + '">Dar de alta como Entidad</button> ' +
+         '<span class="zrg-tooltip" title="Úsalo cuando ya hay interés real: pasa a ser una Entidad con contactos, seguimiento, horarios y materiales.">?</span></div>';
+    if (e.notas) h += '<div class="zrg-esc-notas">' + escH(e.notas) + '</div>';
+    h += '</div>';
+    elDetalle.innerHTML = h;
+  }
+
+  function abrirFormEsc(id, acc) {
+    accionEsc[id] = acc;
+    var f = document.getElementById('zrg-esc-f-' + id); if (!f) return;
+    f.classList.remove('zrg-oculto');
+    document.getElementById('zrg-esc-canal-w-' + id).classList.toggle('zrg-oculto', !(acc === 'intento' || acc === 'contactada'));
+    document.getElementById('zrg-esc-con-w-' + id).classList.toggle('zrg-oculto', !(acc === 'contactada' || acc === 'cita'));
+    document.getElementById('zrg-esc-nota-l-' + id).textContent = (acc === 'no_interesada') ? 'Qué te dijeron (obligatorio)' : 'Nota (opcional)';
+    document.getElementById('zrg-esc-msg-' + id).textContent = '';
+  }
+
+  function guardarGestionEsc(id) {
+    var acc = accionEsc[id]; if (!acc) return;
+    var m = document.getElementById('zrg-esc-msg-' + id);
+    var btn = elDetalle.querySelector('[data-esc-guardar="' + id + '"]');
+    btn.disabled = true; btn.textContent = 'Guardando...';
+    postEsc({ accion: 'registrarGestion', idAsignacion: id, tipo: acc,
+      canal: document.getElementById('zrg-esc-canal-' + id).value,
+      contactoNombre: document.getElementById('zrg-esc-nom-' + id).value.trim(),
+      contactoPuesto: document.getElementById('zrg-esc-pue-' + id).value.trim(),
+      nota: document.getElementById('zrg-esc-nota-' + id).value.trim()
+    }).then(function(r) {
+      if (r.exito) { idEntidadSeleccionada = id; todasMisEntidades = null; cargarYFiltrar(); }
+      else { btn.disabled = false; btn.textContent = 'Guardar'; m.className = 'zrg-esc-msg zrg-estado-error'; m.textContent = r.error || 'No se pudo guardar.'; }
+    }).catch(function() { btn.disabled = false; btn.textContent = 'Guardar'; m.className = 'zrg-esc-msg zrg-estado-error'; m.textContent = 'No se pudo conectar. Intenta de nuevo.'; });
+  }
+
+  // "Dar de alta como Entidad": abre el formulario de alta ya existente, con los datos de la escuela.
+  var altaDesdeEscuela = null;
+  function altaDesdeEsc(id) {
+    var ent = (todasMisEntidades || []).filter(function(x) { return x.idEntidad === id; })[0];
+    if (!ent) return;
+    altaDesdeEscuela = ent.sch;
+    var e = ent.sch;
+    document.getElementById('zrg-alta-nombre').value = e.nombre;
+    document.getElementById('zrg-alta-tipo').value = 'Escuela';
+    actualizarCamposPorTipo('Escuela', 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap', 'zrg-alta-planteles-wrap', 'zrg-alta-planteles-lista');
+    document.getElementById('zrg-alta-pubpriv').value = 'Privada';
+    zrgLimpiarPlanteles('zrg-alta-planteles-lista');
+    window.zrgAgregarFilaPlantel('zrg-alta-planteles-lista', { nombre: e.municipio || '', direccion: '', entidadFederativa: federativaDeEscuela(e.entidad), codigoPostal: '' });
+    document.getElementById('zrg-alta-notas').value = 'Viene de mi lote de Escuelas.' + (e.telefono ? ' Tel: ' + e.telefono + '.' : '');
+    elFormAlta.classList.remove('zrg-oculto');
+    elBtnMostrarAlta.classList.add('zrg-oculto');
+    elEstadoAlta.textContent = 'Revisa los datos y pulsa «Guardar Entidad». Al guardar, esta escuela pasa a ser una Entidad.';
+    elFormAlta.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  // Se llama tras guardar con éxito una Entidad creada desde una escuela del lote.
+  function ligarEscuelaConEntidad(idEntidadNueva) {
+    if (!altaDesdeEscuela) return;
+    var asg = altaDesdeEscuela.idAsignacion; altaDesdeEscuela = null;
+    postEsc({ accion: 'registrarGestion', idAsignacion: asg, tipo: 'seguimiento', idEntidad: idEntidadNueva, nota: 'Dada de alta como Entidad ' + idEntidadNueva })
+      .then(function() { todasMisEntidades = null; cargarYFiltrar(); })
+      .catch(function() { todasMisEntidades = null; cargarYFiltrar(); });
+  }
+
+  // ---------- Selección desde el buscador ----------
+  function formMotivoEsc(idEscuela) {
+    return '<div class="zrg-esc-form"><label>¿Por qué la seleccionas? (obligatorio)</label><select class="zrg-esc-motivo">' + opcionesEsc(RESUMEN_ESC.motivos, 'Elige...') + '</select>' +
+      '<input type="text" class="zrg-esc-motivo-otro zrg-oculto" placeholder="Escribe una frase corta">' +
+      '<label>Si conoces a alguien allí, su nombre (opcional)</label><input type="text" class="zrg-esc-conocido">' +
+      '<button type="button" class="zrg-btn zrg-btn-chico" data-dir-confirmar="' + escH(idEscuela) + '">Confirmar</button> ' +
+      '<button type="button" class="zrg-btn zrg-btn-secundario zrg-btn-chico" data-dir-cerrar="1">Cancelar</button><div class="zrg-esc-msg"></div></div>';
+  }
+  function htmlResultadosDirectorio(dir) {
+    if (!dir || !dir.exito || !dir.resultados.length || !RESUMEN_ESC) return '';
+    var html = '<div class="zrg-dir-titulo">Escuelas del directorio que coinciden:</div>';
+    dir.resultados.forEach(function(x) {
+      var libre = x.disponibilidad === 'Disponible', mia = x.disponibilidad === 'Ya es tuya';
+      html += '<div class="zrg-dir-item ' + (libre || mia ? '' : 'zrg-dir-no') + '"><strong>' + escH(x.nombre) + '</strong>' +
+        escH(x.municipio) + (x.entidad ? ', ' + escH(x.entidad) : '') + (/^[A-D]$/.test(x.segmento) ? ' · Tipo ' + escH(x.segmento) : '') + '<br>' +
+        (libre ? '<span class="zrg-tag zrg-tag-etapa">Disponible</span>' +
+            (RESUMEN_ESC.cuotas.seleccionaHasta > 0 ? ' <button type="button" class="zrg-btn zrg-btn-chico" data-dir-sel="' + escH(x.idEscuela) + '">Seleccionar</button>' : '') +
+            (RESUMEN_ESC.esAdmin ? ' <button type="button" class="zrg-btn zrg-btn-secundario zrg-btn-chico" data-dir-asig="' + escH(x.idEscuela) + '">Asignar a otra persona</button>' : '')
+          : (mia ? '<span class="zrg-tag">Ya es tuya</span>' : '<span class="zrg-tag">No disponible</span>')) +
+        '<div class="zrg-dir-slot" data-slot="' + escH(x.idEscuela) + '"></div></div>';
+    });
+    return html;
+  }
+  function confirmarSeleccionEsc(btn) {
+    var cont = btn.parentNode, m = cont.querySelector('.zrg-esc-msg');
+    var motivo = cont.querySelector('.zrg-esc-motivo').value;
+    if (motivo === 'Otro') motivo = 'Otro: ' + cont.querySelector('.zrg-esc-motivo-otro').value.trim();
+    btn.disabled = true; btn.textContent = 'Guardando...';
+    postEsc({ accion: 'seleccionarEscuela', idEscuela: btn.getAttribute('data-dir-confirmar'), motivo: motivo, contactoConocido: cont.querySelector('.zrg-esc-conocido').value.trim() })
+      .then(function(r) {
+        if (r.exito) {
+          cont.innerHTML = '<div class="zrg-aviso-ok">✓ ' + escH(r.nombre) + ' quedó seleccionada para ti (te quedan ' + r.restantes + ' esta semana). La encuentras en TUS Entidades, filtro «Escuelas de mi Lote».</div>';
+          todasMisEntidades = null; cargarYFiltrar();
+          setTimeout(function() { elBuscar.value = ''; elResultadosBusqueda.innerHTML = ''; }, 3500);
+        } else { btn.disabled = false; btn.textContent = 'Confirmar'; m.className = 'zrg-esc-msg zrg-estado-error'; m.textContent = r.error || 'No se pudo guardar.'; }
+      }).catch(function() { btn.disabled = false; btn.textContent = 'Confirmar'; m.className = 'zrg-esc-msg zrg-estado-error'; m.textContent = 'No se pudo conectar.'; });
+  }
+  function confirmarAsignacionEsc(btn) {
+    var cont = btn.parentNode, m = cont.querySelector('.zrg-esc-msg');
+    btn.disabled = true;
+    postEsc({ accion: 'asignarDirecta', paraClave: cont.querySelector('.zrg-esc-para').value, idEscuela: btn.getAttribute('data-dir-asig-ok') })
+      .then(function(r) {
+        if (r.exito) { cont.innerHTML = '<div class="zrg-aviso-ok">✓ Asignada: ' + escH(r.nombre) + '</div>'; todasMisEntidades = null; cargarYFiltrar(); }
+        else { btn.disabled = false; m.className = 'zrg-esc-msg zrg-estado-error'; m.textContent = r.error || 'No se pudo asignar.'; }
+      }).catch(function() { btn.disabled = false; m.className = 'zrg-esc-msg zrg-estado-error'; m.textContent = 'No se pudo conectar.'; });
+  }
+
+  elDetalle.addEventListener('click', function(ev) {
+    var el = ev.target.closest ? ev.target.closest('[data-esc-acc],[data-esc-guardar],[data-esc-cancelar],[data-esc-alta]') : null;
+    if (!el) return;
+    if (el.hasAttribute('data-esc-acc')) abrirFormEsc(el.getAttribute('data-esc-id'), el.getAttribute('data-esc-acc'));
+    else if (el.hasAttribute('data-esc-guardar')) guardarGestionEsc(el.getAttribute('data-esc-guardar'));
+    else if (el.hasAttribute('data-esc-cancelar')) document.getElementById('zrg-esc-f-' + el.getAttribute('data-esc-cancelar')).classList.add('zrg-oculto');
+    else if (el.hasAttribute('data-esc-alta')) altaDesdeEsc(el.getAttribute('data-esc-alta'));
+  });
+  elResultadosBusqueda.addEventListener('click', function(ev) {
+    var el = ev.target.closest ? ev.target.closest('[data-dir-sel],[data-dir-confirmar],[data-dir-cerrar],[data-dir-asig],[data-dir-asig-ok]') : null;
+    if (!el) return;
+    if (el.hasAttribute('data-dir-sel')) {
+      var id = el.getAttribute('data-dir-sel');
+      elResultadosBusqueda.querySelector('[data-slot="' + id + '"]').innerHTML = formMotivoEsc(id);
+    } else if (el.hasAttribute('data-dir-confirmar')) { confirmarSeleccionEsc(el); }
+    else if (el.hasAttribute('data-dir-cerrar')) { el.parentNode.parentNode.innerHTML = ''; }
+    else if (el.hasAttribute('data-dir-asig')) {
+      var id2 = el.getAttribute('data-dir-asig'), personas = TABLERO_ESC ? TABLERO_ESC.personas : [];
+      elResultadosBusqueda.querySelector('[data-slot="' + id2 + '"]').innerHTML = '<div class="zrg-esc-form"><label>Asignar a</label><select class="zrg-esc-para">' +
+        personas.map(function(p) { return '<option value="' + escH(p.clave) + '">' + escH(p.nombre) + ' (' + escH(p.clave) + ')</option>'; }).join('') +
+        '</select><button type="button" class="zrg-btn zrg-btn-chico" data-dir-asig-ok="' + escH(id2) + '">Asignar</button><div class="zrg-esc-msg"></div></div>';
+    } else if (el.hasAttribute('data-dir-asig-ok')) { confirmarAsignacionEsc(el); }
+  });
+  elResultadosBusqueda.addEventListener('change', function(ev) {
+    if (ev.target.classList && ev.target.classList.contains('zrg-esc-motivo')) {
+      ev.target.parentNode.querySelector('.zrg-esc-motivo-otro').classList.toggle('zrg-oculto', ev.target.value !== 'Otro');
+    }
+  });
+
+
   var temporizadorBusqueda = null;
   elBuscar.addEventListener('input', function() {
     var texto = elBuscar.value.trim();
@@ -377,22 +684,25 @@
   });
 
   function buscarEntidad(texto) {
-    fetch(BASE_URL + '?accion=buscarEntidad&q=' + encodeURIComponent(texto))
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        if (!data.exito) { elResultadosBusqueda.innerHTML = ''; return; }
-        if (data.coincidencias.length === 0) {
-          elResultadosBusqueda.innerHTML = '<div class="zrg-sin-resultados">No hay ninguna coincidencia — puedes darla de alta con confianza.</div>';
-          return;
-        }
-        var html = '';
+    var pEnt = fetch(BASE_URL + '?accion=buscarEntidad&q=' + encodeURIComponent(texto))
+      .then(function(res) { return res.json(); }).catch(function() { return { exito: false }; });
+    var pDir = (texto.length >= 3)
+      ? getEsc({ accion: 'buscarEscuelas', ref: REF, q: texto }).catch(function() { return { exito: false }; })
+      : Promise.resolve({ exito: false });
+    Promise.all([pEnt, pDir]).then(function(r) {
+      var data = r[0], dir = r[1], html = '';
+      if (data.exito && data.coincidencias.length > 0) {
         data.coincidencias.forEach(function(c) {
           var quienLaTiene = (c.codigoReferidor === REF) ? 'TU código' : 'el código ' + c.codigoReferidor;
           html += '<div class="zrg-resultado-item"><strong>' + c.nombre + '</strong>' + c.tipo + (c.ubicacion ? ' — ' + c.ubicacion : '') + '<br>Ya registrada con ' + quienLaTiene + '. Coordínate antes de dar de alta una nueva.</div>';
         });
-        elResultadosBusqueda.innerHTML = html;
-      })
-      .catch(function() { elResultadosBusqueda.innerHTML = ''; });
+      }
+      html += htmlResultadosDirectorio(dir);
+      if (!html && data.exito) {
+        html = '<div class="zrg-sin-resultados">No hay ninguna coincidencia — puedes darla de alta con confianza.</div>';
+      }
+      elResultadosBusqueda.innerHTML = html;
+    });
   }
 
   // --- Helpers de "Planteles / Ubicaciones" (lista dinámica, se
@@ -482,6 +792,7 @@
     elBtnMostrarAlta.classList.add('zrg-oculto');
   });
   elBtnCancelarAlta.addEventListener('click', function() {
+    altaDesdeEscuela = null;
     elFormAlta.classList.add('zrg-oculto');
     elBtnMostrarAlta.classList.remove('zrg-oculto');
     elEstadoAlta.textContent = '';
@@ -525,8 +836,8 @@
           actualizarCamposPorTipo('Escuela', 'zrg-alta-sector-wrap', 'zrg-alta-pubpriv-wrap', 'zrg-alta-religion-wrap', 'zrg-alta-planteles-wrap', 'zrg-alta-planteles-lista');
           elFormAlta.classList.add('zrg-oculto');
           elBtnMostrarAlta.classList.remove('zrg-oculto');
-          todasMisEntidades = null;
-          cargarYFiltrar();
+          if (altaDesdeEscuela) { ligarEscuelaConEntidad(data.idEntidad); }
+          else { todasMisEntidades = null; cargarYFiltrar(); }
         } else {
           elEstadoAlta.textContent = data.error || 'No se pudo guardar. Intenta de nuevo.';
         }
@@ -542,21 +853,28 @@
     if (todasMisEntidades !== null) { aplicarFiltros(); return; }
     elCargando.style.display = 'block';
     elCargando.textContent = 'Cargando TUS Entidades...';
-    fetch(BASE_URL + '?accion=misEntidades&ref=' + encodeURIComponent(REF))
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
+    var pEnt = fetch(BASE_URL + '?accion=misEntidades&ref=' + encodeURIComponent(REF)).then(function(res) { return res.json(); });
+    var pEsc = getEsc({ accion: 'misEscuelas', ref: REF }).catch(function() { return null; });
+    Promise.all([pEnt, pEsc])
+      .then(function(r) {
+        var data = r[0], esc = r[1];
         elCargando.style.display = 'none';
         if (!data.exito) {
           elFranja.innerHTML = '<p style="color:#791F1F;">No se pudieron cargar TUS Entidades.</p>';
           return;
         }
-        todasMisEntidades = data.entidades;
+        RESUMEN_ESC = (esc && esc.exito) ? esc : null;
+        var escuelas = RESUMEN_ESC ? RESUMEN_ESC.escuelas.filter(function(e) { return !e.idEntidad; }).map(escuelaComoEntidad) : [];
+        todasMisEntidades = data.entidades.concat(escuelas);
         var elTitulo = document.getElementById('zrg-titulo-entidades');
-        var n = todasMisEntidades.length;
-        elTitulo.textContent = n === 0
-          ? 'Todavía no tienes Entidades dadas de alta'
-          : (n === 1 ? 'Tienes 1 Entidad dada de alta, ¿deseas filtrarla?' : 'Tienes ' + n + ' Entidades dadas de alta, ¿deseas filtrarlas?');
+        var n = data.entidades.length, m = escuelas.length;
+        var txtN = n === 0 ? 'Todavía no tienes Entidades dadas de alta' : (n === 1 ? 'Tienes 1 Entidad dada de alta' : 'Tienes ' + n + ' Entidades dadas de alta');
+        elTitulo.textContent = (m > 0)
+          ? txtN + ' y ' + m + (m === 1 ? ' Escuela en TU Lote' : ' Escuelas en TU Lote') + ', ¿deseas filtrarlas?'
+          : (n === 0 ? txtN : txtN + ', ¿deseas filtrar' + (n === 1 ? 'la?' : 'las?'));
+        pintarResumenLote();
         aplicarFiltros();
+        if (RESUMEN_ESC && RESUMEN_ESC.esAdmin && !TABLERO_ESC) { cargarTableroEsc(); }
       })
       .catch(function() {
         elCargando.textContent = 'No se pudo conectar. Recarga la página.';
@@ -574,7 +892,8 @@
       'zrg-f-nombre-entidad-campo': document.getElementById('zrg-f-nombre-entidad').value.trim(),
       'zrg-f-nombre-contacto-campo': document.getElementById('zrg-f-nombre-contacto').value.trim(),
       'zrg-f-federativa-campo': document.getElementById('zrg-f-federativa').value,
-      'zrg-f-sector-campo': document.getElementById('zrg-f-sector').value
+      'zrg-f-sector-campo': document.getElementById('zrg-f-sector').value,
+      'zrg-f-lote-campo': document.getElementById('zrg-f-lote').value
     };
     Array.prototype.forEach.call(document.querySelectorAll('.zrg-filtro-chip-btn'), function(btn) {
       btn.classList.toggle('zrg-filtro-activo', !!mapa[btn.dataset.campo]);
@@ -589,12 +908,14 @@
     var nombreCon = document.getElementById('zrg-f-nombre-contacto').value.trim().toLowerCase();
     var federativa = document.getElementById('zrg-f-federativa').value;
     var sector = document.getElementById('zrg-f-sector').value;
+    var loteSel = document.getElementById('zrg-f-lote').value;
     var solo30dias = document.getElementById('zrg-f-30dias').checked;
     var soloSeguimientoHoy = document.getElementById('zrg-f-seguimiento-hoy').checked;
     var hace30dias = Date.now() - (30 * 24 * 60 * 60 * 1000);
     var finDeHoy = new Date(); finDeHoy.setHours(23,59,59,999);
 
     var filtradas = (todasMisEntidades || []).filter(function(ent) {
+      if (!pasaFiltroLote(ent, loteSel)) return false;
       if (tipo && ent.tipo !== tipo) return false;
       if (etapa && etapaDe(ent) !== etapa) return false;
       if (nombreEnt && ent.nombre.toLowerCase().indexOf(nombreEnt) === -1) return false;
@@ -621,7 +942,7 @@
     pintarFranja(filtradas);
   }
 
-  ['zrg-f-tipo', 'zrg-f-etapa', 'zrg-f-federativa', 'zrg-f-sector'].forEach(function(id) {
+  ['zrg-f-lote', 'zrg-f-tipo', 'zrg-f-etapa', 'zrg-f-federativa', 'zrg-f-sector'].forEach(function(id) {
     document.getElementById(id).addEventListener('change', cargarYFiltrar);
   });
   document.getElementById('zrg-f-30dias').addEventListener('change', cargarYFiltrar);
@@ -652,10 +973,11 @@
       var activo = (ent.idEntidad === idEntidadSeleccionada) ? ' zrg-chip-activo' : '';
       var colorEtapa = COLOR_ETAPA[etapaDe(ent)] || '#9AA0A6';
       var colorTipo = COLOR_TIPO[ent.tipo] || COLOR_TIPO['Otro'];
-      html += '<button class="zrg-chip-entidad' + activo + '" onclick="window.zrgSeleccionarEntidad(\'' + ent.idEntidad + '\')">' +
+      html += '<button class="zrg-chip-entidad' + activo + (ent.esEscuela ? ' zrg-chip-esc' : '') + '" onclick="window.zrgSeleccionarEntidad(\'' + ent.idEntidad + '\')">' +
         '<div class="zrg-chip-circulo" style="background:' + colorTipo + ';">' +
         '<span class="zrg-chip-circulo-texto">' + ent.nombre + '</span>' +
-        '<span class="zrg-chip-punto" style="background:' + colorEtapa + ';"></span></div></button>';
+        '<span class="zrg-chip-punto" style="background:' + colorEtapa + ';"></span></div>' +
+        (ent.esEscuela ? '<span class="zrg-chip-sub">' + (ent.sch.seleccionada ? 'Seleccionada' : 'Asignada') + '</span>' : '') + '</button>';
     });
     elFranja.classList.toggle('zrg-franja-centrada', entidades.length < 7);
     elFranja.innerHTML = html;
@@ -724,6 +1046,7 @@
   }
 
   function pintarDetalle(ent) {
+    if (ent.esEscuela) { pintarDetalleEscuela(ent); return; }
     var html = '<div class="zrg-card" data-id-entidad="' + ent.idEntidad + '">';
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="float:right;" onclick="window.zrgCerrarDetalle()">✕ Cerrar</button>';
     html += '<h3>' + ent.nombre + '</h3>';
