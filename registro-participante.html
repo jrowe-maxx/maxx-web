@@ -206,6 +206,11 @@
     </div>
 
     <label class="rp-aviso-check">
+      <input type="checkbox" id="rp-acepto-wa">
+      <span>Autorizo que MAXX me envíe mensajes por WhatsApp (mi contraseña, recordatorios de mis sesiones y avisos del Programa) al teléfono que registré.</span>
+    </label>
+
+    <label class="rp-aviso-check">
       <input type="checkbox" id="rp-acepto-aviso">
       <span>He leído y acepto el <a href="https://maxx.mx/#aviso" target="_blank" rel="noopener">Aviso de Privacidad</a> de MAXX. <span class="rp-obligatorio">*</span></span>
     </label>
@@ -678,6 +683,29 @@
     elEstado.textContent = '';
   }
 
+
+  var TYPOS_CORREO = { 'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gamil.com': 'gmail.com', 'gnail.com': 'gmail.com', 'gmail.con': 'gmail.com', 'gmail.co': 'gmail.com', 'gmaill.com': 'gmail.com',
+    'hotmial.com': 'hotmail.com', 'hotmal.com': 'hotmail.com', 'hotmail.con': 'hotmail.com', 'hotmai.com': 'hotmail.com', 'outlok.com': 'outlook.com', 'outlook.con': 'outlook.com',
+    'yahooo.com': 'yahoo.com', 'yaho.com': 'yahoo.com', 'yahoo.con': 'yahoo.com', 'iclod.com': 'icloud.com', 'icloud.con': 'icloud.com', 'icoud.com': 'icloud.com' };
+  function errCorreo(c) {
+    c = String(c || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c) || c.indexOf('..') !== -1 || /^\./.test(c) || /\.@/.test(c)) return 'Escribe un correo válido (ejemplo: nombre@correo.com).';
+    var dom = c.split('@')[1];
+    if (TYPOS_CORREO[dom]) return 'Revisa TU correo: ¿quisiste escribir @' + TYPOS_CORREO[dom] + '? Corrígelo en los dos campos de correo.';
+    return '';
+  }
+  function limpiaTel(t) {
+    var d = String(t || '').replace(/\D/g, '');
+    if (d.length === 12 && d.slice(0, 2) === '52') d = d.slice(2);
+    if (d.length === 13 && d.slice(0, 3) === '521') d = d.slice(3);
+    return d;
+  }
+  function errTelefono(t) {
+    var d = limpiaTel(t);
+    if (d.length !== 10 || !/^[2-9]/.test(d) || /^(\d)\1{9}$/.test(d) || d === '1234567890' || d === '2345678901' || d === '9876543210') return 'Escribe un teléfono válido de 10 dígitos (sin 0 ni 1 al inicio).';
+    return '';
+  }
+
   elBtnRegistrar.addEventListener('click', function() {
     var nombres = document.getElementById('rp-nombres').value.trim();
     var apellidos = document.getElementById('rp-apellidos').value.trim();
@@ -694,9 +722,11 @@
 
     if (!nombres || !apellidos) { elEstado.textContent = 'Escribe TU nombre y apellido.'; return; }
     if (!correo) { elEstado.textContent = 'Escribe TU correo.'; return; }
-    if (correo !== correoConfirma) { elEstado.textContent = 'Los dos correos no coinciden.'; return; }
+    var ecP = errCorreo(correo); if (ecP) { elEstado.textContent = ecP; return; }
+    if (correo.toLowerCase() !== correoConfirma.toLowerCase()) { elEstado.textContent = 'Los dos correos no coinciden.'; return; }
     if (!telefono) { elEstado.textContent = 'Escribe TU teléfono.'; return; }
-    if (telefono !== telefonoConfirma) { elEstado.textContent = 'Los dos teléfonos no coinciden.'; return; }
+    var etP = errTelefono(telefono); if (etP) { elEstado.textContent = etP; return; }
+    if (limpiaTel(telefono) !== limpiaTel(telefonoConfirma)) { elEstado.textContent = 'Los dos teléfonos no coinciden.'; return; }
     if (!edad) { elEstado.textContent = 'Escribe TU edad.'; return; }
     var requiereRol = TIPOS_SIN_ROL.indexOf(TIPO_ENTIDAD_ACTUAL) === -1;
     if (requiereRol && !rol) { elEstado.textContent = 'Escribe TU Rol/Puesto en la Entidad.'; return; }
@@ -730,22 +760,22 @@
         accion: accionEnvio,
         idEntidad: ID_ENTIDAD,
         moduloSugerido: Number(MODULO_SOLICITADO) || 1,
-        nombres: nombres, apellidos: apellidos, correo: correo, telefono: telefono,
+        nombres: nombres, apellidos: apellidos, correo: correo.toLowerCase(), telefono: limpiaTel(telefono),
         edad: edad, genero: genero, rol: rol, codigoPostal: codigoPostal, pais: pais,
         entidadFederativa: entidadFederativa, diasHoras: diasHoras,
         posibleDuplicado: banderaPosibleDuplicado,
-        refLiga: ORIGEN.refLiga, utmSource: ORIGEN.utmSource, utmMedium: ORIGEN.utmMedium, utmContent: ORIGEN.utmContent
+        autorizaWhatsapp: document.getElementById('rp-acepto-wa').checked, refLiga: ORIGEN.refLiga, utmSource: ORIGEN.utmSource, utmMedium: ORIGEN.utmMedium, utmContent: ORIGEN.utmContent
       };
     } else {
       accionEnvio = 'registrarParticipante';
       payloadEnvio = {
         accion: accionEnvio,
         idHorario: idHorarioElegido, codigoGrupo: codigoGrupoElegido,
-        nombres: nombres, apellidos: apellidos, correo: correo, telefono: telefono,
+        nombres: nombres, apellidos: apellidos, correo: correo.toLowerCase(), telefono: limpiaTel(telefono),
         edad: edad, genero: genero, rol: rol, codigoPostal: codigoPostal, pais: pais,
         entidadFederativa: entidadFederativa,
         posibleDuplicado: banderaPosibleDuplicado,
-        refLiga: ORIGEN.refLiga, utmSource: ORIGEN.utmSource, utmMedium: ORIGEN.utmMedium, utmContent: ORIGEN.utmContent
+        autorizaWhatsapp: document.getElementById('rp-acepto-wa').checked, refLiga: ORIGEN.refLiga, utmSource: ORIGEN.utmSource, utmMedium: ORIGEN.utmMedium, utmContent: ORIGEN.utmContent
       };
     }
 
