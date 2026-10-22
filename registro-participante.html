@@ -75,26 +75,26 @@
 
 <div id="rp-wrap">
   <div id="rp-gate-modulo">
-    <h2>Ingresa TU Código Personal</h2>
-    <p class="rp-gate-sub" id="rp-gate-sub-texto">Para continuar con este Módulo, necesitamos verificar TU código personal (el que te mandamos por correo cuando te registraste).</p>
+    <h2>Ingresa TU Contraseña</h2>
+    <p class="rp-gate-sub" id="rp-gate-sub-texto">Para continuar con este Módulo, necesitamos verificar TU contraseña (la que te mandamos por correo cuando te registraste).</p>
     <input type="text" id="rp-gate-codigo-input" placeholder="Ej. AB12CD" maxlength="6">
     <button type="button" class="rp-btn" id="rp-btn-gate-continuar">Continuar</button>
     <div id="rp-gate-estado"></div>
-    <button type="button" class="rp-gate-olvide-link" id="rp-gate-olvide-link">¿No tienes o no encuentras TU código?</button>
+    <button type="button" class="rp-gate-olvide-link" id="rp-gate-olvide-link">¿No tienes o no encuentras TU contraseña?</button>
 
     <div id="rp-gate-recuperar-caja">
-      <p class="rp-recuperar-explicacion">Busca TU código por correo y/o teléfono.</p>
+      <p class="rp-recuperar-explicacion">Recupera TU contraseña con TU correo y/o teléfono.</p>
       <label>TU correo (si lo tienes)</label>
       <input type="email" id="rp-gate-recuperar-correo" placeholder="tucorreo@ejemplo.com">
       <label>TU teléfono (si lo tienes)</label>
       <input type="tel" id="rp-gate-recuperar-telefono" placeholder="10 dígitos">
-      <button type="button" class="rp-btn-secundario" id="rp-btn-gate-recuperar">Buscar mi código</button>
+      <button type="button" class="rp-btn-secundario" id="rp-btn-gate-recuperar">Recuperar mi contraseña</button>
       <div id="rp-gate-recuperar-msg"></div>
 
       <div id="rp-gate-no-encontrado" style="display:none;">
         <p class="rp-recuperar-alerta">El correo y/o teléfono que has escrito NO están registrados.<br><br>
         Si ya te habías registrado antes, intenta con algún otro correo y/o teléfono que tengas.<br><br>
-        — Usar TU MISMO código nos permite llevar TU historial de Módulos.<br><br>
+        — Usar TU MISMA contraseña nos permite llevar TU historial de Módulos.<br><br>
         Si de plano no lo encuentras, llena tus datos abajo y manda una Solicitud de Apoyo — nosotros lo revisamos a mano.</p>
         <button type="button" class="rp-btn-secundario" id="rp-btn-mostrar-apoyo" style="background:#EF9F27;">Llenar Solicitud de Apoyo</button>
       </div>
@@ -123,19 +123,19 @@
     </div>
   </div>
 
-  <button type="button" class="rp-recuperar-link" id="rp-recuperar-link">¿Ya te registraste antes y perdiste TU código? Haz clic aquí</button>
+  <button type="button" class="rp-recuperar-link" id="rp-recuperar-link">¿Ya te registraste antes y perdiste TU contraseña? Haz clic aquí</button>
   <div id="rp-recuperar-caja">
-    <p class="rp-recuperar-explicacion">Usar siempre TU MISMO código nos permite llevar TU historial de Módulos ya cursados. Antes de registrarte de nuevo, busca aquí si ya tienes uno.</p>
+    <p class="rp-recuperar-explicacion">Usar siempre TU MISMA contraseña nos permite llevar TU historial de Módulos ya cursados. Antes de registrarte de nuevo, busca aquí si ya tienes una.</p>
     <label>TU correo (si lo tienes)</label>
     <input type="email" id="rp-recuperar-correo" placeholder="tucorreo@ejemplo.com">
     <label>TU teléfono (si lo tienes)</label>
     <input type="tel" id="rp-recuperar-telefono" placeholder="10 dígitos">
-    <button type="button" class="rp-btn-secundario" id="rp-btn-recuperar">Buscar mi código</button>
+    <button type="button" class="rp-btn-secundario" id="rp-btn-recuperar">Recuperar mi contraseña</button>
     <div id="rp-recuperar-msg"></div>
     <div id="rp-recuperar-no-encontrado" style="display:none;">
       <p class="rp-recuperar-alerta">El correo y/o teléfono que has escrito NO están registrados.<br><br>
       Si ya te habías registrado antes, intenta con algún otro correo y/o teléfono que tengas.<br><br>
-      — Usar TU MISMO código nos permite llevar TU historial de Módulos.<br><br>
+      — Usar TU MISMA contraseña nos permite llevar TU historial de Módulos.<br><br>
       Si de plano no tienes uno, oprime el botón siguiente...</p>
       <button type="button" class="rp-btn-secundario" id="rp-btn-nuevo-registro">Nuevo Registro</button>
     </div>
@@ -216,8 +216,9 @@
 
   <div id="rp-exito">
     <div style="color:#042C53; font-size:16px; font-weight:bold;" id="rp-exito-titulo">¡Listo! Ya quedaste registrado.</div>
+    <div style="color:#042C53; font-size:14px;">TU usuario es TU correo, y TU contraseña es:</div>
     <div class="rp-codigo" id="rp-codigo-personal"></div>
-    <div style="color:#444; font-size:13px;" id="rp-exito-nota">Guarda este código — te lo vamos a pedir el día de la sesión. También te llegó por correo.</div>
+    <div style="color:#444; font-size:13px;" id="rp-exito-nota">Guarda esta contraseña: junto con TU correo (TU usuario) la vas a necesitar el día de la sesión. También te llegó por correo.</div>
   </div>
 </div>
 
@@ -291,7 +292,7 @@
       .then(function(data) {
         if (data.encontrado) {
           elRecuperarMsg.style.color = '#27500A';
-          elRecuperarMsg.textContent = '¡Sí! Encontramos TU registro — en unos momentos te va a llegar TU código a TU correo registrado (revisa también SPAM).';
+          elRecuperarMsg.textContent = '¡Sí! Encontramos TU registro — en unos momentos te va a llegar TU contraseña a TU correo registrado (revisa también SPAM).';
         } else {
           elRecuperarMsg.textContent = '';
           elRecuperarNoEncontrado.style.display = 'block';
@@ -378,7 +379,7 @@
     });
   });
 
-  // ---- Módulo 2+: candado de Código Personal ("como contraseña") ----
+  // ---- Módulo 2+: candado de Contraseña ----
   var elGateModulo = document.getElementById('rp-gate-modulo');
   var elGateCodigoInput = document.getElementById('rp-gate-codigo-input');
   var elBtnGateContinuar = document.getElementById('rp-btn-gate-continuar');
@@ -400,7 +401,7 @@
     var codigo = (elGateCodigoInput.value || '').trim();
     if (!codigo) {
       elGateEstado.style.color = '#791F1F';
-      elGateEstado.textContent = 'Escribe TU código personal.';
+      elGateEstado.textContent = 'Escribe TU contraseña.';
       return;
     }
     elBtnGateContinuar.disabled = true;
@@ -431,7 +432,7 @@
           iniciarFlujoDeRegistro();
         } else {
           elGateEstado.style.color = '#791F1F';
-          elGateEstado.textContent = 'Ese código no es válido para esta Entidad. Revísalo, o busca TU código abajo.';
+          elGateEstado.textContent = 'Esa contraseña no es válida para esta Entidad. Revísala, o recupérala abajo.';
         }
       })
       .catch(function() {
@@ -476,7 +477,7 @@
       .then(function(data) {
         if (data.encontrado) {
           elGateRecuperarMsg.style.color = '#27500A';
-          elGateRecuperarMsg.textContent = '¡Sí! Encontramos TU registro — en unos momentos te va a llegar TU código a TU correo registrado (revisa también SPAM).';
+          elGateRecuperarMsg.textContent = '¡Sí! Encontramos TU registro — en unos momentos te va a llegar TU contraseña a TU correo registrado (revisa también SPAM).';
         } else {
           elGateRecuperarMsg.textContent = '';
           elGateNoEncontrado.style.display = 'block';
@@ -603,15 +604,15 @@
   }
 
   // A partir del Módulo 2, es MUY probable que la persona ya tenga
-  // Código Personal de un Módulo anterior — así que en vez de mandarla
+  // contraseña de un Módulo anterior — así que en vez de mandarla
   // derecho al formulario (y arriesgar un registro duplicado con
-  // datos nuevos), primero le pedimos su código, como si fuera una
-  // contraseña. El Módulo 1 no pasa por este candado porque ahí sí es
-  // normal que todavía no tengan código.
+  // datos nuevos), primero le pedimos su contraseña.
+  // El Módulo 1 no pasa por este candado porque ahí sí es
+  // normal que todavía no tengan contraseña.
   var MODULO_NUM = Number(MODULO_SOLICITADO) || 0;
   if (MODULO_NUM >= 2) {
     document.getElementById('rp-gate-sub-texto').textContent =
-      'Para el Módulo ' + MODULO_NUM + ' necesitamos verificar TU código personal (el que te mandamos por correo cuando te registraste antes).';
+      'Para el Módulo ' + MODULO_NUM + ' necesitamos verificar TU contraseña (la que te mandamos por correo cuando te registraste antes).';
     elRecuperarLink.style.display = 'none';
     document.getElementById('rp-gate-modulo').style.display = 'block';
   } else {
@@ -767,7 +768,7 @@
           document.getElementById('rp-codigo-personal').textContent = data.codigoPersonal;
           if (modoActual === 'sugerencia') {
             document.getElementById('rp-exito-titulo').textContent = '¡Listo! Ya quedaste PRE-registrado.';
-            document.getElementById('rp-exito-nota').textContent = 'Guarda este código. En cuanto se reúnan suficientes personas, te avisamos por correo la fecha y hora final de TU sesión.';
+            document.getElementById('rp-exito-nota').textContent = 'Guarda esta contraseña. En cuanto se reúnan suficientes personas, te avisamos por correo la fecha y hora final de TU sesión.';
           }
         } else {
           elBtnRegistrar.disabled = false;
