@@ -90,8 +90,10 @@
 .zrg-lote-ok { background: #EAF3DE; color: #27500A; border-radius: 6px; padding: 6px 10px; margin-bottom: 8px; font-size: 12px; }
 .zrg-chip-esc .zrg-chip-circulo { border: 3px dashed #86B2DE; }
 .zrg-chip-esc.zrg-chip-activo .zrg-chip-circulo { border: 3px solid #185FA5; }
+.zrg-viejo { opacity: .45; pointer-events: none; }
+#zrg-banner-viejo { display: none; background: #FFF6DC; border: 1px solid #F0D58A; color: #5A4300; border-radius: 8px; padding: 8px 12px; font-size: 13px; margin: 6px 0; text-align: center; }
 .zrg-chip-sub { display: block; font-size: 10px; color: #666; margin-top: 3px; }
-.zrg-chip-entidad.zrg-chip-pend .zrg-chip-circulo { background: #FDE3E1 !important; border: 3px solid #D9534F; }
+.zrg-chip-entidad.zrg-chip-pend .zrg-chip-circulo { border: 3px solid #D9534F; }
 .zrg-chip-entidad.zrg-chip-pend.zrg-chip-esc .zrg-chip-circulo { border-style: dashed; }
 .zrg-chip-entidad.zrg-chip-pend.zrg-chip-activo .zrg-chip-circulo { border: 3px solid #185FA5; }
 .zrg-chip-entidad.zrg-chip-pend .zrg-chip-sub { color: #B02A2A; font-weight: bold; }
@@ -185,6 +187,7 @@
 
 <div id="zrg-cargando">Cargando TUS Entidades...</div>
 <div id="zrg-lote-resumen"></div>
+<div id="zrg-banner-viejo"></div>
 <div id="zrg-conteo-filtro" class="zrg-conteo-filtro zrg-oculto"></div>
 <div class="zrg-franja-wrap">
   <div class="zrg-franja" id="zrg-franja"></div>
@@ -353,6 +356,7 @@
   var ESCUELAS_API = window.ZRG_ESCUELAS_API_PRUEBA || 'https://script.google.com/macros/s/AKfycbzjonaj5Qp3dQm7KQy0bvZnT_1HnqPFwj1Z_Puc8pPQ9oKpTX2w0WPjv8E4wF7Yf3V50g/exec';
   var RESUMEN_ESC = null;
   var TABLERO_ESC = null;
+  var TABLERO_PIDIENDO = false;
   var accionEsc = {};
 
   function escH(t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
@@ -422,9 +426,18 @@
     cont.innerHTML = h;
   }
 
+  // El tablero solo se pide cuando una clave maestra esta viendo Escuelas (no en cada carga).
+  function asegurarTablero() {
+    if (typeof CASC === 'undefined' || CASC.ver !== 'Escuela') return;
+    if (!(RESUMEN_ESC && RESUMEN_ESC.esAdmin) || TABLERO_ESC || TABLERO_PIDIENDO) return;
+    TABLERO_PIDIENDO = true;
+    var tb = document.getElementById('zrg-tablero-esc');
+    if (tb) { tb.innerHTML = '<p style="color:#666;font-size:13px;">Cargando tablero de claves maestras...</p>'; }
+    cargarTableroEsc();
+  }
   function cargarTableroEsc() {
     getEsc({ accion: 'tablero', ref: REF }).then(function(r) {
-      if (!r.exito) return;
+      if (!r.exito) { TABLERO_PIDIENDO = false; return; }
       TABLERO_ESC = r;
       var cont = document.getElementById('zrg-tablero-esc');
       if (!cont) return;
@@ -433,7 +446,7 @@
           return '<tr><td>' + escH(p.nombre) + '<br><small>' + escH(p.clave) + '</small></td><td>' + p.total + '</td><td>' + (p.pctGestion === null ? '—' : p.pctGestion + '%') +
                  '</td><td>' + p.efectivos + '</td><td>' + p.citas + '</td><td>' + (p.libre ? 'Libre' : 'En pausa') + '</td></tr>';
         }).join('') + '</table></div>';
-    }).catch(function() {});
+    }).catch(function() { TABLERO_PIDIENDO = false; });
   }
 
   // ---------- Detalle de una Escuela del lote ----------
@@ -824,6 +837,8 @@
   });
 
   var CARGA_ID = 0;
+  var PRIMERA_CARGA = true;
+  var CLAVE_CACHE = 'zrg_cache_v1_' + REF;
   function conTope(promesa, ms, msg) {
     return Promise.race([promesa, new Promise(function(_, rej) { setTimeout(function() { rej(new Error(msg)); }, ms); })]);
   }
@@ -835,7 +850,7 @@
   function cargarYFiltrar() {
     if (todasMisEntidades !== null) { aplicarFiltros(); return; }
     var cargaId = ++CARGA_ID, t0 = Date.now();
-    var entData = null, escData = null, escListo = false, errEsc = '', tEnt = null, tEsc = null;
+    var entData = null, escData = null, escListo = false, errEsc = '', tEnt = null, tEsc = null, hayCache = false, frescoEnt = false, frescoEsc = false, falloActualizar = false;
     elCargando.style.display = 'block';
     elCargando.textContent = 'Cargando TUS Entidades... 0 s';
     var tick = setInterval(function() {
@@ -843,6 +858,9 @@
       elCargando.textContent = 'Cargando TUS Entidades... ' + Math.round((Date.now() - t0) / 1000) + ' s';
     }, 1000);
 
+    function guardarCache() {
+      try { if (entData && escListo && escData && escData.exito) { localStorage.setItem(CLAVE_CACHE, JSON.stringify({ t: Date.now(), ent: entData, esc: escData })); } } catch (eg) {}
+    }
     function combinar() {
       if (cargaId !== CARGA_ID || !entData) return;
       elCargando.style.display = 'none';
@@ -866,24 +884,49 @@
           : '<p style="color:#666;font-size:13px;">Cargando Escuelas de TU lote...</p>';
       }
       aplicarFiltros();
-      if (RESUMEN_ESC && RESUMEN_ESC.esAdmin && !TABLERO_ESC) { cargarTableroEsc(); }
+      pintarEstadoViejo();
+      asegurarTablero();
+    }
+    function pintarEstadoViejo() {
+      var viejo = hayCache && !(frescoEnt && frescoEsc);
+      var bn = document.getElementById('zrg-banner-viejo');
+      if (bn) {
+        if (viejo && falloActualizar) { bn.innerHTML = 'No se pudo actualizar. <button type="button" class="zrg-btn zrg-btn-chico" id="zrg-reintentar-act">Reintentar</button>'; bn.style.display = 'block'; var rb2 = document.getElementById('zrg-reintentar-act'); if (rb2) rb2.addEventListener('click', function() { todasMisEntidades = null; cargarYFiltrar(); }); }
+        else if (viejo) { bn.innerHTML = 'Mostrando lo último guardado. <b>Actualizando…</b> Podrás abrir y gestionar en cuanto termine.'; bn.style.display = 'block'; }
+        else { bn.style.display = 'none'; }
+      }
+      elFranja.classList.toggle('zrg-viejo', viejo);
+      elDetalle.classList.toggle('zrg-viejo', viejo);
     }
 
+    // Primera carga de la visita: se muestra al instante lo ultimo guardado en este navegador y se actualiza en segundo plano.
+    if (PRIMERA_CARGA) {
+      PRIMERA_CARGA = false;
+      try {
+        var gu = JSON.parse(localStorage.getItem(CLAVE_CACHE) || 'null');
+        if (gu && gu.ent && gu.ent.exito && (Date.now() - gu.t) < 7 * 24 * 3600 * 1000) {
+          entData = gu.ent; escData = gu.esc || null; escListo = true; tEnt = 0; tEsc = 0;
+          hayCache = true; combinar();
+        }
+      } catch (ec) {}
+    }
+    hayCache = !!entData;
     // Las Entidades se pintan en cuanto llegan; las Escuelas se suman cuando lleguen.
     pedirEntidades(1).then(function(d) {
       clearInterval(tick);
       if (!d.exito) { elCargando.style.display = 'none'; elFranja.innerHTML = '<p style="color:#791F1F;">No se pudieron cargar TUS Entidades.</p>'; return; }
-      tEnt = Math.round((Date.now() - t0) / 1000); entData = d; combinar();
+      tEnt = Math.round((Date.now() - t0) / 1000); entData = d; frescoEnt = true; combinar(); guardarCache();
     }).catch(function(e) {
       clearInterval(tick);
       if (cargaId !== CARGA_ID) return;
+      if (hayCache) { falloActualizar = true; pintarEstadoViejo(); return; }
       elCargando.innerHTML = 'No se pudo conectar (' + escH(String((e && e.message) || e)) + '). <button type="button" class="zrg-btn zrg-btn-chico" id="zrg-reintentar-carga">Reintentar</button>';
       var rb = document.getElementById('zrg-reintentar-carga');
       if (rb) rb.addEventListener('click', function() { todasMisEntidades = null; cargarYFiltrar(); });
     });
     conTope(getEsc({ accion: 'misEscuelas', ref: REF }), 20000, 'tiempo agotado (20 s)')
       .catch(function(e) { errEsc = String((e && e.message) || e); return null; })
-      .then(function(r) { tEsc = Math.round((Date.now() - t0) / 1000); escData = r; escListo = true; if (entData) { combinar(); } });
+      .then(function(r) { tEsc = Math.round((Date.now() - t0) / 1000); escData = r; escListo = true; frescoEsc = true; if (entData) { combinar(); guardarCache(); } });
   }
 
   function etapaDe(ent) {
@@ -921,6 +964,7 @@
   function pintarCascada() {
     pintarResumenLote();
     var tb = document.getElementById('zrg-tablero-esc'); if (tb) { tb.style.display = (CASC.ver === 'Escuela') ? '' : 'none'; }
+    asegurarTablero();
     Array.prototype.forEach.call(document.querySelectorAll('#zrg-casc-ver button'), function(b) {
       b.classList.toggle('zrg-ver-activo', b.dataset.ver === CASC.ver);
     });
