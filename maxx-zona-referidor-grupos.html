@@ -1036,10 +1036,12 @@
       return { texto: ent.sch.seleccionada ? 'Seleccionada' : '', alerta: false };
     }
     var et = etapaDe(ent);
-    if (ent.proximoSeguimiento && ent.proximoSeguimiento <= Date.now() && et !== 'Programa Cerrado' && et !== 'No Interesado') {
+    var terminal = (et === 'Programa Cerrado' || et === 'No Interesado');
+    if (ent.proximoSeguimiento && ent.proximoSeguimiento <= Date.now() && !terminal) {
       return { texto: 'Seguimiento atrasado', alerta: true };
     }
-    return { texto: '', alerta: false };
+    if (et === 'Registrado') return { texto: 'Por gestionar', alerta: true };
+    return { texto: et === 'Cita Agendada' ? 'Cita agendada' : (et === 'No Interesado' ? 'No interesado' : et), alerta: false };
   }
 
   function pintarFranja(entidades) {
