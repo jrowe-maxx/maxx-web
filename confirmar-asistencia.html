@@ -57,7 +57,7 @@
     <input type="email" id="ca-correo" placeholder="tucorreo@ejemplo.com">
     <label>TU Contraseña <span class="ca-obligatorio">*</span></label>
     <input type="text" id="ca-codigo" placeholder="Ej. AB12CD" maxlength="6" style="text-transform:uppercase; font-size:18px; letter-spacing:2px; text-align:center; font-weight:bold;">
-    <button type="button" class="ca-btn" id="ca-btn-confirmar">Confirmar mi asistencia</button>
+    <button type="button" class="ca-btn" id="ca-btn-confirmar">Registrar mi asistencia</button>
     <div id="ca-estado"></div>
     <button type="button" class="ca-rec-link" id="ca-rec-link">¿No tienes o no encuentras TU contraseña?</button>
     <div id="ca-rec-caja">
@@ -72,7 +72,7 @@
 
     <div id="ca-no-encontrado">
       Ese correo y contraseña no coinciden con ningún registro para esta sesión.<br><br>
-      Si es TU primera vez aquí (no te habías pre-registrado antes), llena tus datos abajo para registrarte y confirmar TU asistencia en este momento.
+      Si es TU primera vez aquí (no te habías pre-registrado antes), llena tus datos abajo para registrarte y registrar TU asistencia en este momento.
     </div>
 
     <div id="ca-form-walkin">
@@ -89,7 +89,7 @@
         <input type="checkbox" id="ca-w-acepto-aviso">
         <span>He leído y acepto el <a href="https://maxx.mx/#aviso" target="_blank" rel="noopener">Aviso de Privacidad</a> de MAXX. <span class="ca-obligatorio">*</span></span>
       </label>
-      <button type="button" class="ca-btn" id="ca-btn-walkin">Registrarme y confirmar asistencia</button>
+      <button type="button" class="ca-btn" id="ca-btn-walkin">Registrarme y registrar mi asistencia</button>
       <div id="ca-estado-walkin"></div>
     </div>
   </div>
@@ -144,7 +144,7 @@
   if (!ID_HORARIO) {
     elCargando.style.display = 'none';
     elErrorHorario.style.display = 'block';
-    elErrorHorario.textContent = 'Este link no trae la sesión a la que debes confirmar asistencia. Pide que te compartan el link/QR correcto.';
+    elErrorHorario.textContent = 'Este link no trae la sesión en la que debes registrar tu asistencia. Pide que te compartan el link/QR correcto.';
     return;
   }
 
@@ -212,7 +212,7 @@
       })
       .finally(function() {
         elBtnConfirmar.disabled = false;
-        elBtnConfirmar.textContent = 'Confirmar mi asistencia';
+        elBtnConfirmar.textContent = 'Registrar mi asistencia';
       });
   });
 
@@ -263,7 +263,7 @@
       })
       .finally(function() {
         elBtnWalkin.disabled = false;
-        elBtnWalkin.textContent = 'Registrarme y confirmar asistencia';
+        elBtnWalkin.textContent = 'Registrarme y registrar mi asistencia';
       });
   });
 
