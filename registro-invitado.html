@@ -29,8 +29,8 @@ a.ri-btn-sec:hover { background: #F5B34F; }
 #ri-wrap .ri-aviso-check input { width: auto; margin: 3px 0 0; flex: 0 0 auto; }
 .ri-aviso-check a { color: #185FA5; font-weight: bold; }
 #ri-estado { font-size: 13px; margin: 10px 0; min-height: 18px; color: #791F1F; font-weight: bold; }
-#ri-exito { display: none; text-align: center; padding: 26px 16px; background: #EAF3DE; border-radius: 10px; }
-#ri-exito .ri-pass { font-size: 30px; font-weight: bold; color: #27500A; letter-spacing: 3px; margin: 10px 0; }
+#ri-exito { display: none; text-align: center; padding: 26px 16px; background: #F5F9FE; border: 2px solid #E6F1FB; border-radius: 10px; }
+#ri-exito .ri-pass { font-size: 30px; font-weight: bold; color: #042C53; letter-spacing: 3px; margin: 10px 0; }
 #ri-exito .ri-nota-exito { color: #444; font-size: 13px; line-height: 1.5; margin-top: 8px; }
 #ri-ya { display: none; text-align: center; padding: 24px 16px; background: #FFFBE6; border: 1px solid #FDF0B3; border-radius: 10px; color: #185FA5; font-weight: bold; line-height: 1.5; }
 .ri-rec-link { display: block; width: 100%; text-align: center; font-size: 13px; color: #185FA5; font-weight: bold; text-decoration: underline; cursor: pointer; background: none; border: 0; padding: 8px 0; margin: 4px 0 8px; }
@@ -97,7 +97,7 @@ a.ri-btn-sec:hover { background: #F5B34F; }
 
     <label class="ri-aviso-check">
       <input type="checkbox" id="ri-acepto-wa">
-      <span>Autorizo que MAXX me envíe mensajes por WhatsApp (mi contraseña, recordatorios de mis sesiones y avisos del Programa) al teléfono que registré. <b>MAXX no comparte TUS datos personales con terceros no autorizados.</b></span>
+      <span><b>Autorizo que MAXX me envíe mi contraseña por WhatsApp</b> al teléfono que registré: la necesitaré para registrar mi asistencia a cada sesión. Además, recordatorios de mis sesiones y avisos del Programa. <b>MAXX no comparte TUS datos personales con terceros no autorizados.</b></span>
     </label>
 
     <label class="ri-aviso-check">
@@ -128,7 +128,7 @@ a.ri-btn-sec:hover { background: #F5B34F; }
   <div id="ri-exito">
     <div style="color:#042C53; font-size:17px; font-weight:bold;">¡Listo! Ya quedaste registrado.</div>
     <div style="color:#042C53; font-size:14px; margin-top:10px;">TU usuario es TU correo:</div>
-    <div style="color:#27500A; font-weight:bold; font-size:16px;" id="ri-exito-usuario"></div>
+    <div style="color:#042C53; font-weight:bold; font-size:16px;" id="ri-exito-usuario"></div>
     <div style="color:#042C53; font-size:14px; margin-top:10px;">TU contraseña es:</div>
     <div class="ri-pass" id="ri-exito-pass"></div>
     <div class="ri-nota-exito">Guárdala: la necesitarás, junto con TU correo, para registrar TU asistencia en los siguientes Módulos. También te llegó por correo (revisa SPAM).</div>
