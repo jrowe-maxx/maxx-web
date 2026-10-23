@@ -33,6 +33,14 @@ a.ri-btn-sec:hover { background: #F5B34F; }
 #ri-exito .ri-pass { font-size: 30px; font-weight: bold; color: #27500A; letter-spacing: 3px; margin: 10px 0; }
 #ri-exito .ri-nota-exito { color: #444; font-size: 13px; line-height: 1.5; margin-top: 8px; }
 #ri-ya { display: none; text-align: center; padding: 24px 16px; background: #FFFBE6; border: 1px solid #FDF0B3; border-radius: 10px; color: #185FA5; font-weight: bold; line-height: 1.5; }
+.ri-rec-link { display: block; width: 100%; text-align: center; font-size: 13px; color: #185FA5; font-weight: bold; text-decoration: underline; cursor: pointer; background: none; border: 0; padding: 8px 0; margin: 4px 0 8px; }
+#ri-rec-caja { display: none; background: #F5F9FE; border: 2px solid #E6F1FB; border-radius: 10px; padding: 14px 16px; margin: 0 0 20px; }
+#ri-rec-caja label { display: block; font-size: 13px; color: #042C53; font-weight: bold; margin-bottom: 4px; }
+#ri-rec-caja input { width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 10px; border: 2px solid #E6F1FB; border-radius: 8px; font-size: 15px; font-family: Arial, sans-serif; }
+#ri-rec-caja .ri-rec-exp { font-size: 12px; color: #185FA5; font-weight: bold; margin: 0 0 12px; line-height: 1.4; }
+#ri-rec-btn { width: 100%; background: #EF9F27; color: #fff; border: 0; border-radius: 8px; padding: 12px; font-size: 15px; font-weight: bold; cursor: pointer; }
+#ri-rec-btn:disabled { opacity: .6; cursor: default; }
+#ri-rec-msg { font-size: 13px; margin-top: 10px; color: #042C53; font-weight: bold; line-height: 1.4; }
 </style>
 
 <div id="ri-wrap">
@@ -100,6 +108,17 @@ a.ri-btn-sec:hover { background: #F5B34F; }
     <button class="ri-btn" id="ri-btn-registrar" type="button">Confirmar mi registro</button>
     <div id="ri-estado"></div>
   </div>
+
+<button type="button" class="ri-rec-link" id="ri-rec-link">¿No tienes o no encuentras TU contraseña?</button>
+<div id="ri-rec-caja">
+  <p class="ri-rec-exp">Recupera TU contraseña con TU correo y/o teléfono.</p>
+  <label>TU correo (si lo tienes)</label>
+  <input type="email" id="ri-rec-correo" placeholder="tucorreo@ejemplo.com">
+  <label>TU teléfono (si lo tienes)</label>
+  <input type="tel" id="ri-rec-tel" placeholder="10 dígitos">
+  <button type="button" id="ri-rec-btn">Recuperar mi contraseña</button>
+  <div id="ri-rec-msg"></div>
+</div>
 
   <div id="ri-ya">
     <div id="ri-ya-texto"></div>
@@ -243,6 +262,7 @@ a.ri-btn-sec:hover { background: #F5B34F; }
           $('ri-ya-texto').textContent = d.error;
           $('ri-ya-link').href = 'https://maxx.mx/?horario=' + encodeURIComponent(ID_HORARIO) + '#confirmar-asistencia';
           $('ri-ya').style.display = 'block';
+          if (window.riAbreRecuperar) window.riAbreRecuperar(($('ri-correo').value || '').trim());
         } else {
           btn.disabled = false; btn.textContent = 'Confirmar mi registro';
           est.textContent = d.error || 'No se pudo registrar. Intenta de nuevo.';
@@ -253,5 +273,36 @@ a.ri-btn-sec:hover { background: #F5B34F; }
         est.textContent = 'No se pudo conectar. Intenta de nuevo.';
       });
   });
+
+
 })();
+</script>
+<script>
+  // ---- Recuperar contraseña (mismo servicio que usa el registro de participante) ----
+  (function() {
+    var REC_URL = 'https://script.google.com/macros/s/AKfycbxNl4ATBbC5fKm6SvIFwnApzEYt_qCkSSEcL-RXqoDucXSDcQjj_oOzWSL0oaGT5Qnn/exec';
+    var link = document.getElementById('ri-rec-link'), caja = document.getElementById('ri-rec-caja');
+    var inC = document.getElementById('ri-rec-correo'), inT = document.getElementById('ri-rec-tel');
+    var btn = document.getElementById('ri-rec-btn'), msg = document.getElementById('ri-rec-msg');
+    window.riAbreRecuperar = function(correo) { caja.style.display = 'block'; if (correo) inC.value = correo; };
+    link.addEventListener('click', function() { caja.style.display = caja.style.display === 'block' ? 'none' : 'block'; msg.textContent = ''; });
+    btn.addEventListener('click', function() {
+      var c = (inC.value || '').trim().toLowerCase();
+      var t = (inT.value || '').replace(/\D/g, '');
+      if (t.length > 10 && /^(52|521)/.test(t)) t = t.replace(/^521?/, '');
+      msg.style.color = '#791F1F';
+      if (!c && !t) { msg.textContent = 'Escribe TU correo o TU teléfono.'; return; }
+      if (c && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c)) { msg.textContent = 'Ese correo no se ve válido.'; return; }
+      if (t && t.length !== 10) { msg.textContent = 'El teléfono debe tener 10 dígitos.'; return; }
+      btn.disabled = true; msg.style.color = '#042C53'; msg.textContent = 'Buscando...';
+      fetch(REC_URL, { method: 'POST', body: JSON.stringify({ accion: 'recuperarCodigoPersonal', correo: c, telefono: t }) })
+        .then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.encontrado) { msg.style.color = '#27500A'; msg.textContent = '¡Sí! Encontramos TU registro: en unos momentos te llegará TU contraseña a TU correo registrado (revisa también SPAM).'; }
+          else { msg.style.color = '#791F1F'; msg.textContent = 'Ese correo y/o teléfono NO están registrados. Prueba con otro que tengas.'; }
+        })
+        .catch(function() { msg.style.color = '#791F1F'; msg.textContent = 'No se pudo checar en este momento. Intenta de nuevo en unos minutos.'; })
+        .finally(function() { btn.disabled = false; });
+    });
+  })();
 </script>
