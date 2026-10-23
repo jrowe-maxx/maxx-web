@@ -131,7 +131,7 @@ a.ri-btn-sec:hover { background: #F5B34F; }
     <div style="color:#042C53; font-weight:bold; font-size:16px;" id="ri-exito-usuario"></div>
     <div style="color:#042C53; font-size:14px; margin-top:10px;">TU contraseña es:</div>
     <div class="ri-pass" id="ri-exito-pass"></div>
-    <div class="ri-nota-exito">Guárdala: la necesitarás, junto con TU correo, para registrar TU asistencia en los siguientes Módulos. También te llegó por correo (revisa SPAM).</div>
+    <div class="ri-nota-exito">Guárdala: la necesitarás, junto con TU correo, para registrar TU asistencia en los siguientes Módulos. <span id="ri-exito-correo"></span></div>
     <div class="ri-nota-exito" id="ri-exito-secuencia" style="display:none;"><b>Los Módulos se toman en orden.</b> Para avanzar al siguiente, primero completa los que TE faltan.</div>
     <a class="ri-btn" id="ri-btn-numero" href="#" target="_blank" rel="noopener">Conoce TU número</a>
     <a class="ri-btn ri-btn-sec" id="ri-btn-cita" href="#" target="_blank" rel="noopener">Agenda TU Asesoría Gratuita</a>
@@ -255,6 +255,7 @@ a.ri-btn-sec:hover { background: #F5B34F; }
           $('ri-sesion').style.display = 'none';
           $('ri-exito-usuario').textContent = d.usuario;
           $('ri-exito-pass').textContent = d.contrasena;
+          $('ri-exito-correo').textContent = d.correoEnviado ? 'También te llegó por correo (revisa SPAM).' : 'No pudimos enviarte el correo: anota TU contraseña ahora.';
           $('ri-exito-secuencia').style.display = d.fueraDeSecuencia ? 'block' : 'none';
           $('ri-exito').style.display = 'block';
         } else if (d.yaTieneUsuario) {
