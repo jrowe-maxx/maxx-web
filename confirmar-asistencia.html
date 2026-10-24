@@ -108,6 +108,7 @@
     <div class="ca-nombre" id="ca-exito-nombre"></div>
     <div class="ca-mensaje" id="ca-exito-mensaje"></div>
     <div class="ca-codigo-nuevo" id="ca-exito-codigo" style="display:none;"></div>
+    <div class="ca-mensaje" id="ca-exito-nota" style="display:none; font-size:13px;"></div>
   </div>
 </div>
 
@@ -289,10 +290,15 @@
         if (data.exito) {
           elFormConfirmar.style.display = 'none';
           elExitoNombre.textContent = data.nombre || '';
-          elExitoMensaje.textContent = '¡Listo! Quedaste registrado y TU asistencia a esta sesión quedó confirmada.';
+          elExitoMensaje.textContent = data.codigoPersonal
+            ? '¡Listo! Quedaste registrado y TU asistencia a esta sesión quedó registrada. TU usuario es TU correo, y TU contraseña es:'
+            : '¡Listo! TU asistencia a esta sesión quedó registrada.';
           if (data.codigoPersonal) {
             elExitoCodigo.textContent = data.codigoPersonal;
             elExitoCodigo.style.display = 'block';
+            var elNota = document.getElementById('ca-exito-nota');
+            elNota.textContent = 'Guárdala: junto con TU correo la necesitarás para registrar TU asistencia en cada sesión. ' + (data.correoEnviado ? 'También te llegó por correo (revisa SPAM).' : 'No pudimos enviarte el correo: anota TU contraseña ahora.');
+            elNota.style.display = 'block';
           }
           elExito.style.display = 'block';
         } else {
