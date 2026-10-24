@@ -3,6 +3,7 @@
 #ca-wrap h1 { color: #042C53; font-size: 22px; margin: 0 0 6px 0; }
 #ca-wrap .ca-sub { color: #185FA5; font-size: 14px; margin: 0 0 20px 0; }
 #ca-wrap .ca-obligatorio { color: #791F1F; }
+#ca-wrap .ca-ayuda-dest { font-size: 12.5px; font-weight: bold; color: #042C53; background: #E6F1FB; border-left: 4px solid #185FA5; border-radius: 6px; padding: 8px 10px; margin: 0 0 8px; line-height: 1.45; }
 #ca-wrap input {
   width: 100%; box-sizing: border-box; padding: 10px; margin-bottom: 10px;
   border: 2px solid #E6F1FB; border-radius: 8px; font-size: 15px; font-family: Arial, sans-serif;
@@ -83,8 +84,13 @@
       </div>
       <label>Correo <span class="ca-obligatorio">*</span></label>
       <input type="email" id="ca-w-correo">
+      <label>Confirma TU Correo <span class="ca-obligatorio">*</span></label>
+      <input type="email" id="ca-w-correo-confirma">
       <label>Teléfono (10 dígitos) <span class="ca-obligatorio">*</span></label>
+      <p class="ca-ayuda-dest">Revísalo bien: a este WhatsApp TE llegarán el link de TU sesión y las invitaciones a los demás Módulos del Programa.</p>
       <input type="tel" id="ca-w-telefono">
+      <label>Confirma TU Teléfono <span class="ca-obligatorio">*</span></label>
+      <input type="tel" id="ca-w-telefono-confirma">
       <label class="ca-aviso-check">
         <input type="checkbox" id="ca-w-acepto-wa">
         <span><b>Autorizo que MAXX me envíe mi contraseña por WhatsApp</b> al teléfono que registré, misma que necesitaré para registrar mi asistencia a cada sesión, para recibir recordatorios de mis sesiones y avisos del Programa.<br><b>MAXX no comparte TUS datos personales con terceros no autorizados.</b></span>
@@ -220,6 +226,28 @@
       });
   });
 
+  var TYPOS_CORREO_W = { 'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gamil.com': 'gmail.com', 'gnail.com': 'gmail.com', 'gmail.con': 'gmail.com', 'gmail.co': 'gmail.com', 'gmaill.com': 'gmail.com',
+    'hotmial.com': 'hotmail.com', 'hotmal.com': 'hotmail.com', 'hotmail.con': 'hotmail.com', 'hotmai.com': 'hotmail.com', 'outlok.com': 'outlook.com', 'outlook.con': 'outlook.com',
+    'yahooo.com': 'yahoo.com', 'yaho.com': 'yahoo.com', 'yahoo.con': 'yahoo.com', 'iclod.com': 'icloud.com', 'icloud.con': 'icloud.com', 'icoud.com': 'icloud.com' };
+  function errCorreoW(c) {
+    c = String(c || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(c) || c.indexOf('..') !== -1 || /^\./.test(c) || /\.@/.test(c)) return 'Escribe un correo válido (ejemplo: nombre@correo.com).';
+    var dom = c.split('@')[1];
+    if (TYPOS_CORREO_W[dom]) return 'Revisa TU correo: ¿quisiste escribir @' + TYPOS_CORREO_W[dom] + '? Corrígelo en los dos campos de correo.';
+    return '';
+  }
+  function limpiaTelW(t) {
+    var d = String(t || '').replace(/\D/g, '');
+    if (d.length === 12 && d.slice(0, 2) === '52') d = d.slice(2);
+    if (d.length === 13 && d.slice(0, 3) === '521') d = d.slice(3);
+    return d;
+  }
+  function errTelW(t) {
+    var d = limpiaTelW(t);
+    if (d.length !== 10 || !/^[2-9]/.test(d) || /^(\d)\1{9}$/.test(d) || d === '1234567890' || d === '2345678901' || d === '9876543210') return 'Escribe un teléfono válido de 10 dígitos (sin 0 ni 1 al inicio).';
+    return '';
+  }
+
   elBtnWalkin.addEventListener('click', function() {
     var nombres = document.getElementById('ca-w-nombres').value.trim();
     var apellidos = document.getElementById('ca-w-apellidos').value.trim();
@@ -228,8 +256,16 @@
 
     elEstadoWalkin.textContent = '';
     if (!nombres || !apellidos) { elEstadoWalkin.textContent = 'Escribe TU nombre y apellido.'; return; }
+    var correoConfirma = document.getElementById('ca-w-correo-confirma').value.trim();
+    var telefonoConfirma = document.getElementById('ca-w-telefono-confirma').value.trim();
     if (!correo) { elEstadoWalkin.textContent = 'Escribe TU correo.'; return; }
+    var eC = errCorreoW(correo);
+    if (eC) { elEstadoWalkin.textContent = eC; return; }
+    if (correo.toLowerCase() !== correoConfirma.toLowerCase()) { elEstadoWalkin.textContent = 'Los dos correos no coinciden. Revísalos.'; return; }
     if (!telefono) { elEstadoWalkin.textContent = 'Escribe TU teléfono.'; return; }
+    var eT = errTelW(telefono);
+    if (eT) { elEstadoWalkin.textContent = eT; return; }
+    if (limpiaTelW(telefono) !== limpiaTelW(telefonoConfirma)) { elEstadoWalkin.textContent = 'Los dos teléfonos no coinciden. Revísalos.'; return; }
     if (!document.getElementById('ca-w-acepto-aviso').checked) {
       elEstadoWalkin.textContent = 'Debes aceptar el Aviso de Privacidad para continuar.';
       return;
