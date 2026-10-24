@@ -86,6 +86,10 @@
       <label>Teléfono (10 dígitos) <span class="ca-obligatorio">*</span></label>
       <input type="tel" id="ca-w-telefono">
       <label class="ca-aviso-check">
+        <input type="checkbox" id="ca-w-acepto-wa">
+        <span><b>Autorizo que MAXX me envíe mi contraseña por WhatsApp</b> al teléfono que registré, misma que necesitaré para registrar mi asistencia a cada sesión, para recibir recordatorios de mis sesiones y avisos del Programa.<br><b>MAXX no comparte TUS datos personales con terceros no autorizados.</b></span>
+      </label>
+      <label class="ca-aviso-check">
         <input type="checkbox" id="ca-w-acepto-aviso">
         <span>He leído y acepto el <a href="https://maxx.mx/#aviso" target="_blank" rel="noopener">Aviso de Privacidad</a> de MAXX. <span class="ca-obligatorio">*</span></span>
       </label>
@@ -240,7 +244,8 @@
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         accion: 'confirmarAsistencia', idHorario: ID_HORARIO,
-        nombres: nombres, apellidos: apellidos, correo: correo, telefono: telefono
+        nombres: nombres, apellidos: apellidos, correo: correo, telefono: telefono,
+        autorizaWhatsapp: document.getElementById('ca-w-acepto-wa').checked
       })
     })
       .then(function(res) { return res.json(); })
