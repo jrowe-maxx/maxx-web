@@ -1409,7 +1409,7 @@ function maxxCargarConfig(url, timeoutMs) {
 
     document.getElementById('maxx-panel-cta').innerHTML =
       '<a href="https://meetings.hubspot.com/javier-rowe-hoppenstedt?utm_source=cuestionario&utm_medium=maxx_web&utm_campaign=calificacion" target="_blank" style="display:block;width:100%;padding:14px;border-radius:10px;border:none;background:#639922;color:#fff;font-size:15px;font-weight:800;cursor:pointer;line-height:1.5;text-align:center;text-decoration:none;box-sizing:border-box;">¿Quieres conocer la Solución Ideal para TI?<br><span style="font-size:19px;">Agenda TU Cita. ¡Hazlo YA! →</span><br><span style="font-size:13px;font-weight:600;">30 minutos. Gratuito. Sin Compromisos.</span></a>' +
-      '<button type="button" id="maxx-btn-pdf" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;border-radius:10px;border:1.5px solid #042C53;background:#fff;color:#042C53;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;box-sizing:border-box;">🖨️ Recibe TU Calificación en PDF</button>';
+      '<button type="button" id="maxx-btn-pdf" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px;border-radius:10px;border:1.5px solid #042C53;background:#fff;color:#042C53;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;box-sizing:border-box;">🖨️ Recibe TU Plan de Retiro en PDF</button>';
 
     var btnPdf = document.getElementById('maxx-btn-pdf');
     if (btnPdf) btnPdf.addEventListener('click', function() { maxxAbrirModalPDF(); });
@@ -1488,7 +1488,7 @@ function maxxCargarConfig(url, timeoutMs) {
       '<div style="background:#fff;border-radius:14px;max-width:420px;width:100%;padding:22px;box-sizing:border-box;position:relative;">' +
         '<button type="button" id="maxx-modal-pdf-cerrar" style="position:absolute;top:10px;right:12px;border:none;background:transparent;font-size:20px;color:#5F5E5A;cursor:pointer;line-height:1;">×</button>' +
         '<div id="maxx-pdf-header-normal">' +
-          '<div style="font-size:19px;font-weight:800;color:#042C53;margin-bottom:6px;line-height:1.3;">Recibe TU Calificación en PDF</div>' +
+          '<div style="font-size:19px;font-weight:800;color:#042C53;margin-bottom:6px;line-height:1.3;">Recibe TU Plan de Retiro en PDF</div>' +
           '<div style="font-size:14px;color:#378ADD;font-weight:600;margin-bottom:16px;line-height:1.45;">Ya diste el primer paso hacia TU Destino.<br>Ahora dinos a dónde enviar TU resultado.</div>' +
         '</div>' +
         '<div style="margin-bottom:10px;"><input type="text" id="maxx-pdf-nombre" placeholder="Nombre" style="width:100%;padding:10px;border-radius:8px;border:1px solid #D3D1C7;font-size:14px;box-sizing:border-box;"></div>' +
@@ -1507,10 +1507,10 @@ function maxxCargarConfig(url, timeoutMs) {
         '</div>' +
         '<div id="maxx-pdf-cta-repetido" style="display:none;">' +
           '<div style="font-size:21px;font-weight:800;color:#042C53;margin-bottom:8px;line-height:1.25;">¡YA lograste el primer paso! 🎉</div>' +
-          '<div style="font-size:14px;color:#3D3B36;line-height:1.5;margin-bottom:2px;"><strong style="color:#042C53;">TU Calificación en PDF ya fue enviada a tu correo.</strong></div>' +
+          '<div style="font-size:14px;color:#3D3B36;line-height:1.5;margin-bottom:2px;"><strong style="color:#042C53;">TU Plan de Retiro en PDF ya fue enviado a tu correo.</strong></div>' +
           '<div style="font-size:14px;color:#3D3B36;line-height:1.5;margin-bottom:2px;">Revisa tu bandeja de entrada y/o SPAM.</div>' +
           '<div style="font-size:13px;color:#5F5E5A;line-height:1.5;margin-bottom:10px;">Por seguridad, solo se envía <strong style="color:#042C53;">UNA vez por persona</strong> — este NO es un nuevo envío.</div>' +
-          '<div style="font-size:16px;font-weight:700;color:#3B6D11;margin-bottom:16px;line-height:1.35;">Ahora es momento de mejorar TU Calificación y construir TU Destino.</div>' +
+          '<div style="font-size:16px;font-weight:700;color:#3B6D11;margin-bottom:16px;line-height:1.35;">Ahora es momento de mejorar TU Plan de Retiro y construir TU Destino.</div>' +
           '<div style="background:#EAF3DE;border-radius:10px;padding:14px;margin-bottom:16px;">' +
             '<div style="font-size:13px;color:#3B6D11;font-weight:700;line-height:1.6;">' +
               'a) YA tienes TUS números reales, no genéricos.<br>' +
