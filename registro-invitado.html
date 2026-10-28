@@ -14,6 +14,14 @@ a.ri-btn-sec { background: #EF9F27; }
 a.ri-btn-sec:hover { background: #F5B34F; }
 #ri-cargando { text-align: center; color: #185FA5; padding: 30px 0; }
 #ri-error-sesion { display: none; text-align: center; color: #791F1F; padding: 24px 16px; background: #FAECE7; border-radius: 10px; }
+#ri-lista { display: none; margin-bottom: 18px; }
+#ri-lista .ri-l-titulo { color: #042C53; font-size: 16px; font-weight: bold; margin: 0 0 4px; }
+#ri-lista .ri-l-sub { color: #185FA5; font-size: 13px; margin: 0 0 12px; line-height: 1.4; }
+.ri-ses { display: block; width: 100%; text-align: left; background: white; border: 2px solid #E6F1FB; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; font-family: Arial, sans-serif; }
+.ri-ses:hover, .ri-ses:focus-visible { border-color: #185FA5; background: #F5F9FE; outline: none; }
+.ri-ses .ri-ses-mod { font-size: 12px; color: #185FA5; font-weight: bold; text-transform: uppercase; }
+.ri-ses .ri-ses-fecha { font-size: 16px; font-weight: bold; color: #042C53; }
+.ri-ses .ri-ses-cupo { font-size: 13px; color: #639922; margin-top: 2px; }
 #ri-sesion { display: none; background: #E6F1FB; border-radius: 10px; padding: 14px 16px; margin-bottom: 18px; }
 #ri-sesion .ri-s-modulo { font-size: 12px; color: #185FA5; font-weight: bold; text-transform: uppercase; }
 #ri-sesion .ri-s-titulo { font-size: 17px; font-weight: bold; color: #042C53; margin: 2px 0; }
@@ -48,6 +56,8 @@ a.ri-btn-sec:hover { background: #F5B34F; }
 
   <div id="ri-cargando">Cargando la sesión...</div>
   <div id="ri-error-sesion"></div>
+
+  <div id="ri-lista"></div>
 
   <div id="ri-sesion">
     <div class="ri-s-modulo" id="ri-s-modulo"></div>
@@ -204,9 +214,8 @@ a.ri-btn-sec:hover { background: #F5B34F; }
     $('ri-error-sesion').style.display = 'block';
   }
 
-  if (!ID_HORARIO) {
-    errorSesion('Este link no trae la sesión. Pide que te compartan el link/QR correcto.');
-  } else {
+  function cargarSesion() {
+    $('ri-cargando').style.display = 'block';
     fetch(API + '?accion=infoSesion&idHorario=' + encodeURIComponent(ID_HORARIO))
       .then(function(r) { return r.json(); })
       .then(function(d) {
@@ -220,6 +229,35 @@ a.ri-btn-sec:hover { background: #F5B34F; }
       })
       .catch(function() { errorSesion('No se pudo conectar. Recarga la página.'); });
   }
+
+  function mostrarLista() {
+    fetch(API + '?accion=sesionesAbiertas')
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        var ses = (d && d.exito && d.sesiones) ? d.sesiones : [];
+        if (!ses.length) { errorSesion('Por ahora no hay sesiones abiertas programadas. Vuelve pronto, o pide el link de TU sesión a quien TE invitó.'); return; }
+        var html = '<p class="ri-l-titulo">Elige TU sesión</p><p class="ri-l-sub">Sesiones grupales gratuitas, abiertas para todos. Elige la que más TE convenga.</p>';
+        ses.forEach(function(x) {
+          html += '<button type="button" class="ri-ses" data-id="' + esc(x.idHorario) + '">' +
+            '<div class="ri-ses-mod">Módulo ' + esc(x.modulo) + (x.tituloModulo ? ' — ' + esc(x.tituloModulo) : '') + '</div>' +
+            '<div class="ri-ses-fecha">' + esc(x.fecha) + ' — ' + esc(x.hora) + '</div>' +
+            (x.cupoDisponible ? '<div class="ri-ses-cupo">' + esc(x.cupoDisponible) + ' lugares disponibles</div>' : '') + '</button>';
+        });
+        $('ri-cargando').style.display = 'none';
+        $('ri-lista').innerHTML = html;
+        $('ri-lista').style.display = 'block';
+        Array.prototype.forEach.call($('ri-lista').querySelectorAll('.ri-ses'), function(b) {
+          b.addEventListener('click', function() {
+            ID_HORARIO = b.getAttribute('data-id');
+            $('ri-lista').style.display = 'none';
+            cargarSesion();
+          });
+        });
+      })
+      .catch(function() { errorSesion('No se pudo conectar. Recarga la página.'); });
+  }
+
+  if (!ID_HORARIO) { mostrarLista(); } else { cargarSesion(); }
 
   $('ri-btn-registrar').addEventListener('click', function() {
     var nombres = $('ri-nombres').value.trim(), apellidos = $('ri-apellidos').value.trim();
