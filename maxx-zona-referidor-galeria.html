@@ -2795,7 +2795,10 @@ var qrcode = function() {
         // Liga la asignación con la Entidad (en segundo plano) y refresca la lista real.
         fetch(ESCUELAS_API_GR, { method: 'POST', mode: 'cors', headers: h, body: JSON.stringify({
           accion: 'registrarGestion', ref: REF_PRUEBA, idAsignacion: idAsignacion, tipo: 'seguimiento', idEntidad: idNueva, nota: 'Dada de alta como Entidad ' + idNueva + ' desde la Galería'
-        }) }).catch(function() {}).then(function() { setTimeout(grCargarEntidades, 800); });
+        }) }).catch(function() {}).then(function() {
+          try { localStorage.setItem('maxx_entidades_cambio', String(Date.now())); } catch (e) {}
+          setTimeout(grCargarEntidades, 800);
+        });
       })
       .catch(function(err) {
         grState.convirtiendo = false;
