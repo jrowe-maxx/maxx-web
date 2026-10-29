@@ -230,7 +230,7 @@
     <div style="color:#042C53; font-size:16px; font-weight:bold;" id="rp-exito-usuario"></div>
     <div style="color:#042C53; font-size:14px; margin-top:10px;">TU contraseña es:</div>
     <div class="rp-codigo" id="rp-codigo-personal"></div>
-    <div style="color:#444; font-size:13px; line-height:1.5; margin-top:8px;" id="rp-exito-nota">Guárdala: la necesitarás, junto con TU correo, para registrar TU asistencia el día de la sesión. <span id="rp-exito-correo"></span></div>
+    <div style="color:#444; font-size:13px; line-height:1.5; margin-top:8px;" id="rp-exito-nota">Guárdala: la necesitarás, junto con TU correo, para registrar TU asistencia el día de la sesión.<span id="rp-exito-correo" style="display:block;"></span></div>
   </div>
 </div>
 
@@ -807,7 +807,7 @@
           document.getElementById('rp-exito-correo').textContent = (data.correoEnviado === false) ? 'No pudimos enviarte el correo: anota TU contraseña ahora.' : 'También te llegó por correo (revisa SPAM).';
           if (modoActual === 'sugerencia') {
             document.getElementById('rp-exito-titulo').textContent = '¡Listo! Ya quedaste PRE-registrado.';
-            document.getElementById('rp-exito-nota').innerHTML = 'Guárdala: la necesitarás, junto con TU correo, para registrar TU asistencia. En cuanto se reúnan suficientes personas, te avisamos por correo la fecha y hora final de TU sesión. <span id="rp-exito-correo">' + document.getElementById('rp-exito-correo').textContent + '</span>';
+            document.getElementById('rp-exito-nota').innerHTML = 'Guárdala: la necesitarás, junto con TU correo, para registrar TU asistencia. En cuanto se reúnan suficientes personas, te avisamos por correo la fecha y hora final de TU sesión.<span id="rp-exito-correo" style="display:block;">' + document.getElementById('rp-exito-correo').textContent + '</span>';
           }
         } else {
           elBtnRegistrar.disabled = false;
