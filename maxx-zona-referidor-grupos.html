@@ -1337,13 +1337,13 @@
     html += '<div class="zrg-contacto">';
     var conCita = (ent.contactos || []).filter(function(c) { return c.nombre; });
     html += '<div class="zrg-contacto"><div class="zrg-sec-t">Agenda con Javier</div>';
-    html += '<div class="zrg-linea">Aparta la Cita con Javier en cuanto el contacto te confirme el horario (funciona desde el celular). Calendario de Entidades: martes y viernes de 9:00 a 13:00.</div>';
+    html += '<div class="zrg-linea">Aparta la Cita con Javier en cuanto el contacto te confirme el horario (funciona desde el celular). El calendario muestra solo los horarios libres.</div>';
     if (conCita.length > 1) {
       html += '<label>¿Con quién es la cita?</label><select id="zrg-cita-con-' + ent.idEntidad + '" onchange="window.zrgActualizarCita(\'' + ent.idEntidad + '\')">';
       conCita.forEach(function(c, i) { html += '<option value="' + i + '">' + String(c.nombre).replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</option>'; });
       html += '</select>';
     }
-    html += '<a class="zrg-btn zrg-btn-verde" id="zrg-btn-cita-' + ent.idEntidad + '" href="' + urlCitaEntidad(ent, conCita[0]) + '" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box;margin-top:8px;">Apartar Cita con Javier</a></div>';
+    html += '<a class="zrg-btn zrg-btn-chico" id="zrg-btn-cita-' + ent.idEntidad + '" href="' + urlCitaEntidad(ent, conCita[0]) + '" target="_blank" rel="noopener" style="display:inline-block;width:auto;text-align:center;text-decoration:none;box-sizing:border-box;margin-top:8px;background:#EF9F27;color:#fff;border:2px solid #0C447C;">Apartar Cita con Javier</a></div>';
 
     html += '<div class="zrg-sec-t">Status de la Entidad</div>';
     if (etapaActual === 'Registrado' && ent.contactos && ent.contactos.length > 0) {
