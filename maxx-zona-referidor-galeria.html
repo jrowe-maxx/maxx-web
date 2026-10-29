@@ -2942,8 +2942,8 @@ var qrcode = function() {
   function grAvisoAgenda() {
     var ent = grEntidadElegida(), c = grContactoElegido();
     return '<div class="gr-aviso"><b>Agenda la cita con Javier:</b> escoge un horario libre en su calendario y confírmalo ahí mismo, con el contacto, en cuanto lo tengas de acuerdo (también desde el celular). Los horarios que elijas son los que pondrás en los [día] y [hora] del texto.' +
-      '<a class="btn gr-enlace" href="' + grUrlCita(ent, c) + '" target="_blank" rel="noopener" style="margin-top:8px;display:block;text-align:center;background:#639922;">Apartar Cita con Javier</a>' +
-      '<span style="font-size:12px;">Se abre el calendario de Citas con Entidades (martes y viernes de 9:00 a 13:00). Ya lleva los datos de ' + (ent ? 'la Entidad' + (c ? ' y del contacto' : '') : 'tu Entidad, si la eliges arriba') + ' y tu clave, para saber de quién viene la cita.</span></div>';
+      '<a class="btn gr-enlace" href="' + grUrlCita(ent, c) + '" target="_blank" rel="noopener" style="margin-top:8px;display:inline-block;width:auto;padding:7px 16px;font-size:13px;background:#EF9F27;color:#fff;border:2px solid #0C447C;">Apartar Cita con Javier</a><br>' +
+      '<span style="font-size:12px;">El calendario muestra solo los horarios libres de Javier. Ya lleva los datos de ' + (ent ? 'la Entidad' + (c ? ' y del contacto' : '') : 'tu Entidad, si la eliges arriba') + ' y tu clave, para saber de quién viene la cita.</span></div>';
   }
   function grSub(texto) { return '<div class="gr-sub-t">' + grEsc(texto) + '</div>'; }
   function grLista(items, ordenada) {
