@@ -2696,7 +2696,8 @@ var qrcode = function() {
     AFINES: { sinQr: false, qrX: 872, qrY: 1730, qrTam: 170, textoX: 130, textoY: 1800, textoAncho: 722, textoAlto: 112, fontSize: 36, fontMin: 30, fontSizeDosLineas: 32 }
   };
 
-  var grState = { tipo: null, idEntidad: '', idContacto: '', entidades: null, cargando: false, error: false, ultimaCarga: 0 };
+  var grState = { tipo: null, idEntidad: '', idContacto: '', entidades: null, cargando: false, error: false, ultimaCarga: 0, escuelas: [], convirtiendo: false, errConv: '' };
+  var ESCUELAS_API_GR = 'https://script.google.com/macros/s/AKfycbzjonaj5Qp3dQm7KQy0bvZnT_1HnqPFwj1Z_Puc8pPQ9oKpTX2w0WPjv8E4wF7Yf3V50g/exec';
 
   function grTipoActual() {
     for (var i = 0; i < TIPOS_GRUPO.length; i++) { if (TIPOS_GRUPO[i].id === grState.tipo) return TIPOS_GRUPO[i]; }
@@ -2757,6 +2758,52 @@ var qrcode = function() {
     try { window.top.location.hash = '#zona-referidor-galeria'; } catch (e2) {}
   }
 
+  function grFederativa(txt) {
+    var L = ['Aguascalientes','Baja California Sur','Baja California','Campeche','Chiapas','Chihuahua','Ciudad de México','Coahuila','Colima','Durango','Guanajuato','Guerrero','Hidalgo','Jalisco','México','Michoacán','Morelos','Nayarit','Nuevo León','Oaxaca','Puebla','Querétaro','Quintana Roo','San Luis Potosí','Sinaloa','Sonora','Tabasco','Tamaulipas','Tlaxcala','Veracruz','Yucatán','Zacatecas'];
+    var t = String(txt || '');
+    for (var i = 0; i < L.length; i++) { if (t.indexOf(L[i]) === 0) return L[i]; }
+    return t;
+  }
+  function grEscuelasLote() {
+    var t = grTipoActual();
+    if (!t || t.id !== 'ESCUELA') return [];
+    return grState.escuelas || [];
+  }
+  // Convierte una Escuela del lote en Entidad (misma conversión de la pantalla TUS Entidades) y la deja elegida.
+  function grConvertirEscuela(idAsignacion) {
+    var sch = null;
+    (grState.escuelas || []).forEach(function(e) { if (e.idAsignacion === idAsignacion) sch = e; });
+    if (!sch || grState.convirtiendo) return;
+    grState.convirtiendo = true; grState.errConv = '';
+    grRender();
+    var h = { 'Content-Type': 'text/plain;charset=utf-8' };
+    fetch(GRUPOS_API_URL, { method: 'POST', mode: 'cors', headers: h, body: JSON.stringify({
+      accion: 'darDeAltaEntidad', ref: REF_PRUEBA, nombre: sch.nombre, tipo: 'Escuela',
+      planteles: [{ nombre: sch.municipio || '', direccion: '', entidadFederativa: grFederativa(sch.entidad), codigoPostal: '' }],
+      empleadosElegibles: '', sectorEconomico: '', publicoPrivado: '', religion: '',
+      notas: 'Viene de mi lote de Escuelas.' + (sch.telefono ? ' Tel: ' + sch.telefono + '.' : '')
+    }) })
+      .then(function(res) { return res.json(); })
+      .then(function(d) {
+        if (!d || !d.exito) { throw new Error((d && d.error) || 'No se pudo dar de alta.'); }
+        var idNueva = d.idEntidad;
+        sch.idEntidad = idNueva;
+        grState.escuelas = (grState.escuelas || []).filter(function(e) { return e.idAsignacion !== idAsignacion; });
+        grState.entidades = (grState.entidades || []).concat([{ idEntidad: idNueva, nombre: sch.nombre, tipo: 'Escuela', contactos: [], planteles: [], grupos: [] }]);
+        grState.idEntidad = idNueva; grState.convirtiendo = false;
+        grRender();
+        // Liga la asignación con la Entidad (en segundo plano) y refresca la lista real.
+        fetch(ESCUELAS_API_GR, { method: 'POST', mode: 'cors', headers: h, body: JSON.stringify({
+          accion: 'registrarGestion', ref: REF_PRUEBA, idAsignacion: idAsignacion, tipo: 'seguimiento', idEntidad: idNueva, nota: 'Dada de alta como Entidad ' + idNueva + ' desde la Galería'
+        }) }).catch(function() {}).then(function() { setTimeout(grCargarEntidades, 800); });
+      })
+      .catch(function(err) {
+        grState.convirtiendo = false;
+        grState.errConv = String((err && err.message) || err);
+        grRender();
+      });
+  }
+
   function grEntidadesDelTipo() {
     var t = grTipoActual();
     if (!t || !grState.entidades) return [];
@@ -2768,6 +2815,11 @@ var qrcode = function() {
     grState.cargando = true;
     grState.error = false;
     grRender();
+    // Escuelas del lote que todavía no son Entidad (se dan de alta solas al elegirlas). Si falla, no estorba.
+    fetch(ESCUELAS_API_GR + '?accion=misEscuelas&ref=' + encodeURIComponent(REF_PRUEBA))
+      .then(function(res) { return res.json(); })
+      .then(function(d) { if (d && d.exito) { grState.escuelas = (d.escuelas || []).filter(function(e) { return !e.idEntidad && e.resultado !== 'No interesada'; }); grRender(); } })
+      .catch(function() {});
     fetch(GRUPOS_API_URL + '?accion=misEntidades&ref=' + encodeURIComponent(REF_PRUEBA))
       .then(function(res) { return res.json(); })
       .then(function(data) {
@@ -3236,7 +3288,13 @@ var qrcode = function() {
     }
 
     var propias = grEntidadesDelTipo();
-    if (propias.length === 0) {
+    var loteEsc = grEscuelasLote();
+    if (grState.convirtiendo) {
+      var pc = document.createElement('p'); pc.className = 'cargando'; pc.textContent = 'Dando de alta la Escuela como Entidad...'; paso2.appendChild(pc);
+      paso3.style.display = 'none';
+      return;
+    }
+    if (propias.length === 0 && loteEsc.length === 0) {
       var aviso = document.createElement('div'); aviso.className = 'gr-aviso';
       aviso.textContent = 'Todavía no tienes una Entidad de tipo ' + t.singular + ' dada de alta. Primero dala de alta (así TUS participantes quedan ligados a ti) y regresa aquí.';
       var b1 = document.createElement('button'); b1.className = 'btn'; b1.style.display = 'block'; b1.textContent = 'Ir a dar de alta mi Entidad';
@@ -3251,12 +3309,24 @@ var qrcode = function() {
 
     var sel = document.createElement('select'); sel.className = 'gr-select';
     var ph = document.createElement('option'); ph.value = ''; ph.textContent = 'Elige la Entidad...'; sel.appendChild(ph);
+    var contenedorProp = sel;
+    if (loteEsc.length > 0 && propias.length > 0) { contenedorProp = document.createElement('optgroup'); contenedorProp.label = 'Mis Entidades'; sel.appendChild(contenedorProp); }
     propias.forEach(function(e) {
-      var o = document.createElement('option'); o.value = e.idEntidad; o.textContent = (t.journey === 'B') ? (e.nombre + ' (' + e.tipo + ')') : e.nombre; sel.appendChild(o);
+      var o = document.createElement('option'); o.value = e.idEntidad; o.textContent = (t.journey === 'B') ? (e.nombre + ' (' + e.tipo + ')') : e.nombre; contenedorProp.appendChild(o);
     });
+    if (loteEsc.length > 0) {
+      var og = document.createElement('optgroup'); og.label = 'Escuelas de TU lote (se dan de alta solas al elegirlas)'; sel.appendChild(og);
+      loteEsc.forEach(function(e) {
+        var o = document.createElement('option'); o.value = 'ESC:' + e.idAsignacion; o.textContent = e.nombre + (e.municipio ? ' — ' + e.municipio : ''); og.appendChild(o);
+      });
+    }
     sel.value = grState.idEntidad || '';
-    sel.addEventListener('change', function() { grState.idEntidad = sel.value; grRender(); });
+    sel.addEventListener('change', function() {
+      if (sel.value.indexOf('ESC:') === 0) { grConvertirEscuela(sel.value.slice(4)); return; }
+      grState.idEntidad = sel.value; grRender();
+    });
     paso2.appendChild(sel);
+    if (grState.errConv) { var ae = document.createElement('div'); ae.className = 'gr-aviso'; ae.textContent = 'No se pudo dar de alta la Escuela: ' + grState.errConv + ' Intenta de nuevo.'; paso2.appendChild(ae); }
 
     if (!grState.idEntidad) { paso3.style.display = 'none'; return; }
 
