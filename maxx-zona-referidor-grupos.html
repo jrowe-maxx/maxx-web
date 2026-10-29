@@ -22,6 +22,9 @@
 .zrg-sin-resultados { color: #639922; font-size: 13px; font-weight: bold; padding: 8px 0; }
 .zrg-card { background: #fff; border: 1px solid #E6F1FB; border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
 .zrg-card h3 { color: #042C53; font-size: 15px; margin: 0 0 4px 0; }
+.zrg-card h3.zrg-nombre { font-size: 23px; line-height: 1.2; margin: 0 0 6px 0; }
+.zrg-sec-t { color: #185FA5; font-size: 17px; font-weight: bold; margin: 0 0 4px 0; }
+.zrg-leyenda { font-size: 11.5px; color: #666; text-align: center; margin: 0 0 6px; line-height: 1.4; }
 .zrg-card .zrg-tag { display: inline-block; background: #E6F1FB; color: #0C447C; font-size: 11px; font-weight: bold; border-radius: 12px; padding: 2px 9px; margin-right: 5px; margin-bottom: 6px; }
 .zrg-card .zrg-tag-etapa { background: #EAF3DE; color: #27500A; }
 .zrg-card .zrg-linea { font-size: 13px; color: #444; margin: 2px 0; }
@@ -189,6 +192,7 @@
 <div id="zrg-lote-resumen"></div>
 <div id="zrg-banner-viejo"></div>
 <div id="zrg-conteo-filtro" class="zrg-conteo-filtro zrg-oculto"></div>
+<div class="zrg-leyenda">Borde punteado: escuela de TU lote · Borde continuo: ya es Entidad · Rojo: por gestionar · Azul: la que tienes abierta</div>
 <div class="zrg-franja-wrap">
   <div class="zrg-franja" id="zrg-franja"></div>
 </div>
@@ -454,11 +458,12 @@
     var e = ent.sch, id = e.idAsignacion, h = '';
     h += '<div class="zrg-card" data-id-entidad="' + escH(id) + '">';
     h += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="float:right;" onclick="window.zrgCerrarDetalle()">✕ Cerrar</button>';
-    h += '<h3>' + escH(e.nombre) + '</h3>';
+    h += '<h3 class="zrg-nombre">' + escH(e.nombre) + '</h3>';
     h += '<span class="zrg-tag">Escuela</span>';
     h += '<span class="zrg-tag zrg-tag-etapa">' + escH(etapaDeEscuela(e)) + '</span>';
     h += '<span class="zrg-tag">' + (e.seleccionada ? 'Seleccionada por ti' : 'Asignada por MAXX') + '</span>';
     if (/^[A-D]$/.test(e.segmento)) h += '<span class="zrg-tag">Tipo ' + escH(e.segmento) + '</span>';
+    h += '<div class="zrg-sec-t" style="margin-top:8px;">Datos</div>';
     if (e.municipio) h += '<div class="zrg-linea"><b>Ubicación:</b> ' + escH(e.municipio) + (e.entidad ? ', ' + escH(e.entidad) : '') + '</div>';
     if (e.telefono) h += '<div class="zrg-linea">📞 <a href="tel:' + escH(String(e.telefono).replace(/[^0-9+]/g, '')) + '">' + escH(e.telefono) + '</a></div>';
     if (e.web) { var w = /^https?:/i.test(e.web) ? e.web : 'https://' + e.web; h += '<div class="zrg-linea">🌐 <a href="' + escH(w) + '" target="_blank" rel="noopener">' + escH(e.web) + '</a></div>'; }
@@ -486,6 +491,9 @@
         '<button type="button" class="zrg-btn" data-esc-guardar="' + escH(id) + '">Guardar</button> ' +
         '<button type="button" class="zrg-btn zrg-btn-secundario" data-esc-cancelar="' + escH(id) + '">Cancelar</button>' +
         '<div class="zrg-esc-msg" id="zrg-esc-msg-' + escH(id) + '"></div></div>';
+    }
+    if (!e.idEntidad && !(e.contactoNombre || e.resultado === 'Cita agendada' || e.resultado === 'Contactada')) {
+      h += '<div style="margin-top:10px;"><div class="zrg-linea">¿Algún dato está mal (nombre, teléfono, correo, dirección)? Conviértela en Entidad y ahí podrás editarlo.</div><button type="button" class="zrg-btn zrg-btn-secundario zrg-btn-chico" data-esc-alta="' + escH(id) + '">Convertir en Entidad para editar sus datos</button></div>';
     }
     if (!e.idEntidad && (e.contactoNombre || e.resultado === 'Cita agendada' || e.resultado === 'Contactada')) {
       h += '<div style="margin-top:6px;"><div class="zrg-linea" style="color:#B02A2A;">No se pudo convertir en Entidad automáticamente.</div><button type="button" class="zrg-btn zrg-btn-destacado zrg-btn-chico" data-esc-alta="' + escH(id) + '">Reintentar convertir en Entidad</button></div>';
@@ -540,7 +548,8 @@
       accion: 'darDeAltaEntidad', ref: REF, nombre: sch.nombre, tipo: 'Escuela',
       planteles: [{ nombre: sch.municipio || '', direccion: '', entidadFederativa: federativaDeEscuela(sch.entidad), codigoPostal: '' }],
       empleadosElegibles: '', sectorEconomico: '', publicoPrivado: '', religion: '',
-      notas: 'Viene de mi lote de Escuelas.' + (sch.telefono ? ' Tel: ' + sch.telefono + '.' : '')
+      telefono: sch.telefono || '', correo: sch.correo || '', web: sch.web || '',
+      notas: 'Viene de mi lote de Escuelas.'
     }).then(function(d) {
       if (!d.exito) { terminar(); return; }
       var idNueva = d.idEntidad;
@@ -1188,23 +1197,16 @@
     if (ent.esEscuela) { pintarDetalleEscuela(ent); return; }
     var html = '<div class="zrg-card" data-id-entidad="' + ent.idEntidad + '">';
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="float:right;" onclick="window.zrgCerrarDetalle()">✕ Cerrar</button>';
-    html += '<h3>' + ent.nombre + '</h3>';
+    html += '<h3 class="zrg-nombre">' + ent.nombre + '</h3>';
     html += '<div class="zrg-linea" style="color:#999;">ID Entidad: <b style="color:#185FA5;">' + ent.idEntidad + '</b> (para armar el link de registro: <code style="font-size:11px;">?entidad=' + ent.idEntidad + '</code>)</div>';
     html += '<span class="zrg-tag">' + ent.tipo + '</span>';
     html += '<span class="zrg-tag zrg-tag-etapa">' + etapaDe(ent) + '</span>';
     html += '<div id="zrg-vista-' + ent.idEntidad + '">';
-    if (ent.planteles && ent.planteles.length > 0) {
-      html += '<div class="zrg-linea"><b>Planteles:</b></div>';
-      html += '<ul class="zrg-planteles-lista">';
-      ent.planteles.forEach(function(p) {
-        var partes = [];
-        if (p.direccion) partes.push(p.direccion);
-        if (p.entidadFederativa) partes.push(p.entidadFederativa);
-        if (p.codigoPostal) partes.push('C.P. ' + p.codigoPostal);
-        html += '<li><b>' + p.nombre + '</b>' + (partes.length ? ' — ' + partes.join(', ') : '') + '</li>';
-      });
-      html += '</ul>';
-    }
+    html += '<div class="zrg-sec-t" style="margin-top:8px;">Datos</div>';
+    if (ent.telefono) html += '<div class="zrg-linea"><b>Teléfono:</b> <a href="tel:' + String(ent.telefono).replace(/[^0-9+]/g, '') + '">' + ent.telefono + '</a></div>';
+    if (ent.correo) html += '<div class="zrg-linea"><b>Correo:</b> <a href="mailto:' + ent.correo + '">' + ent.correo + '</a></div>';
+    if (ent.web) { var webU = /^https?:/i.test(ent.web) ? ent.web : 'https://' + ent.web; html += '<div class="zrg-linea"><b>Sitio web:</b> <a href="' + webU + '" target="_blank" rel="noopener">' + ent.web + '</a></div>'; }
+    if (!ent.telefono && !ent.correo && !ent.web && esTipoGrupoAfin(ent.tipo) === false) html += '<div class="zrg-linea" style="color:#999;">Sin teléfono, correo ni sitio web. Usa Editar para agregarlos.</div>';
     if (ent.empleadosElegibles) html += '<div class="zrg-linea"><b># Potencial de Participantes (estimado):</b> ' + ent.empleadosElegibles + '</div>';
     if (ent.empleadosConfirmados) html += '<div class="zrg-linea"><b># Participantes Confirmados:</b> ' + ent.empleadosConfirmados + '</div>';
     if (ent.sectorEconomico) html += '<div class="zrg-linea"><b>Sector Económico:</b> ' + ent.sectorEconomico + '</div>';
@@ -1222,6 +1224,9 @@
     html += '<div id="zrg-form-editar-' + ent.idEntidad + '" class="zrg-oculto" style="margin-top:10px;">';
     html += '<label>Nombre de Entidad <span class="zrg-tooltip" title="Una Entidad puede ser una Escuela, Empresa, Institución, o el nombre del Grupo en el que participan personas afines (Grupo Personal, Religioso, o de una Red Social).">?</span></label>';
     html += '<input type="text" id="zrg-ed-nombre-' + ent.idEntidad + '" value="' + String(ent.nombre || '').replace(/"/g, '&quot;') + '">';
+    html += '<label>Teléfono</label><input type="text" id="zrg-ed-tel-' + ent.idEntidad + '" value="' + String(ent.telefono || '').replace(/"/g, '&quot;') + '">';
+    html += '<label>Correo</label><input type="text" id="zrg-ed-correo-' + ent.idEntidad + '" value="' + String(ent.correo || '').replace(/"/g, '&quot;') + '">';
+    html += '<label>Sitio web</label><input type="text" id="zrg-ed-web-' + ent.idEntidad + '" value="' + String(ent.web || '').replace(/"/g, '&quot;') + '">';
     html += '<label>Tipo</label>';
     html += '<select id="zrg-ed-tipo-' + ent.idEntidad + '">';
     [{v:'Escuela',t:'Escuela'},{v:'Empresa',t:'Empresa'},{v:'Institución',t:'Institución'},{v:'Personal',t:'Grupo Personal'},{v:'Religioso',t:'Grupo Religioso'},{v:'Grupo de Facebook',t:'Grupo de Facebook'},{v:'Grupo de Instagram',t:'Grupo de Instagram'},{v:'Grupo de WhatsApp',t:'Grupo de WhatsApp'},{v:'Grupo en Otra Red Social',t:'Grupo en Otra Red Social'},{v:'Otro',t:'Otro'}].forEach(function(opcion) {
@@ -1247,13 +1252,61 @@
     html += '<div id="zrg-estado-ed-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     html += '</div>';
 
+    html += '<div class="zrg-contacto">';
+    html += '<div class="zrg-sec-t">Contactos</div>';
+    if (ent.contactos.length === 0) {
+      html += '<div class="zrg-linea">Ninguno todavía.</div>';
+    } else {
+      var nDecide = ent.contactos.filter(function(c) { return c.decisor === 'Sí'; }).length;
+      html += nDecide > 0
+        ? '<div class="zrg-aviso-ok">✓ Ya tienes contacto que decide la capacitación.</div>'
+        : '<div class="zrg-aviso-alerta">Ningún contacto está marcado como quien decide la capacitación. Pregúntale a tu contacto quién ve esos temas y márcalo abajo.</div>';
+      ent.contactos.forEach(function(c) {
+        var d = c.decisor || '';
+        var etiqueta = d === 'Sí' ? '<span class="zrg-insignia zrg-insignia-ok">DECIDE</span>' : (d === 'No' ? '<span class="zrg-insignia zrg-insignia-no">No decide</span>' : '<span class="zrg-insignia zrg-insignia-pend">Sin definir</span>');
+        html += '<div class="zrg-contacto-fila" style="display:block;"><span>' + c.nombre + (c.puesto ? ' — ' + c.puesto : '') + (c.telefono ? ' · ' + c.telefono : '') + (c.correo ? ' · ' + c.correo : '') + ' ' + etiqueta + ' <button type="button" class="zrg-btn-quitar-contacto" id="zrg-quitar-' + c.idContacto + '" onclick="window.zrgQuitarContacto(\'' + c.idContacto + '\')" title="Quitar este contacto">Quitar</button></span>';
+        html += '<select class="zrg-sel-decisor" id="zrg-decisor-' + c.idContacto + '" onchange="window.zrgCambiarDecisor(\'' + c.idContacto + '\')">';
+        [{v:'',t:'¿Es quien decide o ve la capacitación? — elige'},{v:'Sí',t:'Sí, decide / ve la capacitación'},{v:'No',t:'No, solo me atendió o me refirió'},{v:'No sé',t:'Aún no lo sé'}].forEach(function(o) {
+          html += '<option value="' + o.v + '"' + (d === o.v ? ' selected' : '') + '>' + o.t + '</option>';
+        });
+        html += '</select><div id="zrg-decisor-msg-' + c.idContacto + '" class="zrg-estado-error" style="font-size:12px;"></div>';
+        html += '</div>';
+      });
+    }
+    html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin-top:8px;" onclick="window.zrgMostrarFormContacto(\'' + ent.idEntidad + '\')">+ Agregar contacto</button>';
+    html += '<div id="zrg-form-contacto-' + ent.idEntidad + '" class="zrg-oculto" style="margin-top:10px;">';
+    html += '<input type="text" placeholder="Nombre" id="zrg-con-nombre-' + ent.idEntidad + '">';
+    html += '<input type="text" placeholder="Puesto (opcional)" id="zrg-con-puesto-' + ent.idEntidad + '">';
+    html += '<input type="text" placeholder="Teléfono/Extensión (opcional)" id="zrg-con-telefono-' + ent.idEntidad + '">';
+    html += '<input type="email" placeholder="Correo (opcional)" id="zrg-con-correo-' + ent.idEntidad + '">';
+    html += '<select id="zrg-con-decisor-' + ent.idEntidad + '"><option value="">¿Es quien decide o ve la capacitación? — elige</option><option value="Sí">Sí, decide / ve la capacitación</option><option value="No">No, solo me atendió o me refirió</option><option value="No sé">Aún no lo sé</option></select>';
+    html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-guardar-con-' + ent.idEntidad + '" onclick="window.zrgGuardarContacto(\'' + ent.idEntidad + '\')">Guardar contacto</button>';
+    html += '<div id="zrg-estado-con-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
+    html += '</div>';
+    html += '</div>';
+
+    html += '<div id="zrg-vista-plt-' + ent.idEntidad + '" style="margin-top:10px;">';
+    if (ent.planteles && ent.planteles.length > 0) {
+      html += '<div class="zrg-sec-t">Planteles</div>';
+      html += '<ul class="zrg-planteles-lista">';
+      ent.planteles.forEach(function(p) {
+        var partes = [];
+        if (p.direccion) partes.push(p.direccion);
+        if (p.entidadFederativa) partes.push(p.entidadFederativa);
+        if (p.codigoPostal) partes.push('C.P. ' + p.codigoPostal);
+        html += '<li><b>' + p.nombre + '</b>' + (partes.length ? ' — ' + partes.join(', ') : '') + '</li>';
+      });
+      html += '</ul>';
+    }
+    html += '</div>';
+
     // ===== Estado de la Entidad (lo cambia el referidor) =====
     var etapaActual = etapaDe(ent);
     var razonActual = (ent.grupos && ent.grupos[0] && ent.grupos[0].razonEstado) || '';
     html += '<div class="zrg-contacto">';
-    html += '<b style="color:#042C53;">Estado de la Entidad</b>';
+    html += '<div class="zrg-sec-t">Status de la Entidad</div>';
     if (etapaActual === 'Registrado' && ent.contactos && ent.contactos.length > 0) {
-      html += '<div class="zrg-aviso-alerta">Ya tienes contacto registrado: cambia el estado a "Contactada".</div>';
+      html += '<div class="zrg-aviso-alerta">Ya tienes contacto registrado: cambia el status a "Contactada".</div>';
     }
     if (etapaActual === 'Programa Cerrado') {
       html += '<div class="zrg-linea">Programa cerrado. Lo gestiona Javier.</div>';
@@ -1266,13 +1319,13 @@
       html += '<div id="zrg-estado-razon-wrap-' + ent.idEntidad + '" class="' + ((etapaActual === 'Pendiente' || etapaActual === 'No Interesado') ? '' : 'zrg-oculto') + '">';
       html += '<textarea id="zrg-estado-razon-' + ent.idEntidad + '" placeholder="¿Por qué? (lo que te dijeron o la razón). Si queda Pendiente, pon abajo la fecha de Próximo Seguimiento." style="min-height:44px;">' + String(razonActual).replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</textarea>';
       html += '</div>';
-      html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-estado-' + ent.idEntidad + '" onclick="window.zrgGuardarEstado(\'' + ent.idEntidad + '\')">Guardar estado</button>';
+      html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-estado-' + ent.idEntidad + '" onclick="window.zrgGuardarEstado(\'' + ent.idEntidad + '\')">Guardar status</button>';
       html += '<div id="zrg-estado-estado-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     }
     html += '</div>';
 
     html += '<div class="zrg-contacto">';
-    html += '<b style="color:#042C53;">Seguimiento/Notas</b>';
+    html += '<div class="zrg-sec-t">Seguimiento/Notas</div>';
     html += '<div id="zrg-notas-historial-' + ent.idEntidad + '" style="font-size:13px; color:#444; margin:4px 0; max-height:160px; overflow-y:auto;">' + formatearNotasConColor(ent.notas) + '</div>';
     html += '<textarea id="zrg-nota-nueva-' + ent.idEntidad + '" placeholder="Escribe TU seguimiento o nota..." style="min-height:44px;"></textarea>';
     html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-guardar-nota-' + ent.idEntidad + '" onclick="window.zrgAgregarNota(\'' + ent.idEntidad + '\')">+ Agregar al historial</button>';
@@ -1280,7 +1333,7 @@
     html += '</div>';
 
     html += '<div class="zrg-contacto">';
-    html += '<b style="color:#042C53;">Próximo Seguimiento</b>';
+    html += '<div class="zrg-sec-t">Próximo Seguimiento</div>';
     if (ent.proximoSeguimiento) {
       var fechaSeg = new Date(ent.proximoSeguimiento);
       var hoyLimpio = new Date(); hoyLimpio.setHours(0,0,0,0);
@@ -1313,7 +1366,7 @@
     html += '</div>';
 
     html += '<div class="zrg-contacto">';
-    html += '<b style="color:#042C53;">Grupos y Horarios</b>';
+    html += '<div class="zrg-sec-t">Grupos y Horarios</div>';
     if (!ent.grupos || ent.grupos.length === 0) {
       html += '<div class="zrg-linea">Ningún Grupo todavía.</div>';
     } else {
@@ -1368,38 +1421,6 @@
     html += '<div id="zrg-estado-grupo-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     html += '</div>';
 
-    html += '<div class="zrg-contacto">';
-    html += '<b style="color:#042C53;">Contactos</b>';
-    if (ent.contactos.length === 0) {
-      html += '<div class="zrg-linea">Ninguno todavía.</div>';
-    } else {
-      var nDecide = ent.contactos.filter(function(c) { return c.decisor === 'Sí'; }).length;
-      html += nDecide > 0
-        ? '<div class="zrg-aviso-ok">✓ Ya tienes contacto que decide la capacitación.</div>'
-        : '<div class="zrg-aviso-alerta">Ningún contacto está marcado como quien decide la capacitación. Pregúntale a tu contacto quién ve esos temas y márcalo abajo.</div>';
-      ent.contactos.forEach(function(c) {
-        var d = c.decisor || '';
-        var etiqueta = d === 'Sí' ? '<span class="zrg-insignia zrg-insignia-ok">DECIDE</span>' : (d === 'No' ? '<span class="zrg-insignia zrg-insignia-no">No decide</span>' : '<span class="zrg-insignia zrg-insignia-pend">Sin definir</span>');
-        html += '<div class="zrg-contacto-fila" style="display:block;"><span>' + c.nombre + (c.puesto ? ' — ' + c.puesto : '') + (c.telefono ? ' · ' + c.telefono : '') + (c.correo ? ' · ' + c.correo : '') + ' ' + etiqueta + ' <button type="button" class="zrg-btn-quitar-contacto" id="zrg-quitar-' + c.idContacto + '" onclick="window.zrgQuitarContacto(\'' + c.idContacto + '\')" title="Quitar este contacto">Quitar</button></span>';
-        html += '<select class="zrg-sel-decisor" id="zrg-decisor-' + c.idContacto + '" onchange="window.zrgCambiarDecisor(\'' + c.idContacto + '\')">';
-        [{v:'',t:'¿Es quien decide o ve la capacitación? — elige'},{v:'Sí',t:'Sí, decide / ve la capacitación'},{v:'No',t:'No, solo me atendió o me refirió'},{v:'No sé',t:'Aún no lo sé'}].forEach(function(o) {
-          html += '<option value="' + o.v + '"' + (d === o.v ? ' selected' : '') + '>' + o.t + '</option>';
-        });
-        html += '</select><div id="zrg-decisor-msg-' + c.idContacto + '" class="zrg-estado-error" style="font-size:12px;"></div>';
-        html += '</div>';
-      });
-    }
-    html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin-top:8px;" onclick="window.zrgMostrarFormContacto(\'' + ent.idEntidad + '\')">+ Agregar contacto</button>';
-    html += '<div id="zrg-form-contacto-' + ent.idEntidad + '" class="zrg-oculto" style="margin-top:10px;">';
-    html += '<input type="text" placeholder="Nombre" id="zrg-con-nombre-' + ent.idEntidad + '">';
-    html += '<input type="text" placeholder="Puesto (opcional)" id="zrg-con-puesto-' + ent.idEntidad + '">';
-    html += '<input type="text" placeholder="Teléfono/Extensión (opcional)" id="zrg-con-telefono-' + ent.idEntidad + '">';
-    html += '<input type="email" placeholder="Correo (opcional)" id="zrg-con-correo-' + ent.idEntidad + '">';
-    html += '<select id="zrg-con-decisor-' + ent.idEntidad + '"><option value="">¿Es quien decide o ve la capacitación? — elige</option><option value="Sí">Sí, decide / ve la capacitación</option><option value="No">No, solo me atendió o me refirió</option><option value="No sé">Aún no lo sé</option></select>';
-    html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-guardar-con-' + ent.idEntidad + '" onclick="window.zrgGuardarContacto(\'' + ent.idEntidad + '\')">Guardar contacto</button>';
-    html += '<div id="zrg-estado-con-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
-    html += '</div>';
-    html += '</div>';
     html += '</div>';
 
     elDetalle.innerHTML = html;
@@ -1423,8 +1444,8 @@
     });
 
     var elBtnGuardarEd = document.getElementById('zrg-btn-guardar-ed-' + ent.idEntidad);
-    var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tipo-', 'zrg-ed-empleados-', 'zrg-ed-sector-', 'zrg-ed-pubpriv-', 'zrg-ed-religion-'];
-    var valoresOriginales = { nombre: String(ent.nombre || ''), tipo: String(ent.tipo || ''), empleados: String(ent.empleadosElegibles || ''), sector: String(ent.sectorEconomico || ''), pubpriv: String(ent.publicoPrivado || ''), religion: String(ent.religion || ''), planteles: JSON.stringify(ent.planteles || []) };
+    var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tel-', 'zrg-ed-correo-', 'zrg-ed-web-', 'zrg-ed-tipo-', 'zrg-ed-empleados-', 'zrg-ed-sector-', 'zrg-ed-pubpriv-', 'zrg-ed-religion-'];
+    var valoresOriginales = { nombre: String(ent.nombre || ''), tipo: String(ent.tipo || ''), empleados: String(ent.empleadosElegibles || ''), sector: String(ent.sectorEconomico || ''), pubpriv: String(ent.publicoPrivado || ''), religion: String(ent.religion || ''), planteles: JSON.stringify(ent.planteles || []), tel: String(ent.telefono || ''), correo: String(ent.correo || ''), web: String(ent.web || '') };
     if (ES_ADMIN) {
       camposEdicion.push('zrg-ed-empleadosconf-');
       valoresOriginales.empleadosconf = String(ent.empleadosConfirmados || '');
@@ -1432,6 +1453,9 @@
     function revisarCambios() {
       var cambio =
         document.getElementById('zrg-ed-nombre-' + ent.idEntidad).value !== valoresOriginales.nombre ||
+        document.getElementById('zrg-ed-tel-' + ent.idEntidad).value !== valoresOriginales.tel ||
+        document.getElementById('zrg-ed-correo-' + ent.idEntidad).value !== valoresOriginales.correo ||
+        document.getElementById('zrg-ed-web-' + ent.idEntidad).value !== valoresOriginales.web ||
         document.getElementById('zrg-ed-tipo-' + ent.idEntidad).value !== valoresOriginales.tipo ||
         document.getElementById('zrg-ed-empleados-' + ent.idEntidad).value !== valoresOriginales.empleados ||
         document.getElementById('zrg-ed-sector-' + ent.idEntidad).value !== valoresOriginales.sector ||
@@ -1458,6 +1482,7 @@
 
   window.zrgMostrarFormEditar = function(idEntidad) {
     document.getElementById('zrg-vista-' + idEntidad).classList.toggle('zrg-oculto');
+    var vp = document.getElementById('zrg-vista-plt-' + idEntidad); if (vp) vp.classList.toggle('zrg-oculto');
     document.getElementById('zrg-form-editar-' + idEntidad).classList.toggle('zrg-oculto');
   };
 
@@ -1476,6 +1501,9 @@
       method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         accion: 'editarEntidad', ref: REF, idEntidad: idEntidad, nombre: nombre,
+        telefono: document.getElementById('zrg-ed-tel-' + idEntidad).value.trim(),
+        correo: document.getElementById('zrg-ed-correo-' + idEntidad).value.trim(),
+        web: document.getElementById('zrg-ed-web-' + idEntidad).value.trim(),
         tipo: document.getElementById('zrg-ed-tipo-' + idEntidad).value,
         planteles: zrgLeerPlanteles('zrg-ed-planteles-' + idEntidad),
         empleadosElegibles: document.getElementById('zrg-ed-empleados-' + idEntidad).value.trim(),
@@ -1562,7 +1590,7 @@
       notaLocal(ent, 'ESTADO → ' + estado + (razon ? ' — ' + razon : ''));
       aplicarFiltros();
     }
-    guardarEnSegundoPlano({ accion: 'actualizarEstadoEntidad', ref: REF, idEntidad: idEntidad, estado: estado, razon: razon }, 'No se pudo guardar el estado. Se restauró.');
+    guardarEnSegundoPlano({ accion: 'actualizarEstadoEntidad', ref: REF, idEntidad: idEntidad, estado: estado, razon: razon }, 'No se pudo guardar el status. Se restauró.');
   };
   window.zrgGuardarSeguimiento = function(idEntidad) {
     var dia = document.getElementById('zrg-ed-seg-dia-' + idEntidad).value;
