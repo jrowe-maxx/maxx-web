@@ -1846,6 +1846,12 @@
       });
   };
 
+  // La Galería avisa (vía localStorage, mismo origen) cuando da de alta una Escuela del lote como Entidad:
+  // aquí se vuelve a leer la lista sola, sin refrescar la página.
+  window.addEventListener('storage', function(ev) {
+    if (ev.key === 'maxx_entidades_cambio') { todasMisEntidades = null; cargarYFiltrar(); }
+  });
+
   cargarYFiltrar();
 })();
 </script>
