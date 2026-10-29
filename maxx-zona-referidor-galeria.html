@@ -2854,7 +2854,24 @@ var qrcode = function() {
   // [Nombre] (si eligió un contacto de la Entidad), [vínculo] y las
   // variantes escuela/empresa/institución. Lo demás lo llena el referidor.
   // ---------------------------------------------------------------------
-  var GR_URL_AGENDA = 'https://bit.ly/maxx-consulta'; // enlace "agendar cita" de maxx.mx (pendiente)
+  // Calendario "MAXX - Cita de Entidad" (HubSpot): martes y viernes 9:00-13:00, 30 min.
+  var GR_URL_AGENDA = 'https://meetings.hubspot.com/javier-rowe-hoppenstedt/maxx-cita-de-entidad';
+  // Arma el enlace para apartar la cita: precarga contacto y Entidad y lleva la UTM de origen
+  // (utm_term = clave del referidor, utm_content = ID de la Entidad).
+  function grUrlCita(ent, contacto) {
+    var q = [];
+    function a(k, v) { if (v) q.push(k + '=' + encodeURIComponent(v)); }
+    if (contacto && contacto.nombre) {
+      var partes = String(contacto.nombre).trim().split(/\s+/);
+      a('firstName', partes.shift()); a('lastName', partes.join(' '));
+      a('email', contacto.correo);
+      a('phone', contacto.telefono);
+    }
+    if (ent) { a('company', ent.nombre); a('utm_content', ent.idEntidad); }
+    a('utm_source', 'referidor'); a('utm_medium', 'zona-referidor'); a('utm_campaign', 'cita-entidad');
+    a('utm_term', REF_PRUEBA);
+    return GR_URL_AGENDA + (GR_URL_AGENDA.indexOf('?') === -1 ? '?' : '&') + q.join('&');
+  }
 
   var GR_VARIANTES = {
     ESCUELA:     { ent: 'escuela',     su: 'su escuela',     la: 'la escuela',     pers: 'maestros',      persObj: 'maestros',      perReg: 'personal docente y empleados' },
@@ -2923,8 +2940,10 @@ var qrcode = function() {
   function grGuion(texto) { return '<div class="gr-guion">' + grMostrar(texto) + '</div>'; }
   function grNota(texto) { return '<p class="gr-nota-g">' + grMostrar(texto) + '</p>'; }
   function grAvisoAgenda() {
-    return '<div class="gr-aviso"><b>Antes de enviarlo:</b> revisa la agenda de Javier y escoge dos días y horarios que estén libres. Esos son los que pondrás en los [día] y [hora] del texto, para no ofrecer un horario ocupado.' +
-      (GR_URL_AGENDA ? '<br><a class="btn gr-enlace" href="' + GR_URL_AGENDA + '" target="_blank" rel="noopener" style="margin-top:8px;display:block;text-align:center;">Ver horarios libres de Javier</a><br><span style="font-size:12px;">Solo para ver los horarios: no agendes ahí; la cita la confirma el contacto.</span>' : '') + '</div>';
+    var ent = grEntidadElegida(), c = grContactoElegido();
+    return '<div class="gr-aviso"><b>Agenda la cita con Javier:</b> escoge un horario libre en su calendario y confírmalo ahí mismo, con el contacto, en cuanto lo tengas de acuerdo (también desde el celular). Los horarios que elijas son los que pondrás en los [día] y [hora] del texto.' +
+      '<a class="btn gr-enlace" href="' + grUrlCita(ent, c) + '" target="_blank" rel="noopener" style="margin-top:8px;display:block;text-align:center;background:#639922;">Apartar Cita con Javier</a>' +
+      '<span style="font-size:12px;">Se abre el calendario de Citas con Entidades (martes y viernes de 9:00 a 13:00). Ya lleva los datos de ' + (ent ? 'la Entidad' + (c ? ' y del contacto' : '') : 'tu Entidad, si la eliges arriba') + ' y tu clave, para saber de quién viene la cita.</span></div>';
   }
   function grSub(texto) { return '<div class="gr-sub-t">' + grEsc(texto) + '</div>'; }
   function grLista(items, ordenada) {
