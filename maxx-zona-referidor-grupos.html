@@ -40,7 +40,12 @@
 .zrg-plantel-fila-sup .zrg-btn-quitar-plantel { flex: 0 0 auto; background: #FAECE7; color: #C0392B; border: 1px solid #F0997B; border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: bold; cursor: pointer; }
 .zrg-planteles-lista { margin: 2px 0 6px; padding-left: 18px; font-size: 13px; color: #444; }
 .zrg-planteles-lista li { margin-bottom: 3px; }
-.zrg-contacto { border-top: 1px dashed #E6F1FB; padding-top: 6px; margin-top: 8px; font-size: 13px; }
+.zrg-contacto { background: #F4F8FD; border: 1px solid #DCE8F6; border-radius: 10px; padding: 10px 12px; margin-top: 12px; font-size: 13px; }
+.zrg-contacto > *:not(.zrg-sec-t) { margin-left: 16px; }
+#zrg-wrap .zrg-contacto > input, #zrg-wrap .zrg-contacto > select, #zrg-wrap .zrg-contacto > textarea { width: calc(100% - 16px); }
+.zrg-btn-verde { background: #639922 !important; }
+.zrg-btn-verde:hover { background: #4F7B1A !important; }
+.zrg-btn-verde:disabled { background: #ccc !important; }
 .zrg-aviso-ok { background:#EAF3DE; color:#27500A; border-radius:6px; padding:6px 10px; margin:4px 0 6px; font-size:12px; }
 .zrg-aviso-alerta { background:#FFF6D6; border-left:4px solid #EF9F27; color:#412402; border-radius:6px; padding:6px 10px; margin:4px 0 6px; font-size:12px; line-height:1.35; }
 .zrg-insignia { display:inline-block; font-size:11px; font-weight:bold; border-radius:10px; padding:1px 8px; margin-left:4px; }
@@ -164,7 +169,7 @@
   <input type="text" id="zrg-alta-empleados" placeholder="Opcional">
   <label>Notas</label>
   <textarea id="zrg-alta-notas" placeholder="Opcional"></textarea>
-  <button class="zrg-btn" id="zrg-btn-guardar-alta">Guardar Entidad</button>
+  <button class="zrg-btn zrg-btn-verde" id="zrg-btn-guardar-alta">Guardar Entidad</button>
   <button class="zrg-btn zrg-btn-secundario" id="zrg-btn-cancelar-alta">Cancelar</button>
   <div id="zrg-estado-alta" class="zrg-estado-error"></div>
 </div>
@@ -488,7 +493,7 @@
         '<div id="zrg-esc-canal-w-' + escH(id) + '"><label>Canal</label><select id="zrg-esc-canal-' + escH(id) + '">' + opcionesEsc(RESUMEN_ESC.canales, 'Elige...') + '</select></div>' +
         '<div id="zrg-esc-con-w-' + escH(id) + '"><label>Nombre de con quien hablaste</label><input type="text" id="zrg-esc-nom-' + escH(id) + '"><label>Puesto</label><input type="text" id="zrg-esc-pue-' + escH(id) + '"></div>' +
         '<label id="zrg-esc-nota-l-' + escH(id) + '">Nota (opcional)</label><textarea id="zrg-esc-nota-' + escH(id) + '"></textarea>' +
-        '<button type="button" class="zrg-btn" data-esc-guardar="' + escH(id) + '">Guardar</button> ' +
+        '<button type="button" class="zrg-btn zrg-btn-verde" data-esc-guardar="' + escH(id) + '">Guardar</button> ' +
         '<button type="button" class="zrg-btn zrg-btn-secundario" data-esc-cancelar="' + escH(id) + '">Cancelar</button>' +
         '<div class="zrg-esc-msg" id="zrg-esc-msg-' + escH(id) + '"></div></div>';
     }
@@ -1201,8 +1206,8 @@
     html += '<div class="zrg-linea" style="color:#999;">ID Entidad: <b style="color:#185FA5;">' + ent.idEntidad + '</b> (para armar el link de registro: <code style="font-size:11px;">?entidad=' + ent.idEntidad + '</code>)</div>';
     html += '<span class="zrg-tag">' + ent.tipo + '</span>';
     html += '<span class="zrg-tag zrg-tag-etapa">' + etapaDe(ent) + '</span>';
-    html += '<div id="zrg-vista-' + ent.idEntidad + '">';
-    html += '<div class="zrg-sec-t" style="margin-top:8px;">Datos</div>';
+    html += '<div id="zrg-vista-' + ent.idEntidad + '" class="zrg-contacto">';
+    html += '<div class="zrg-sec-t">Datos</div>';
     if (ent.telefono) html += '<div class="zrg-linea"><b>Teléfono:</b> <a href="tel:' + String(ent.telefono).replace(/[^0-9+]/g, '') + '">' + ent.telefono + '</a></div>';
     if (ent.correo) html += '<div class="zrg-linea"><b>Correo:</b> <a href="mailto:' + ent.correo + '">' + ent.correo + '</a></div>';
     if (ent.web) { var webU = /^https?:/i.test(ent.web) ? ent.web : 'https://' + ent.web; html += '<div class="zrg-linea"><b>Sitio web:</b> <a href="' + webU + '" target="_blank" rel="noopener">' + ent.web + '</a></div>'; }
@@ -1221,7 +1226,9 @@
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" style="margin-top:6px;" onclick="window.zrgMostrarFormEditar(\'' + ent.idEntidad + '\')">Editar</button>';
     html += '</div>';
 
-    html += '<div id="zrg-form-editar-' + ent.idEntidad + '" class="zrg-oculto" style="margin-top:10px;">';
+    html += '<div id="zrg-form-editar-' + ent.idEntidad + '" class="zrg-oculto zrg-contacto">';
+    html += '<div class="zrg-sec-t">Datos — editando</div>';
+    html += '<button type="button" class="zrg-btn zrg-btn-chico zrg-btn-verde" id="zrg-btn-guardar-ed-top-' + ent.idEntidad + '" disabled onclick="document.getElementById(\'zrg-btn-guardar-ed-' + ent.idEntidad + '\').click()" style="margin-bottom:8px;">Sin cambios</button>';
     html += '<label>Nombre de Entidad <span class="zrg-tooltip" title="Una Entidad puede ser una Escuela, Empresa, Institución, o el nombre del Grupo en el que participan personas afines (Grupo Personal, Religioso, o de una Red Social).">?</span></label>';
     html += '<input type="text" id="zrg-ed-nombre-' + ent.idEntidad + '" value="' + String(ent.nombre || '').replace(/"/g, '&quot;') + '">';
     html += '<label>Teléfono</label><input type="text" id="zrg-ed-tel-' + ent.idEntidad + '" value="' + String(ent.telefono || '').replace(/"/g, '&quot;') + '">';
@@ -1247,7 +1254,7 @@
       html += '<label>Participantes Confirmados (MAXX) — solo tú</label>';
       html += '<input type="text" id="zrg-ed-empleadosconf-' + ent.idEntidad + '" value="' + String(ent.empleadosConfirmados || '').replace(/"/g, '&quot;') + '">';
     }
-    html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-guardar-ed-' + ent.idEntidad + '" disabled onclick="window.zrgGuardarEdicion(\'' + ent.idEntidad + '\')">Sin cambios</button>';
+    html += '<button class="zrg-btn zrg-btn-chico zrg-btn-verde" id="zrg-btn-guardar-ed-' + ent.idEntidad + '" disabled onclick="window.zrgGuardarEdicion(\'' + ent.idEntidad + '\')">Sin cambios</button>';
     html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgMostrarFormEditar(\'' + ent.idEntidad + '\')">Cancelar</button>';
     html += '<div id="zrg-estado-ed-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     html += '</div>';
@@ -1280,12 +1287,12 @@
     html += '<input type="text" placeholder="Teléfono/Extensión (opcional)" id="zrg-con-telefono-' + ent.idEntidad + '">';
     html += '<input type="email" placeholder="Correo (opcional)" id="zrg-con-correo-' + ent.idEntidad + '">';
     html += '<select id="zrg-con-decisor-' + ent.idEntidad + '"><option value="">¿Es quien decide o ve la capacitación? — elige</option><option value="Sí">Sí, decide / ve la capacitación</option><option value="No">No, solo me atendió o me refirió</option><option value="No sé">Aún no lo sé</option></select>';
-    html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-guardar-con-' + ent.idEntidad + '" onclick="window.zrgGuardarContacto(\'' + ent.idEntidad + '\')">Guardar contacto</button>';
+    html += '<button class="zrg-btn zrg-btn-chico zrg-btn-verde" id="zrg-btn-guardar-con-' + ent.idEntidad + '" onclick="window.zrgGuardarContacto(\'' + ent.idEntidad + '\')">Guardar contacto</button>';
     html += '<div id="zrg-estado-con-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     html += '</div>';
     html += '</div>';
 
-    html += '<div id="zrg-vista-plt-' + ent.idEntidad + '" style="margin-top:10px;">';
+    html += '<div id="zrg-vista-plt-' + ent.idEntidad + '" class="zrg-contacto">';
     if (ent.planteles && ent.planteles.length > 0) {
       html += '<div class="zrg-sec-t">Planteles</div>';
       html += '<ul class="zrg-planteles-lista">';
@@ -1319,7 +1326,7 @@
       html += '<div id="zrg-estado-razon-wrap-' + ent.idEntidad + '" class="' + ((etapaActual === 'Pendiente' || etapaActual === 'No Interesado') ? '' : 'zrg-oculto') + '">';
       html += '<textarea id="zrg-estado-razon-' + ent.idEntidad + '" placeholder="¿Por qué? (lo que te dijeron o la razón). Si queda Pendiente, pon abajo la fecha de Próximo Seguimiento." style="min-height:44px;">' + String(razonActual).replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</textarea>';
       html += '</div>';
-      html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-estado-' + ent.idEntidad + '" onclick="window.zrgGuardarEstado(\'' + ent.idEntidad + '\')">Guardar status</button>';
+      html += '<button class="zrg-btn zrg-btn-chico zrg-btn-verde" id="zrg-btn-estado-' + ent.idEntidad + '" onclick="window.zrgGuardarEstado(\'' + ent.idEntidad + '\')">Guardar status</button>';
       html += '<div id="zrg-estado-estado-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     }
     html += '</div>';
@@ -1328,7 +1335,7 @@
     html += '<div class="zrg-sec-t">Seguimiento/Notas</div>';
     html += '<div id="zrg-notas-historial-' + ent.idEntidad + '" style="font-size:13px; color:#444; margin:4px 0; max-height:160px; overflow-y:auto;">' + formatearNotasConColor(ent.notas) + '</div>';
     html += '<textarea id="zrg-nota-nueva-' + ent.idEntidad + '" placeholder="Escribe TU seguimiento o nota..." style="min-height:44px;"></textarea>';
-    html += '<button class="zrg-btn zrg-btn-chico" id="zrg-btn-guardar-nota-' + ent.idEntidad + '" onclick="window.zrgAgregarNota(\'' + ent.idEntidad + '\')">+ Agregar al historial</button>';
+    html += '<button class="zrg-btn zrg-btn-chico zrg-btn-verde" id="zrg-btn-guardar-nota-' + ent.idEntidad + '" onclick="window.zrgAgregarNota(\'' + ent.idEntidad + '\')">+ Agregar al historial</button>';
     html += '<div id="zrg-estado-nota-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     html += '</div>';
 
@@ -1361,7 +1368,7 @@
     for (var a = anioBase; a <= anioBase + 1; a++) html += '<option value="' + a + '"' + (a === anioActual ? ' selected' : '') + '>' + a + '</option>';
     html += '</select>';
     html += '</div>';
-    html += '<button class="zrg-btn zrg-btn-chico" style="margin-top:8px;" onclick="window.zrgGuardarSeguimiento(\'' + ent.idEntidad + '\')">Guardar fecha</button>';
+    html += '<button class="zrg-btn zrg-btn-chico zrg-btn-verde" style="margin-top:8px;" onclick="window.zrgGuardarSeguimiento(\'' + ent.idEntidad + '\')">Guardar fecha</button>';
     html += '<div id="zrg-estado-seg-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     html += '</div>';
 
@@ -1403,7 +1410,7 @@
         html += '<label>Hora</label>' + htmlSelectorHora('zrg-hor-hora-' + g.codigoGrupo);
         html += '<label>Cupo Máximo</label><input type="text" id="zrg-hor-cupo-' + g.codigoGrupo + '" value="30">';
         html += '<label>Fecha Límite de Registro</label>' + htmlSelectorFecha('zrg-hor-limite-' + g.codigoGrupo);
-        html += '<button class="zrg-btn zrg-btn-chico" onclick="window.zrgGuardarHorario(\'' + ent.idEntidad + '\', \'' + g.codigoGrupo + '\')">Guardar Horario</button> ';
+        html += '<button class="zrg-btn zrg-btn-chico zrg-btn-verde" onclick="window.zrgGuardarHorario(\'' + ent.idEntidad + '\', \'' + g.codigoGrupo + '\')">Guardar Horario</button> ';
         html += '<button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgMostrarFormAgendar(\'' + ent.idEntidad + '\', \'' + g.codigoGrupo + '\', 0)">Cancelar</button>';
         html += '<div id="zrg-estado-hor-' + g.codigoGrupo + '" class="zrg-estado-error" style="font-size:12px;"></div>';
         html += '</div>';
@@ -1465,6 +1472,8 @@
         (ES_ADMIN && document.getElementById('zrg-ed-empleadosconf-' + ent.idEntidad).value !== valoresOriginales.empleadosconf);
       elBtnGuardarEd.disabled = !cambio;
       elBtnGuardarEd.textContent = cambio ? 'Guardar cambios' : 'Sin cambios';
+      var elBtnTop = document.getElementById('zrg-btn-guardar-ed-top-' + ent.idEntidad);
+      if (elBtnTop) { elBtnTop.disabled = !cambio; elBtnTop.textContent = cambio ? 'Guardar cambios' : 'Sin cambios'; }
       elBtnGuardarEd.classList.remove('zrg-btn-guardado');
     }
     camposEdicion.forEach(function(prefijo) {
