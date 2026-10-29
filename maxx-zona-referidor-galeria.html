@@ -2781,7 +2781,8 @@ var qrcode = function() {
       accion: 'darDeAltaEntidad', ref: REF_PRUEBA, nombre: sch.nombre, tipo: 'Escuela',
       planteles: [{ nombre: sch.municipio || '', direccion: '', entidadFederativa: grFederativa(sch.entidad), codigoPostal: '' }],
       empleadosElegibles: '', sectorEconomico: '', publicoPrivado: '', religion: '',
-      notas: 'Viene de mi lote de Escuelas.' + (sch.telefono ? ' Tel: ' + sch.telefono + '.' : '')
+      telefono: sch.telefono || '', correo: sch.correo || '', web: sch.web || '',
+      notas: 'Viene de mi lote de Escuelas.'
     }) })
       .then(function(res) { return res.json(); })
       .then(function(d) {
