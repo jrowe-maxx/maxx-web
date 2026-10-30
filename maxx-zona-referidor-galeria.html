@@ -74,8 +74,9 @@
   .gr-texto { border: 2px solid #E6F1FB; border-radius: 8px; padding: 10px 12px; margin: 0 0 12px 0; background: white; }
   .gr-texto-et { color: #185FA5; font-weight: bold; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 6px; }
   .gr-texto-cuerpo { font-size: 14px; color: #222; line-height: 1.5; margin-bottom: 10px; word-break: break-word; }
-  .gr-copiar { background: #639922; margin-bottom: 0; }
-  .gr-correo { background: #185FA5; color: #fff; margin-bottom: 0; display: inline-block; width: auto; text-decoration: none; box-sizing: border-box; }
+  .gr-copiar { background: #639922; margin-bottom: 0; width: auto; padding: 6px 16px; font-size: 13px; }
+  .gr-texto-sub { font-size: 12px; font-weight: bold; color: #185FA5; margin: 10px 0 2px; text-transform: uppercase; letter-spacing: .3px; }
+  .gr-correo { background: #185FA5; color: #fff; margin: 14px 0 0; display: block; width: 100%; text-align: center; text-decoration: none; box-sizing: border-box; }
   .gr-correo:hover { background: #378ADD; }
   .gr-fila { border: 1px solid #E6F1FB; border-radius: 8px; padding: 10px 12px; margin: 0 0 8px 0; font-size: 14px; line-height: 1.45; background: white; }
   .gr-fila-d { font-weight: bold; color: #042C53; margin-bottom: 4px; }
@@ -2887,7 +2888,6 @@ var qrcode = function() {
   };
 
   var grTextosCopiables = [];
-  var grUltimoAsunto = -1;   // indice del ultimo asunto de correo (para armar el boton Abrir en mi correo)
   var grCamino = [];      // índices de las opciones elegidas, en orden
   var grClaveGuia = '';   // tipo|entidad|contacto para saber cuándo reiniciar
 
@@ -2945,19 +2945,31 @@ var qrcode = function() {
     else if (ent && ent.correo) para = String(ent.correo).split(';')[0].trim();
     return 'mailto:' + encodeURIComponent(para).replace(/%40/g, '@') + '?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(String(cuerpo).replace(/\n/g, '\r\n'));
   }
+  // Asunto + mensaje de correo van juntos en UNA caja: copiar cada uno por separado (botones cortos) o un solo boton azul que abre el correo con todo.
+  var grAsuntoPendiente = null;
   function grBloqueTexto(etiqueta, texto) {
     var i = grTextosCopiables.push(texto) - 1;
-    var esAsunto = (etiqueta.indexOf('Correo — asunto') === 0 || etiqueta.indexOf('Asunto (solo correo)') === 0);
-    if (esAsunto) grUltimoAsunto = i;
-    var botonCorreo = '';
-    if ((etiqueta === 'Correo — mensaje' || etiqueta === 'Mensaje') && grUltimoAsunto >= 0) {
-      botonCorreo = ' <a class="btn gr-correo" target="_top" href="' + grEsc(grMailto(grTextosCopiables[grUltimoAsunto], texto)) + '">Abrir en mi correo</a>';
-      grUltimoAsunto = -1;
+    if (etiqueta.indexOf('Correo — asunto') === 0 || etiqueta.indexOf('Asunto (solo correo)') === 0) {
+      grAsuntoPendiente = { i: i, texto: texto, solo: etiqueta.indexOf('Asunto (solo correo)') === 0 };
+      return '';
+    }
+    if ((etiqueta === 'Correo — mensaje' || etiqueta === 'Mensaje') && grAsuntoPendiente) {
+      var as = grAsuntoPendiente; grAsuntoPendiente = null;
+      return '<div class="gr-texto">' +
+        '<div class="gr-texto-et">' + (as.solo ? 'Mensaje (WhatsApp o correo)' : 'Correo') + '</div>' +
+        '<div class="gr-texto-sub">Asunto</div>' +
+        '<div class="gr-texto-cuerpo">' + grMostrar(as.texto) + '</div>' +
+        '<button class="btn gr-copiar" data-i="' + as.i + '">Copiar asunto</button>' +
+        '<div class="gr-texto-sub">Mensaje</div>' +
+        '<div class="gr-texto-cuerpo">' + grMostrar(texto) + '</div>' +
+        '<button class="btn gr-copiar" data-i="' + i + '">Copiar mensaje</button>' +
+        '<a class="btn gr-correo" target="_top" href="' + grEsc(grMailto(as.texto, texto)) + '">Copiar Asunto y Mensaje directo a Correo</a>' +
+      '</div>';
     }
     return '<div class="gr-texto">' +
       '<div class="gr-texto-et">' + grEsc(etiqueta) + '</div>' +
       '<div class="gr-texto-cuerpo">' + grMostrar(texto) + '</div>' +
-      '<button class="btn gr-copiar" data-i="' + i + '">Copiar texto</button>' + botonCorreo +
+      '<button class="btn gr-copiar" data-i="' + i + '">Copiar texto</button>' +
     '</div>';
   }
   function grGuion(texto) { return '<div class="gr-guion">' + grMostrar(texto) + '</div>'; }
@@ -3189,7 +3201,7 @@ var qrcode = function() {
     var clave = t.id + '|' + grState.idEntidad;
     if (clave !== grClaveGuia) { grClaveGuia = clave; grCamino = []; grState.idContacto = ''; }
     grTextosCopiables = [];
-    grUltimoAsunto = -1;
+    grAsuntoPendiente = null;
 
     var arbol = grArbol(t, cfg);
     var titulo = (t.journey === 'A') ? ('Guía paso a paso — ' + t.singular) : ('Guía paso a paso — ' + (cfg.fuente === 'F' ? 'Grupo de Facebook' : 'Grupo de WhatsApp'));
