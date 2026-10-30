@@ -1200,6 +1200,21 @@
 
   // Calendario "MAXX - Cita de Entidad" (HubSpot): martes y viernes 9:00-13:00, 30 min.
   var URL_CITA_ENTIDAD = 'https://meetings.hubspot.com/javier-rowe-hoppenstedt/maxx-cita-de-entidad';
+  // Hasta 3 correos / 3 telefonos por Entidad: se guardan en una sola celda separados por ";".
+  function zrgPartes(v) { return String(v || '').split(';').map(function(x) { return x.trim(); }).filter(function(x) { return x; }); }
+  function zrgJuntar(prefijo, id) {
+    var out = [];
+    ['', '2', '3'].forEach(function(n) { var el = document.getElementById(prefijo + n + '-' + id); if (el && el.value.trim()) out.push(el.value.trim()); });
+    return out.join('; ');
+  }
+  function zrgCamposMulti(etiqueta, prefijo, id, valor, tipo) {
+    var p = zrgPartes(valor), h = '<label>' + etiqueta + '</label>';
+    for (var i = 0; i < 3; i++) {
+      h += '<input type="' + tipo + '" id="' + prefijo + (i === 0 ? '' : String(i + 1)) + '-' + id + '" value="' + String(p[i] || '').replace(/"/g, '&quot;') + '" placeholder="' + (i === 0 ? etiqueta : etiqueta + ' ' + (i + 1) + ' (opcional)') + '" style="margin-bottom:6px;">';
+    }
+    return h;
+  }
+
   function urlCitaEntidad(ent, contacto) {
     var q = [];
     function a(k, v) { if (v) q.push(k + '=' + encodeURIComponent(v)); }
@@ -1210,7 +1225,7 @@
     }
     a('company', ent.nombre); a('utm_content', ent.idEntidad);
     a('utm_source', 'referidor'); a('utm_medium', 'zona-referidor'); a('utm_campaign', 'cita-entidad');
-    a('utm_term', REF);
+    a('utm_term', REF); a('maxx_referidor_clave', REF);
     return URL_CITA_ENTIDAD + '?' + q.join('&');
   }
 
@@ -1232,8 +1247,8 @@
     html += '<span class="zrg-tag zrg-tag-etapa">' + etapaDe(ent) + '</span>';
     html += '<div id="zrg-vista-' + ent.idEntidad + '" class="zrg-contacto">';
     html += '<div class="zrg-sec-t">Datos</div>';
-    if (ent.telefono) html += '<div class="zrg-linea"><b>Teléfono:</b> <a href="tel:' + String(ent.telefono).replace(/[^0-9+]/g, '') + '">' + ent.telefono + '</a></div>';
-    if (ent.correo) html += '<div class="zrg-linea"><b>Correo:</b> <a href="mailto:' + ent.correo + '">' + ent.correo + '</a></div>';
+    if (ent.telefono) html += '<div class="zrg-linea"><b>Teléfono:</b> ' + zrgPartes(ent.telefono).map(function(t) { return '<a href="tel:' + t.replace(/[^0-9+]/g, '') + '">' + t + '</a>'; }).join(' · ') + '</div>';
+    if (ent.correo) html += '<div class="zrg-linea"><b>Correo:</b> ' + zrgPartes(ent.correo).map(function(c) { return '<a href="mailto:' + c + '">' + c + '</a>'; }).join(' · ') + '</div>';
     if (ent.web) { var webU = /^https?:/i.test(ent.web) ? ent.web : 'https://' + ent.web; html += '<div class="zrg-linea"><b>Sitio web:</b> <a href="' + webU + '" target="_blank" rel="noopener">' + ent.web + '</a></div>'; }
     if (!ent.telefono && !ent.correo && !ent.web && esTipoGrupoAfin(ent.tipo) === false) html += '<div class="zrg-linea" style="color:#999;">Sin teléfono, correo ni sitio web. Usa Editar para agregarlos.</div>';
     if (ent.empleadosElegibles) html += '<div class="zrg-linea"><b># Potencial de Participantes (estimado):</b> ' + ent.empleadosElegibles + '</div>';
@@ -1255,8 +1270,8 @@
     html += '<button type="button" class="zrg-btn zrg-btn-chico zrg-btn-verde" id="zrg-btn-guardar-ed-top-' + ent.idEntidad + '" disabled onclick="document.getElementById(\'zrg-btn-guardar-ed-' + ent.idEntidad + '\').click()" style="margin-bottom:8px;">Sin cambios</button>';
     html += '<label>Nombre de Entidad <span class="zrg-tooltip" title="Una Entidad puede ser una Escuela, Empresa, Institución, o el nombre del Grupo en el que participan personas afines (Grupo Personal, Religioso, o de una Red Social).">?</span></label>';
     html += '<input type="text" id="zrg-ed-nombre-' + ent.idEntidad + '" value="' + String(ent.nombre || '').replace(/"/g, '&quot;') + '">';
-    html += '<label>Teléfono</label><input type="text" id="zrg-ed-tel-' + ent.idEntidad + '" value="' + String(ent.telefono || '').replace(/"/g, '&quot;') + '">';
-    html += '<label>Correo</label><input type="text" id="zrg-ed-correo-' + ent.idEntidad + '" value="' + String(ent.correo || '').replace(/"/g, '&quot;') + '">';
+    html += zrgCamposMulti('Teléfono', 'zrg-ed-tel', ent.idEntidad, ent.telefono, 'text');
+    html += zrgCamposMulti('Correo', 'zrg-ed-correo', ent.idEntidad, ent.correo, 'text');
     html += '<label>Sitio web</label><input type="text" id="zrg-ed-web-' + ent.idEntidad + '" value="' + String(ent.web || '').replace(/"/g, '&quot;') + '">';
     html += '<label>Tipo</label>';
     html += '<select id="zrg-ed-tipo-' + ent.idEntidad + '">';
@@ -1487,8 +1502,8 @@
     });
 
     var elBtnGuardarEd = document.getElementById('zrg-btn-guardar-ed-' + ent.idEntidad);
-    var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tel-', 'zrg-ed-correo-', 'zrg-ed-web-', 'zrg-ed-tipo-', 'zrg-ed-empleados-', 'zrg-ed-sector-', 'zrg-ed-pubpriv-', 'zrg-ed-religion-'];
-    var valoresOriginales = { nombre: String(ent.nombre || ''), tipo: String(ent.tipo || ''), empleados: String(ent.empleadosElegibles || ''), sector: String(ent.sectorEconomico || ''), pubpriv: String(ent.publicoPrivado || ''), religion: String(ent.religion || ''), planteles: JSON.stringify(ent.planteles || []), tel: String(ent.telefono || ''), correo: String(ent.correo || ''), web: String(ent.web || '') };
+    var camposEdicion = ['zrg-ed-nombre-', 'zrg-ed-tel-', 'zrg-ed-tel2-', 'zrg-ed-tel3-', 'zrg-ed-correo-', 'zrg-ed-correo2-', 'zrg-ed-correo3-', 'zrg-ed-web-', 'zrg-ed-tipo-', 'zrg-ed-empleados-', 'zrg-ed-sector-', 'zrg-ed-pubpriv-', 'zrg-ed-religion-'];
+    var valoresOriginales = { nombre: String(ent.nombre || ''), tipo: String(ent.tipo || ''), empleados: String(ent.empleadosElegibles || ''), sector: String(ent.sectorEconomico || ''), pubpriv: String(ent.publicoPrivado || ''), religion: String(ent.religion || ''), planteles: JSON.stringify(ent.planteles || []), tel: zrgPartes(ent.telefono).join('; '), correo: zrgPartes(ent.correo).join('; '), web: String(ent.web || '') };
     if (ES_ADMIN) {
       camposEdicion.push('zrg-ed-empleadosconf-');
       valoresOriginales.empleadosconf = String(ent.empleadosConfirmados || '');
@@ -1496,8 +1511,8 @@
     function revisarCambios() {
       var cambio =
         document.getElementById('zrg-ed-nombre-' + ent.idEntidad).value !== valoresOriginales.nombre ||
-        document.getElementById('zrg-ed-tel-' + ent.idEntidad).value !== valoresOriginales.tel ||
-        document.getElementById('zrg-ed-correo-' + ent.idEntidad).value !== valoresOriginales.correo ||
+        zrgJuntar('zrg-ed-tel', ent.idEntidad) !== valoresOriginales.tel ||
+        zrgJuntar('zrg-ed-correo', ent.idEntidad) !== valoresOriginales.correo ||
         document.getElementById('zrg-ed-web-' + ent.idEntidad).value !== valoresOriginales.web ||
         document.getElementById('zrg-ed-tipo-' + ent.idEntidad).value !== valoresOriginales.tipo ||
         document.getElementById('zrg-ed-empleados-' + ent.idEntidad).value !== valoresOriginales.empleados ||
@@ -1546,8 +1561,8 @@
       method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         accion: 'editarEntidad', ref: REF, idEntidad: idEntidad, nombre: nombre,
-        telefono: document.getElementById('zrg-ed-tel-' + idEntidad).value.trim(),
-        correo: document.getElementById('zrg-ed-correo-' + idEntidad).value.trim(),
+        telefono: zrgJuntar('zrg-ed-tel', idEntidad),
+        correo: zrgJuntar('zrg-ed-correo', idEntidad),
         web: document.getElementById('zrg-ed-web-' + idEntidad).value.trim(),
         tipo: document.getElementById('zrg-ed-tipo-' + idEntidad).value,
         planteles: zrgLeerPlanteles('zrg-ed-planteles-' + idEntidad),
