@@ -2947,13 +2947,20 @@ var qrcode = function() {
   }
   // Asunto + mensaje de correo van juntos en UNA caja: copiar cada uno por separado (botones cortos) o un solo boton azul que abre el correo con todo.
   var grAsuntoPendiente = null;
+  // Textos de correo que no traen asunto propio: se les arma uno automatico para poder abrirlos directo en el correo.
+  var GR_ETQ_ASUNTO_AUTO = ['Gracias + opciones de horario', 'Confirmación de la cita'];
   function grBloqueTexto(etiqueta, texto) {
     var i = grTextosCopiables.push(texto) - 1;
+    var autoAsunto = GR_ETQ_ASUNTO_AUTO.indexOf(etiqueta) >= 0;
+    if (autoAsunto) {
+      var asAuto = grLlenar('Cita con Javier Rowe — Programa de Finanzas Personales para {Entidad}');
+      grAsuntoPendiente = { i: grTextosCopiables.push(asAuto) - 1, texto: asAuto, solo: true };
+    }
     if (etiqueta.indexOf('Correo — asunto') === 0 || etiqueta.indexOf('Asunto (solo correo)') === 0) {
       grAsuntoPendiente = { i: i, texto: texto, solo: etiqueta.indexOf('Asunto (solo correo)') === 0 };
       return '';
     }
-    if ((etiqueta === 'Correo — mensaje' || etiqueta === 'Mensaje') && grAsuntoPendiente) {
+    if ((etiqueta === 'Correo — mensaje' || etiqueta === 'Mensaje' || autoAsunto) && grAsuntoPendiente) {
       var as = grAsuntoPendiente; grAsuntoPendiente = null;
       return '<div class="gr-texto">' +
         '<div class="gr-texto-et">' + (as.solo ? 'Mensaje (WhatsApp o correo)' : 'Correo') + '</div>' +
