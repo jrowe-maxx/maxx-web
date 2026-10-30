@@ -2770,6 +2770,7 @@ var qrcode = function() {
     return grState.escuelas || [];
   }
   // Convierte una Escuela del lote en Entidad (misma conversión de la pantalla TUS Entidades) y la deja elegida.
+  function grPotDeSegmento(seg) { return ({ A: 101, B: 51, C: 31, D: 11 })[String(seg || '').trim()] || ''; }
   function grConvertirEscuela(idAsignacion) {
     var sch = null;
     (grState.escuelas || []).forEach(function(e) { if (e.idAsignacion === idAsignacion) sch = e; });
@@ -2780,9 +2781,9 @@ var qrcode = function() {
     fetch(GRUPOS_API_URL, { method: 'POST', mode: 'cors', headers: h, body: JSON.stringify({
       accion: 'darDeAltaEntidad', ref: REF_PRUEBA, nombre: sch.nombre, tipo: 'Escuela',
       planteles: [{ nombre: sch.municipio || '', direccion: '', entidadFederativa: grFederativa(sch.entidad), codigoPostal: '' }],
-      empleadosElegibles: '', sectorEconomico: '', publicoPrivado: '', religion: '',
+      empleadosElegibles: grPotDeSegmento(sch.segmento), sectorEconomico: '', publicoPrivado: '', religion: '',
       telefono: sch.telefono || '', correo: sch.correo || '', web: sch.web || '',
-      notas: 'Viene de mi lote de Escuelas.'
+      notas: 'Viene de mi lote de Escuelas.' + (grPotDeSegmento(sch.segmento) ? ' Potencial de participantes estimado en ' + grPotDeSegmento(sch.segmento) + ' (rango inferior del personal en el directorio). Es solo una aproximación; ajústalo cuando tengas la cifra exacta.' : '')
     }) })
       .then(function(res) { return res.json(); })
       .then(function(d) {
@@ -2869,7 +2870,7 @@ var qrcode = function() {
     }
     if (ent) { a('company', ent.nombre); a('utm_content', ent.idEntidad); }
     a('utm_source', 'referidor'); a('utm_medium', 'zona-referidor'); a('utm_campaign', 'cita-entidad');
-    a('utm_term', REF_PRUEBA);
+    a('utm_term', REF_PRUEBA); a('maxx_referidor_clave', REF_PRUEBA);
     return GR_URL_AGENDA + (GR_URL_AGENDA.indexOf('?') === -1 ? '?' : '&') + q.join('&');
   }
 
