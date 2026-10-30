@@ -2917,7 +2917,7 @@ var qrcode = function() {
   function grLlenar(texto, v) {
     var ent = grEntidadElegida(), con = grContactoElegido();
     var datos = {
-      Referidor: grNombreReferidor() || '[Referidor]',
+      Referidor: (grNombreReferidor().trim().split(/\s+/)[0]) || '[Referidor]',   // solo el primer nombre
       Entidad: ent ? ent.nombre : '[Nombre de la Entidad]',
       Nombre: (con && con.nombre) ? con.nombre : '[Nombre]',
       vinculo: grVinculoAfines()
