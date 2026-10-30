@@ -546,6 +546,9 @@
     }).catch(function() { btn.disabled = false; btn.textContent = 'Guardar'; m.className = 'zrg-esc-msg zrg-estado-error'; m.textContent = 'No se pudo conectar. Intenta de nuevo.'; });
   }
 
+  // Potencial estimado de una escuela del directorio: rango INFERIOR del personal por plantel (segmento A 101+, B 51-100, C 31-50, D 11-30).
+  function POT_DE_SEGMENTO(seg) { return ({ A: 101, B: 51, C: 31, D: 11 })[String(seg || '').trim()] || ''; }
+  function POT_NOTA(n) { return n ? ' Potencial de participantes estimado en ' + n + ' (rango inferior del personal en el directorio). Es solo una aproximación; ajústalo cuando tengas la cifra exacta.' : ''; }
   // Conversión automática: la escuela del lote pasa a ser Entidad con sus datos del directorio (nada se reescribe).
   function convertirEscuelaEnEntidad(sch, contactoNombre, contactoPuesto) {
     var h = { 'Content-Type': 'text/plain;charset=utf-8' };
@@ -554,9 +557,9 @@
     llamar({
       accion: 'darDeAltaEntidad', ref: REF, nombre: sch.nombre, tipo: 'Escuela',
       planteles: [{ nombre: sch.municipio || '', direccion: '', entidadFederativa: federativaDeEscuela(sch.entidad), codigoPostal: '' }],
-      empleadosElegibles: '', sectorEconomico: '', publicoPrivado: '', religion: '',
+      empleadosElegibles: POT_DE_SEGMENTO(sch.segmento), sectorEconomico: '', publicoPrivado: '', religion: '',
       telefono: sch.telefono || '', correo: sch.correo || '', web: sch.web || '',
-      notas: 'Viene de mi lote de Escuelas.'
+      notas: 'Viene de mi lote de Escuelas.' + POT_NOTA(POT_DE_SEGMENTO(sch.segmento))
     }).then(function(d) {
       if (!d.exito) { terminar(); return; }
       var idNueva = d.idEntidad;
@@ -1253,7 +1256,7 @@
     if (ent.correo) html += '<div class="zrg-linea"><b>Correo:</b> ' + zrgPartes(ent.correo).map(function(c) { return '<a href="mailto:' + c + '">' + c + '</a>'; }).join(' · ') + '</div>';
     if (ent.web) { var webU = /^https?:/i.test(ent.web) ? ent.web : 'https://' + ent.web; html += '<div class="zrg-linea"><b>Sitio web:</b> <a href="' + webU + '" target="_blank" rel="noopener">' + ent.web + '</a></div>'; }
     if (!ent.telefono && !ent.correo && !ent.web && esTipoGrupoAfin(ent.tipo) === false) html += '<div class="zrg-linea" style="color:#999;">Sin teléfono, correo ni sitio web. Usa Editar para agregarlos.</div>';
-    if (ent.empleadosElegibles) html += '<div class="zrg-linea"><b># Potencial de Participantes (estimado):</b> ' + ent.empleadosElegibles + '</div>';
+    if (ent.empleadosElegibles) html += '<div class="zrg-linea"><b># Potencial de Participantes (estimado):</b> ' + ent.empleadosElegibles + ' <span style="color:#777;font-size:12px;">(aproximación; se ajusta con la cifra exacta)</span></div>';
     if (ent.empleadosConfirmados) html += '<div class="zrg-linea"><b># Participantes Confirmados:</b> ' + ent.empleadosConfirmados + '</div>';
     if (ent.sectorEconomico) html += '<div class="zrg-linea"><b>Sector Económico:</b> ' + ent.sectorEconomico + '</div>';
     if (ent.publicoPrivado) html += '<div class="zrg-linea"><b>Público/Privado:</b> ' + ent.publicoPrivado + '</div>';
@@ -1289,7 +1292,7 @@
     html += '<div id="zrg-ed-sector-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Sector Económico</label><select id="zrg-ed-sector-' + ent.idEntidad + '"></select></div>';
     html += '<div id="zrg-ed-pubpriv-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Público/Privado</label><select id="zrg-ed-pubpriv-' + ent.idEntidad + '"><option value="">Selecciona...</option><option value="Privada">Privada</option><option value="Pública">Pública</option></select></div>';
     html += '<div id="zrg-ed-religion-wrap-' + ent.idEntidad + '" class="zrg-oculto"><label>Religión</label><select id="zrg-ed-religion-' + ent.idEntidad + '"></select></div>';
-    html += '<label># Potencial de Participantes Elegibles</label>';
+    html += '<label># Potencial de Participantes Elegibles</label><div style="font-size:12px;color:#666;margin:-2px 0 4px;">Si no tienes la cifra exacta, deja el estimado. Cuando la sepas, corrígela aquí.</div>';
     html += '<input type="text" id="zrg-ed-empleados-' + ent.idEntidad + '" value="' + String(ent.empleadosElegibles || '').replace(/"/g, '&quot;') + '">';
     if (ES_ADMIN) {
       html += '<label>Participantes Confirmados (MAXX) — solo tú</label>';
