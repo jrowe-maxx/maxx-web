@@ -2821,12 +2821,16 @@ var qrcode = function() {
     grState.error = false;
     grRender();
     // Escuelas del lote que todavía no son Entidad (se dan de alta solas al elegirlas). Si falla, no estorba.
-    fetch(ESCUELAS_API_GR + '?accion=misEscuelas&ref=' + encodeURIComponent(REF_PRUEBA))
+    fetch(ESCUELAS_API_GR + '?accion=misEscuelas&ref=' + encodeURIComponent(REF_PRUEBA) + '&_=' + Date.now(), { cache: 'no-store' })
       .then(function(res) { return res.json(); })
       .then(function(d) { if (d && d.exito) { grState.escuelas = (d.escuelas || []).filter(function(e) { return !e.idEntidad && e.resultado !== 'No interesada'; }); grRender(); } })
       .catch(function() {});
-    fetch(GRUPOS_API_URL + '?accion=misEntidades&ref=' + encodeURIComponent(REF_PRUEBA))
+    // Primero el servicio de Zona (publico, funciona tambien en celular); si falla, el de Grupos. Sin cache del navegador.
+    var qsEnt = '?accion=misEntidades&ref=' + encodeURIComponent(REF_PRUEBA) + '&_=' + Date.now();
+    fetch(ESCUELAS_API_GR + qsEnt, { cache: 'no-store' })
       .then(function(res) { return res.json(); })
+      .then(function(d0) { if (!d0 || !d0.exito) { throw new Error('respuesta no valida'); } return d0; })
+      .catch(function() { return fetch(GRUPOS_API_URL + qsEnt, { cache: 'no-store' }).then(function(res) { return res.json(); }); })
       .then(function(data) {
         grState.cargando = false;
         if (!data || !data.exito) { grState.error = true; grRender(); return; }
