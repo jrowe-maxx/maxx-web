@@ -75,6 +75,8 @@
   .gr-texto-et { color: #185FA5; font-weight: bold; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 6px; }
   .gr-texto-cuerpo { font-size: 14px; color: #222; line-height: 1.5; margin-bottom: 10px; word-break: break-word; }
   .gr-copiar { background: #639922; margin-bottom: 0; }
+  .gr-correo { background: #185FA5; color: #fff; margin-bottom: 0; display: inline-block; width: auto; text-decoration: none; box-sizing: border-box; }
+  .gr-correo:hover { background: #378ADD; }
   .gr-fila { border: 1px solid #E6F1FB; border-radius: 8px; padding: 10px 12px; margin: 0 0 8px 0; font-size: 14px; line-height: 1.45; background: white; }
   .gr-fila-d { font-weight: bold; color: #042C53; margin-bottom: 4px; }
   .gr-fila-r { color: #222; }
@@ -2885,6 +2887,7 @@ var qrcode = function() {
   };
 
   var grTextosCopiables = [];
+  var grUltimoAsunto = -1;   // indice del ultimo asunto de correo (para armar el boton Abrir en mi correo)
   var grCamino = [];      // índices de las opciones elegidas, en orden
   var grClaveGuia = '';   // tipo|entidad|contacto para saber cuándo reiniciar
 
@@ -2934,12 +2937,27 @@ var qrcode = function() {
     return grEsc(texto).replace(/\[([^\]]+)\]/g, '<mark class="gr-llenar">[$1]</mark>').replace(/\n/g, '<br>');
   }
 
+  // Enlace que abre el correo del referidor con destinatario, asunto y texto ya escritos.
+  // Destinatario: correo del contacto elegido o, si no hay, el primer correo de la Entidad.
+  function grMailto(asunto, cuerpo) {
+    var ent = grEntidadElegida(), con = grContactoElegido(), para = '';
+    if (con && con.correo) para = String(con.correo).split(';')[0].trim();
+    else if (ent && ent.correo) para = String(ent.correo).split(';')[0].trim();
+    return 'mailto:' + encodeURIComponent(para).replace(/%40/g, '@') + '?subject=' + encodeURIComponent(asunto) + '&body=' + encodeURIComponent(String(cuerpo).replace(/\n/g, '\r\n'));
+  }
   function grBloqueTexto(etiqueta, texto) {
     var i = grTextosCopiables.push(texto) - 1;
+    var esAsunto = (etiqueta.indexOf('Correo — asunto') === 0 || etiqueta.indexOf('Asunto (solo correo)') === 0);
+    if (esAsunto) grUltimoAsunto = i;
+    var botonCorreo = '';
+    if ((etiqueta === 'Correo — mensaje' || etiqueta === 'Mensaje') && grUltimoAsunto >= 0) {
+      botonCorreo = ' <a class="btn gr-correo" target="_top" href="' + grEsc(grMailto(grTextosCopiables[grUltimoAsunto], texto)) + '">Abrir en mi correo</a>';
+      grUltimoAsunto = -1;
+    }
     return '<div class="gr-texto">' +
       '<div class="gr-texto-et">' + grEsc(etiqueta) + '</div>' +
       '<div class="gr-texto-cuerpo">' + grMostrar(texto) + '</div>' +
-      '<button class="btn gr-copiar" data-i="' + i + '">Copiar texto</button>' +
+      '<button class="btn gr-copiar" data-i="' + i + '">Copiar texto</button>' + botonCorreo +
     '</div>';
   }
   function grGuion(texto) { return '<div class="gr-guion">' + grMostrar(texto) + '</div>'; }
@@ -3171,6 +3189,7 @@ var qrcode = function() {
     var clave = t.id + '|' + grState.idEntidad;
     if (clave !== grClaveGuia) { grClaveGuia = clave; grCamino = []; grState.idContacto = ''; }
     grTextosCopiables = [];
+    grUltimoAsunto = -1;
 
     var arbol = grArbol(t, cfg);
     var titulo = (t.journey === 'A') ? ('Guía paso a paso — ' + t.singular) : ('Guía paso a paso — ' + (cfg.fuente === 'F' ? 'Grupo de Facebook' : 'Grupo de WhatsApp'));
