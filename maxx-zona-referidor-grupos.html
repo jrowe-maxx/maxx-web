@@ -1105,7 +1105,8 @@
     }
     var et = etapaDe(ent);
     var terminal = (et === 'Programa Cerrado' || et === 'No Interesado');
-    if (ent.proximoSeguimiento && ent.proximoSeguimiento <= Date.now() && !terminal) {
+    var inicioHoySeg = new Date(); inicioHoySeg.setHours(0,0,0,0);   // atrasado = fecha anterior a hoy (hoy mismo NO es atrasado)
+    if (ent.proximoSeguimiento && ent.proximoSeguimiento < inicioHoySeg.getTime() && !terminal) {
       return { texto: 'Seguimiento atrasado', alerta: true };
     }
     if (et === 'Registrado') return { texto: 'Por gestionar', alerta: true };
