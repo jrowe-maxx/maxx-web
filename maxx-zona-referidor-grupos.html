@@ -10,8 +10,10 @@
 .zrg-btn { background: #185FA5; color: white; border: none; border-radius: 8px; padding: 11px 18px; font-size: 14px; font-weight: bold; cursor: pointer; }
 .zrg-btn:hover { background: #378ADD; }
 .zrg-btn:disabled { background: #ccc; cursor: default; }
-.zrg-btn-secundario { background: #DCEAFB; color: #185FA5; border: 2px solid #DCEAFB; }
-.zrg-btn-secundario:hover { background: #C5DCF5; border-color: #C5DCF5; }
+/* Paleta de botones: VERDE = guardar, NARANJA = cita con Javier, AZUL (uno solo) = editar / agregar / cualquier otra accion. */
+.zrg-btn-secundario { background: #185FA5; color: #fff; border: none; }
+.zrg-btn-secundario:hover { background: #378ADD; }
+.zrg-btn-secundario:disabled { background: #ccc; }
 .zrg-btn-chico { padding: 6px 12px; font-size: 12px; }
 .zrg-btn-guardado { background: #639922 !important; }
 .zrg-btn-destacado { background: #EF9F27 !important; color: white !important; border: none !important; }
@@ -488,7 +490,7 @@
         '<button type="button" class="zrg-btn zrg-btn-chico" data-esc-acc="intento" data-esc-id="' + escH(id) + '">Registrar intento</button>' +
         '<button type="button" class="zrg-btn zrg-btn-chico" style="background:#639922;" data-esc-acc="contactada" data-esc-id="' + escH(id) + '">Hablé con alguien</button>' +
         '<button type="button" class="zrg-btn zrg-btn-secundario zrg-btn-chico" data-esc-acc="cita" data-esc-id="' + escH(id) + '">Se agendó cita</button>' +
-        '<button type="button" class="zrg-btn zrg-btn-chico" style="background:#FAECE7; color:#C0392B;" data-esc-acc="no_interesada" data-esc-id="' + escH(id) + '">No le interesa</button></div>' +
+        '<button type="button" class="zrg-btn zrg-btn-chico" data-esc-acc="no_interesada" data-esc-id="' + escH(id) + '">No le interesa</button></div>' +
         '<div class="zrg-esc-form zrg-oculto" id="zrg-esc-f-' + escH(id) + '">' +
         '<div id="zrg-esc-canal-w-' + escH(id) + '"><label>Canal</label><select id="zrg-esc-canal-' + escH(id) + '">' + opcionesEsc(RESUMEN_ESC.canales, 'Elige...') + '</select></div>' +
         '<div id="zrg-esc-con-w-' + escH(id) + '"><label>Nombre de con quien hablaste</label><input type="text" id="zrg-esc-nom-' + escH(id) + '"><label>Puesto</label><input type="text" id="zrg-esc-pue-' + escH(id) + '"></div>' +
@@ -501,7 +503,7 @@
       h += '<div style="margin-top:10px;"><div class="zrg-linea">¿Algún dato está mal (nombre, teléfono, correo, dirección)? Conviértela en Entidad y ahí podrás editarlo.</div><button type="button" class="zrg-btn zrg-btn-secundario zrg-btn-chico" data-esc-alta="' + escH(id) + '">Convertir en Entidad para editar sus datos</button></div>';
     }
     if (!e.idEntidad && (e.contactoNombre || e.resultado === 'Cita agendada' || e.resultado === 'Contactada')) {
-      h += '<div style="margin-top:6px;"><div class="zrg-linea" style="color:#B02A2A;">No se pudo convertir en Entidad automáticamente.</div><button type="button" class="zrg-btn zrg-btn-destacado zrg-btn-chico" data-esc-alta="' + escH(id) + '">Reintentar convertir en Entidad</button></div>';
+      h += '<div style="margin-top:6px;"><div class="zrg-linea" style="color:#B02A2A;">No se pudo convertir en Entidad automáticamente.</div><button type="button" class="zrg-btn zrg-btn-chico" data-esc-alta="' + escH(id) + '">Reintentar convertir en Entidad</button></div>';
     }
     if (e.notas) h += '<div class="zrg-esc-notas">' + escH(e.notas) + '</div>';
     h += '</div>';
@@ -1419,7 +1421,7 @@
     for (var a = anioBase; a <= anioBase + 1; a++) html += '<option value="' + a + '"' + (a === anioActual ? ' selected' : '') + '>' + a + '</option>';
     html += '</select>';
     html += '</div>';
-    html += '<button class="zrg-btn zrg-btn-chico zrg-btn-verde" style="margin-top:8px;" onclick="window.zrgGuardarSeguimiento(\'' + ent.idEntidad + '\')">Guardar fecha</button>';
+    html += '<button class="zrg-btn zrg-btn-chico zrg-btn-verde" style="margin-top:8px;" id="zrg-btn-seg-' + ent.idEntidad + '" onclick="window.zrgGuardarSeguimiento(\'' + ent.idEntidad + '\')">Guardar fecha</button>';
     html += '<div id="zrg-estado-seg-' + ent.idEntidad + '" class="zrg-estado-error" style="font-size:12px;"></div>';
     html += '</div>';
 
@@ -1441,7 +1443,7 @@
         } else {
           g.horarios.slice().sort(function(a, b) { return a.numeroModulo - b.numeroModulo; }).forEach(function(h) {
             html += '<div class="zrg-linea">📅 Módulo ' + h.numeroModulo + ' — ' + h.tituloModulo + ': ' + h.fecha + ' ' + h.hora + ' · ' + h.registrados + '/' + h.cupoMaximo + ' registrados · <b>' + h.estadoSesion + '</b>' +
-              (esTipoGrupoAfin(ent.tipo) ? ' <button class="zrg-btn zrg-btn-destacado zrg-btn-chico" onclick="window.zrgConvertirSugerencias(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Asigna y Envía Horario a Participantes</button>' : '') +
+              (esTipoGrupoAfin(ent.tipo) ? ' <button class="zrg-btn zrg-btn-chico" onclick="window.zrgConvertirSugerencias(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Asigna y Envía Horario a Participantes</button>' : '') +
               ' <button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgReenviarInvitacion(\'' + ent.idEntidad + '\', \'' + h.idHorario + '\')">Reenviar invitación a todos</button>' +
               ' <button class="zrg-btn zrg-btn-secundario zrg-btn-chico" onclick="window.zrgMostrarQrAsistencia(\'' + h.idHorario + '\')">Mostrar Link/QR de Asistencia</button>' +
               '<div id="zrg-qr-' + h.idHorario + '" class="zrg-oculto" style="margin-top:8px; background:white; border:2px solid #E6F1FB; border-radius:10px; padding:14px;"></div>' + '</div>';
@@ -1523,8 +1525,9 @@
         (ES_ADMIN && document.getElementById('zrg-ed-empleadosconf-' + ent.idEntidad).value !== valoresOriginales.empleadosconf);
       elBtnGuardarEd.disabled = !cambio;
       elBtnGuardarEd.textContent = cambio ? 'Guardar cambios' : 'Sin cambios';
+      elBtnGuardarEd.style.display = cambio ? '' : 'none';
       var elBtnTop = document.getElementById('zrg-btn-guardar-ed-top-' + ent.idEntidad);
-      if (elBtnTop) { elBtnTop.disabled = !cambio; elBtnTop.textContent = cambio ? 'Guardar cambios' : 'Sin cambios'; }
+      if (elBtnTop) { elBtnTop.disabled = !cambio; elBtnTop.textContent = cambio ? 'Guardar cambios' : 'Sin cambios'; elBtnTop.style.display = cambio ? '' : 'none'; }
       elBtnGuardarEd.classList.remove('zrg-btn-guardado');
     }
     camposEdicion.forEach(function(prefijo) {
@@ -1532,6 +1535,37 @@
       document.getElementById(prefijo + ent.idEntidad).addEventListener('change', revisarCambios);
     });
     elContenedorPlantelesEd.addEventListener('input', revisarCambios);
+    revisarCambios();
+
+    // Cada boton de Guardar solo aparece cuando hubo un cambio en SU seccion.
+    (function() {
+      var id = ent.idEntidad;
+      function $(x) { return document.getElementById(x + id); }
+      var selE = $('zrg-estado-sel-'), razE = $('zrg-estado-razon-'), btnE = $('zrg-btn-estado-');
+      if (selE && btnE) {
+        var sel0 = selE.value, raz0 = razE ? razE.value.trim() : '';
+        var refE = function() {
+          var pideRazon = (selE.value === 'Pendiente' || selE.value === 'No Interesado');
+          var cambio = selE.value !== sel0 || (pideRazon && razE && razE.value.trim() !== raz0);
+          btnE.style.display = cambio ? '' : 'none';
+        };
+        selE.addEventListener('change', refE); selE.addEventListener('input', refE);
+        if (razE) razE.addEventListener('input', refE);
+        refE();
+      }
+      var taN = $('zrg-nota-nueva-'), btnN = $('zrg-btn-guardar-nota-');
+      if (taN && btnN) {
+        var refN = function() { btnN.style.display = taN.value.trim() ? '' : 'none'; };
+        taN.addEventListener('input', refN); refN();
+      }
+      var sd = $('zrg-ed-seg-dia-'), sm = $('zrg-ed-seg-mes-'), sa = $('zrg-ed-seg-anio-'), btnS = $('zrg-btn-seg-');
+      if (sd && sm && sa && btnS) {
+        var d0 = sd.value, m0 = sm.value, a0 = sa.value;
+        var refS = function() { btnS.style.display = (sd.value !== d0 || sm.value !== m0 || sa.value !== a0) ? '' : 'none'; };
+        [sd, sm, sa].forEach(function(el) { el.addEventListener('change', refS); });
+        refS();
+      }
+    })();
   }
 
   window.zrgCerrarDetalle = function() {
